@@ -164,7 +164,7 @@ overflow-x:scroll;
 options(shiny.maxRequestSize = 250 * 1024^2) #Max file size to be uploaded is 250mb
 ui <- shinyUI(
   fluidPage(
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     inlineCSS(css),
     # themeSelector(),
     theme = shinythemes::shinytheme("darkly"),
