@@ -28,6 +28,7 @@ if (interactive()) {
       'DT',
       'tidyverse',
       'remotes',
+      'magrittr',
       #For creating the plot
       'ggplot2',
       'ggbeeswarm',
