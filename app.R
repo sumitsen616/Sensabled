@@ -332,7 +332,7 @@ ui <- shinyUI(
               bs_accordion('Vioplot') |>
                 bs_set_opts(use_head_link =
                               T) |>
-                bs_append(
+                bslib::bs_append(
                   title = 'Modify Violin Shape',
                   content = list(
                     #Selecting border width of the plot
@@ -357,7 +357,7 @@ ui <- shinyUI(
                     uiOutput("hLineV")
                   )
                 ) |>
-                bs_append(
+                bslib::bs_append(
                   title = 'Modify Plot Axes',
                   content = list(
                     #Y-axis Title
@@ -425,7 +425,7 @@ ui <- shinyUI(
                     )
                   )
                 ) |>
-                bs_append(
+                bslib::bs_append(
                   title = 'Modify Axes Font',
                   content = list(
                     #Selecting type face
@@ -495,7 +495,7 @@ ui <- shinyUI(
                     )
                   )
                 ) |>
-                bs_append(
+                bslib::bs_append(
                   title = 'Modify Plot Theme',
                   content = list(
                     radioButtons(
@@ -654,7 +654,7 @@ ui <- shinyUI(
             bs_accordion('Boxplot') |>
               bs_set_opts(use_heading_link =
                             TRUE) |>
-              bs_append(
+              bslib::bs_append(
                 title = 'Modify Box shape',
                 content = list(
                   #Choosing box-width
@@ -702,7 +702,7 @@ ui <- shinyUI(
                   uiOutput("dropDown1")
                 )
               ) |>
-              bs_append(
+              bslib::bs_append(
                 title = 'Modify Axes',
                 content = list(
                   #Y-axis Title
@@ -773,7 +773,7 @@ ui <- shinyUI(
                   uiOutput('showbreak')
                 )
               ) |>
-              bs_append(
+              bslib::bs_append(
                 title = 'Modify Font',
                 content = list(
                   #Select type face
@@ -843,7 +843,7 @@ ui <- shinyUI(
                   )
                 )
               ) |>
-              bs_append(
+              bslib::bs_append(
                 title = 'Modify Plot Theme',
                 content = list(
                   #Choosing the plot background
