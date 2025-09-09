@@ -329,9 +329,9 @@ ui <- shinyUI(
             tabPanel(
               "General Settings",
               br(),
-              bs_accordion('Vioplot') %>%
+              bs_accordion('Vioplot') |>
                 bs_set_opts(use_head_link =
-                              T) %>%
+                              T) |>
                 bs_append(
                   title = 'Modify Violin Shape',
                   content = list(
@@ -356,7 +356,7 @@ ui <- shinyUI(
                     #Selecting horizontal line for median
                     uiOutput("hLineV")
                   )
-                ) %>%
+                ) |>
                 bs_append(
                   title = 'Modify Plot Axes',
                   content = list(
@@ -424,7 +424,7 @@ ui <- shinyUI(
                       max = 2
                     )
                   )
-                ) %>%
+                ) |>
                 bs_append(
                   title = 'Modify Axes Font',
                   content = list(
@@ -494,7 +494,7 @@ ui <- shinyUI(
                       value = 30
                     )
                   )
-                ) %>%
+                ) |>
                 bs_append(
                   title = 'Modify Plot Theme',
                   content = list(
@@ -651,9 +651,9 @@ ui <- shinyUI(
           tabPanel(
             "General Settings",
             br(),
-            bs_accordion('Boxplot') %>%
+            bs_accordion('Boxplot') |>
               bs_set_opts(use_heading_link =
-                            TRUE) %>%
+                            TRUE) |>
               bs_append(
                 title = 'Modify Box shape',
                 content = list(
@@ -701,7 +701,7 @@ ui <- shinyUI(
                   #Choosing the point shape
                   uiOutput("dropDown1")
                 )
-              ) %>%
+              ) |>
               bs_append(
                 title = 'Modify Axes',
                 content = list(
@@ -772,7 +772,7 @@ ui <- shinyUI(
                                   F),
                   uiOutput('showbreak')
                 )
-              ) %>%
+              ) |>
               bs_append(
                 title = 'Modify Font',
                 content = list(
@@ -842,7 +842,7 @@ ui <- shinyUI(
                     value = 30
                   )
                 )
-              ) %>%
+              ) |>
               bs_append(
                 title = 'Modify Plot Theme',
                 content = list(
@@ -1224,9 +1224,9 @@ server <- shinyServer(function(input, output, session) {
   orderdata <- reactive({
     newcols <- all_of(colnames(data()))
     order_data <-
-      data() %>% pivot_longer(cols = newcols,
+      data() |> pivot_longer(cols = newcols,
                               names_to = "variable",
-                              values_to = "value") %>%
+                              values_to = "value") |>
       arrange(variable)
     # for (i in 1:nrow(orderdata)){
     #   if (is.na(order_data[i,2])==TRUE){
