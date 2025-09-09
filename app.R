@@ -2302,7 +2302,7 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if ((input$radio1V == "Yes")) {
-      ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
         geom_violin(
           mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
@@ -2358,7 +2358,7 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else{
-      ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
         geom_violin(
           mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
@@ -2415,7 +2415,7 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if (input$radio1V == "Yes") {
-      ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
         geom_violin(
           mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
@@ -2521,7 +2521,7 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else if ((input$radio1V == "No")) {
-      ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
         geom_violin(
           mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
@@ -2680,7 +2680,7 @@ server <- shinyServer(function(input, output, session) {
     x <- orderdata()
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
-    ggplot(x, aes(x = x_axis, y = value)) +
+    ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
       geom_boxplot(
         mapping = aes(fill = x_axis, color = variable),
         width = input$boxwidth,
