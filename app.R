@@ -329,7 +329,7 @@ ui <- shinyUI(
             tabPanel(
               "General Settings",
               br(),
-              bs_accordion('Vioplot') |>
+              bsplus::bs_accordion('Vioplot') |>
                 bsplus::bs_set_opts(use_head_link =
                               T) |>
                 bsplus::bs_append(
@@ -651,7 +651,7 @@ ui <- shinyUI(
           tabPanel(
             "General Settings",
             br(),
-            bs_accordion('Boxplot') |>
+            bsplus::bs_accordion('Boxplot') |>
               bsplus::bs_set_opts(use_heading_link =
                             TRUE) |>
               bsplus::bs_append(
