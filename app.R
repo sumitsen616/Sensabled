@@ -69,52 +69,8 @@ if (interactive()) {
   ##Copy Plot to clipboard code was written by Stephane Laurent
   ##from Stackexchange and modified accordingly
   js <- '
-async function getImageBlobFromUrl(url) {
-  const fetchedImageData = await fetch(url);
-  const blob = await fetchedImageData.blob();
-  return blob;
-}
-$(document).ready(function () {
-  $("#copybtn2").on("click", async () => {
-    const src = $("#MyBPlot>img").attr("src");
-    try {
-      const blob = await getImageBlobFromUrl(src);
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob
-        })
-      ]);
-      alert("Image copied to clipboard!");
-    } catch (err) {
-      console.error(err.name, err.message);
-      alert("There was an error while copying image to clipboard :/");
-    }
-  });
-});
 '
 jsV <- '
-async function getImageBlobFromUrl(url) {
-  const fetchedImageData = await fetch(url);
-  const blob = await fetchedImageData.blob();
-  return blob;
-}
-$(document).ready(function () {
-  $("#copybtn").on("click", async () => {
-    const src = $("#MyVPlot>img").attr("src");
-    try {
-      const blob = await getImageBlobFromUrl(src);
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob
-        })
-      ]);
-      alert("Image copied to clipboard!");
-    } catch (err) {
-      console.error(err.name, err.message);
-      alert("There was an error while copying image to clipboard :/");
-    }
-  });
-});
 '
 }
 #Tab Panel enable/disable script was taken from bretauv
@@ -193,11 +149,12 @@ ui <- shinyUI(
   fluidPage(
     shinyjs::useShinyjs(),
     shinyjs::inlineCSS(css),
+    # shinyjs::runjs(js),
     # themeSelector(),
     theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
-      HTML((css),(js)
+      HTML((css)
       )
     )),
     # App Title
@@ -1131,13 +1088,63 @@ server <- shinyServer(function(input, output, session) {
       shinyjs::enable("savesettingV")
     }
   })
-  # observe({
-  #   req(input$file1)
-  #   inFile <- input$file1
-  #   updateSelectInput(session, "sheetlist", "Select the sheet to plot your data", choices = sheetName())
-  # })
-  #
-  
+  observeEvent(
+    input$MyVPlot,
+    {
+      shinyjs::runjs(
+        '   async function getImageBlobFromUrl(url) {
+            const fetchedImageData = await fetch(url);
+            const blob = await fetchedImageData.blob();
+            return blob;
+          }
+          $(document).ready(function () {
+            $("#copybtn").on("click", async () => {
+              const src = $("#MyVPlot>img").attr("src");
+              try {
+                const blob = await getImageBlobFromUrl(src);
+                await navigator.clipboard.write([
+                  new ClipboardItem({
+                    [blob.type]: blob
+                  })
+                ]);
+                alert("Image copied to clipboard!");
+              } catch (err) {
+                console.error(err.name, err.message);
+                alert("There was an error while copying image to clipboard :/");
+              }
+            });
+          });'
+      )
+    })
+  observeEvent(
+    input$MyBPlot,
+    {
+      shinyjs::runjs(
+         'async function getImageBlobFromUrl(url) {
+          const fetchedImageData = await fetch(url);
+          const blob = await fetchedImageData.blob();
+          return blob;
+        }
+        $(document).ready(function () {
+          $("#copybtn2").on("click", async () => {
+            const src = $("#MyBPlot>img").attr("src");
+            try {
+              const blob = await getImageBlobFromUrl(src);
+              await navigator.clipboard.write([
+                new ClipboardItem({
+                  [blob.type]: blob
+                })
+              ]);
+              alert("Image copied to clipboard!");
+            } catch (err) {
+              console.error(err.name, err.message);
+              alert("There was an error while copying image to clipboard :/");
+            }
+          });
+        });'
+      )
+    })
+
   sheetName <- reactive({
     req(input$file1) #  require that the input is available
     inFile <- input$file1
@@ -5843,13 +5850,13 @@ server <- shinyServer(function(input, output, session) {
   })
   
   ## JS- To initiate copy to clipboard for the plot
-  observeEvent(input[["MyBPlot"]], {
-    shinyjs::runjs(HTML(js))
-  }, ignoreNULL = FALSE)
-  
-  observeEvent(input[["MyVPlot"]], {
-    shinyjs::runjs(HTML(jsV))
-  }, ignoreNULL = FALSE)
+  # observeEvent(input[["MyBPlot"]], {
+  #   shinyjs::runjs(HTML(js))
+  # }, ignoreNULL = FALSE)
+  # 
+  # observeEvent(input[["MyVPlot"]], {
+  #   shinyjs::runjs(HTML(jsV))
+  # }, ignoreNULL = FALSE)
 })
 
 shinyApp(ui = ui, server = server)
