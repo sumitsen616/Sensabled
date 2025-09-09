@@ -2316,7 +2316,7 @@ server <- shinyServer(function(input, output, session) {
           mapping=ggplot2::aes(color = variable),
           lwd = 1
         ) +
-        geom_hline(
+        ggplot2::geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
@@ -2375,7 +2375,7 @@ server <- shinyServer(function(input, output, session) {
           color = 1,
           lwd = 1
         ) +
-        geom_hline(
+        ggplot2::geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
@@ -2432,7 +2432,7 @@ server <- shinyServer(function(input, output, session) {
           color = 1,
           lwd = 1
         ) +
-        geom_hline(
+        ggplot2::geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
@@ -2538,7 +2538,7 @@ server <- shinyServer(function(input, output, session) {
           color = 1,
           lwd = 1
         ) +
-        geom_hline(
+        ggplot2::geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
