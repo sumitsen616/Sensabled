@@ -170,7 +170,7 @@ ui <- shinyUI(
     theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
-      HTML(
+      HTML((css),
         # CSS modification of the Shiny Notification to the top right corner from default position
         ".shiny-notification {
              position:fixed;
