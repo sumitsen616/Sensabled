@@ -156,7 +156,7 @@ overflow-x:scroll;
 }
 
 "
-
+}
 #######################################
 ####### The UI Code Starts Here #######
 #######################################
@@ -5814,5 +5814,5 @@ server <- shinyServer(function(input, output, session) {
   }, ignoreNULL = FALSE)
 })
 
-}
+
 shinyApp(ui = ui, server = server)
