@@ -5844,11 +5844,11 @@ server <- shinyServer(function(input, output, session) {
   
   ## JS- To initiate copy to clipboard for the plot
   observeEvent(input[["MyBPlot"]], {
-    runjs(HTML(js))
+    shinyjs::runjs(HTML(js))
   }, ignoreNULL = FALSE)
   
   observeEvent(input[["MyVPlot"]], {
-    runjs(HTML(jsV))
+    shinyjs::runjs(HTML(jsV))
   }, ignoreNULL = FALSE)
 })
 
