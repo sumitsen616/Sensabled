@@ -115,6 +115,7 @@ $(document).ready(function () {
   });
 });
 '
+}
 #Tab Panel enable/disable script was taken from bretauv
 ##of Stackexchange and modified accordingly
 css <- "
@@ -154,9 +155,34 @@ overflow-x:scroll;
 .checkbox {
       font-weight:800;
 }
+/* CSS modification of the Shiny Notification to the top right corner from default position*/
+.shiny-notification {
+          position:fixed;
+          top: calc(2%);
+          right: calc(1%);
+        }
+# CSS fix for overflowing DataTable in modal box
+.modal-lg div{
+  overflow-y:scroll;
+}
+
+#themeToggle,
+.visually-hidden {
+  dislay:block;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  padding:3px;
+},
+#themeToggle + span .fa-sun {
+font-size: 16pt;
+padding:3px;
+}
 
 "
-}
 #######################################
 ####### The UI Code Starts Here #######
 #######################################
@@ -170,33 +196,7 @@ ui <- shinyUI(
     theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
-      HTML(
-        # CSS modification of the Shiny Notification to the top right corner from default position
-        ".shiny-notification {
-             position:fixed;
-             top: calc(2%);
-             right: calc(1%);
-      }
-      # CSS fix for overflowing DataTable in modal box
-             .modal-lg div{
-             overflow-y:scroll;
-             }
-
-      #themeToggle,
-      .visually-hidden {
-        dislay:block;
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        clip: rect(0 0 0 0);
-        clip: rect(0, 0, 0, 0);
-        overflow: hidden;
-        padding:3px;
-      },
-      #themeToggle + span .fa-sun {
-      font-size: 16pt;
-      padding:3px;
-      }"
+      HTML((css)
       )
     )),
     # App Title
