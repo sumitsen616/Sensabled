@@ -5814,5 +5814,5 @@ server <- shinyServer(function(input, output, session) {
   }, ignoreNULL = FALSE)
 })
 
-shinyApp(ui = ui, server = server)
 }
+shinyApp(ui = ui, server = server)
