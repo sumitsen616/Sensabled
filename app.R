@@ -2309,8 +2309,8 @@ server <- shinyServer(function(input, output, session) {
           trim = TRUE,
           scale = "count"
         ) +
-        stat_summary(fun = median) +
-        stat_boxplot(
+        ggplot2::stat_summary(fun = median) +
+        ggplot2::stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           mapping=ggplot2::aes(color = variable),
@@ -2368,8 +2368,8 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        stat_summary(fun = median) +
-        stat_boxplot(
+        ggplot2::stat_summary(fun = median) +
+        ggplot2::stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
@@ -2425,8 +2425,8 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        stat_summary(fun = median) +
-        stat_boxplot(
+        ggplot2::stat_summary(fun = median) +
+        ggplot2::stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
@@ -2531,8 +2531,8 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        stat_summary(fun = median) +
-        stat_boxplot(
+        ggplot2::stat_summary(fun = median) +
+        ggplot2::stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
@@ -2691,8 +2691,8 @@ server <- shinyServer(function(input, output, session) {
         notch = input$notch,
         outlier.shape = as.numeric(input$outlier)
       ) +
-      stat_summary(fun = median) +
-      stat_boxplot(
+      ggplot2::stat_summary(fun = median) +
+      ggplot2::stat_boxplot(
         geom = "errorbar",
         width = 0.15,
         mapping = ggplot2::aes(color = variable),
