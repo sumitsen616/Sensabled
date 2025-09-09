@@ -170,7 +170,7 @@ ui <- shinyUI(
     theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
-      HTML((css),
+      HTML(
         # CSS modification of the Shiny Notification to the top right corner from default position
         ".shiny-notification {
              position:fixed;
@@ -546,37 +546,6 @@ ui <- shinyUI(
                 choices = c('No' = 0, 'Yes' =
                               5),
                 inline = T
-              )
-            ),
-            
-            #Tab for significance analysis
-            tabPanel(
-              "Statistical Analysis",
-              br(),
-              #Get descriptive statistics
-              actionButton('descstatV', 'Get Descriptive Stat', style =
-                             "margin-bottom:20px;"),
-              uiOutput('descsStatOutV'),
-              #Running Normality test
-              actionButton(
-                "swtestsubmitV",
-                "Run Normality Test",
-                title = 'Click to perform Shapiro-Wilk test',
-                style = "margin-bottom:20px;"
-              ),
-              uiOutput('normalityTestV'),
-              br(),
-              #Running the comparison tests
-              checkboxInput("comptestV", label =
-                              "Run significance test for your dataset:"),
-              tagList(
-                uiOutput("comptestshow1V"),
-                uiOutput("comptestshow2V"),
-                uiOutput("comptestBtnV"),
-                uiOutput("posthoctitleV"),
-                uiOutput("posthocListV"),
-                uiOutput("posthocBtnV"),
-                uiOutput("tableModalV")
               ),
               #Adding annotation on plot
               tagList(
@@ -584,7 +553,6 @@ ui <- shinyUI(
                 uiOutput('askAnnotationV'),
                 uiOutput('chooseAnnotationV')
               )
-              
             )
           )),
           mainPanel(
@@ -944,6 +912,12 @@ ui <- shinyUI(
               choices = c('No' = 0, 'Yes' =
                             5),
               inline = T
+            ),
+            #Adding annotation on plot
+            tagList(
+              uiOutput('grpselect'),
+              uiOutput('askAnnotationV'),
+              uiOutput('chooseAnnotation')
             )
           ),
           #Tab for significance analysis
@@ -974,12 +948,6 @@ ui <- shinyUI(
               uiOutput("posthocList"),
               uiOutput("posthocBtn"),
               uiOutput("tableModal")
-            ),
-            #Adding annotation on plot
-            tagList(
-              uiOutput('grpselect'),
-              uiOutput('askAnnotation'),
-              uiOutput('chooseAnnotation')
             )
           )
         )),
@@ -1071,6 +1039,37 @@ ui <- shinyUI(
             z-index:999;"
         )
       )),
+      #Tab for significance analysis
+      tabPanel(
+        "Statistical Analysis",pageWithSidebar(div(),
+          sidebarPanel(#Get descriptive statistics
+            actionButton('descstatV', 'Get Descriptive Stat', style =
+                           "margin-bottom:20px;"),
+            # uiOutput('descsStatOutV'),
+            #Running Normality test
+            actionButton(
+              "swtestsubmitV",
+              "Run Normality Test",
+              title = 'Click to perform Shapiro-Wilk test',
+              style = "margin-bottom:20px;"
+            ),
+            # uiOutput('normalityTestV'),
+            br(),
+            #Running the comparison tests
+            checkboxInput("comptestV", label =
+                            "Run significance test for your dataset:"),
+            tagList(
+              uiOutput("comptestshow1V"),
+              uiOutput("comptestshow2V"),
+              uiOutput("comptestBtnV"),
+              uiOutput("posthoctitleV"),
+              uiOutput("posthocListV"),
+              uiOutput("posthocBtnV"),
+              uiOutput("tableModalV")
+            )),
+          mainPanel(uiOutput('stattableout'))
+        )
+      ),
       tabPanel(
         "Info",
         p(
@@ -2893,7 +2892,7 @@ server <- shinyServer(function(input, output, session) {
   
   #Descriptive test report display
   output$descsStatOut <- renderUI({
-    bsModal(
+    shinyBS::bsModal(
       'descModal',
       title = "Result of Descriptive Statistics",
       'descstat',
@@ -2936,8 +2935,8 @@ server <- shinyServer(function(input, output, session) {
     descTab <- descTab[, 2:ncol(descTab)]
   })
   
-  output$descTableV <- renderTable(descStatCalcV(), rownames = T)
-  output$descUIV <- renderUI('descTableV')
+  
+  # output$descUIV <- renderUI('descTableV')
   
   #Descriptive test report download
   output$descDnldV <- downloadHandler(
@@ -2950,14 +2949,24 @@ server <- shinyServer(function(input, output, session) {
   )
   
   #Descriptive test report display
-  output$descsStatOutV <- renderUI({
-    bsModal(
-      'descModalV',
-      title = "Result of Descriptive Statistics",
-      'descstatV',
-      tableOutput('descTableV'),
-      downloadButton('descDnldV', 'Download Report', style = "margin-top:10px;")
-    )
+  # output$descsStatOutV <- renderUI({
+  #   shinyBS::bsModal(
+  #     'descModalV',
+  #     title = "Result of Descriptive Statistics",
+  #     'descstatV',
+  #     tableOutput('descTableV'),
+  #     downloadButton('descDnldV', 'Download Report', style = "margin-top:10px;")
+  #   )
+  # })
+  observeEvent(input$descstatV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2("Result of Descriptive statistics"),
+        ## Normality test report display
+        output$descTableV <- renderTable(descStatCalcV(), rownames = T),
+        downloadButton('descDnldV', 'Download Report', style = "margin-top:10px;")
+      )
+    })
   })
   
   ###Normality test for Box Plot###
@@ -3020,7 +3029,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   output$normalityTest <- renderUI({
-    bsModal(
+    shinyBS::bsModal(
       'swtestbox',
       title = "Result of Shapiro-Wilk Test",
       trigger = 'swtestsubmit',
@@ -3085,19 +3094,27 @@ server <- shinyServer(function(input, output, session) {
   )
   
   
-  ## Normality test report display
-  output$SWtestV <- renderTable({
-    format(SWtestdnldV(), nsmall = 5)
-  })
-  output$normalityTestV <- renderUI({
-    bsModal(
-      'swtestvio',
-      title = "Result of Shapiro-Wilk Test",
-      trigger = 'swtestsubmitV',
-      size = 'large',
-      tableOutput('SWtestV'),
-      downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
-    )
+ 
+  
+    # shinyBS::bsModal(
+    #   'swtestvio',
+    #   title = "Result of Shapiro-Wilk Test",
+    #   trigger = 'swtestsubmitV',
+    #   size = 'large',
+    #   tableOutput('SWtestV'),
+    #   downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
+    # )
+    observeEvent(input$swtestsubmitV,{
+      output$stattableout <- renderUI({
+        tagList(
+          h2("Result of Shapiro-Wilk Test"),
+        ## Normality test report display
+        output$SWtestV <- renderTable({
+          format(SWtestdnldV(), nsmall = 5)
+        }),
+        downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
+        )
+    })
   })
   
   
@@ -3259,22 +3276,22 @@ server <- shinyServer(function(input, output, session) {
     # br(),
     # posthocask()
   })
-  output$mixTableV <- renderUI({
-    tagList(tableOutput('sigtableV'), br(), sgrepdnbtV())
-    # br(),
-    # posthocaskV()
-  })
+  # output$mixTableV <- renderUI({
+  #   tagList(tableOutput('sigtableV'), br(), sgrepdnbtV())
+  #   # br(),
+  #   # posthocaskV()
+  # })
   output$tableModal <- renderUI({
     if (input$comptest == T) {
       if (input$comptestB == "group") {
-        bsModal("tableout1",
+        shinyBS::bsModal("tableout1",
                 sigtestTitle(),
                 "comptestrun",
                 size = "large",
                 uiOutput("mixTable"))
       }
       else if (input$comptestB == "pair") {
-        bsModal("tableout2",
+        shinyBS::bsModal("tableout2",
                 PairTestTitl(),
                 "comptestrun",
                 size = "large",
@@ -3282,37 +3299,44 @@ server <- shinyServer(function(input, output, session) {
       }
     }
   })
-  output$tableModalV <- renderUI({
-    if (input$comptestV == T) {
-      if (input$comptestBV == "group") {
-        bsModal(
-          "tableout1V",
-          sigtestTitleV(),
-          "comptestrunV",
-          size = "large",
-          uiOutput("mixTableV")
-        )
+  observeEvent(input$comptestrunV,{
+    output$stattableout <- renderUI({
+      if (input$comptestV == T) {
+        if (input$comptestBV == "group") {
+            tagList(
+              h2(sigtestTitleV()),
+              output$sigtableV <- renderTable({
+                format(sigtestInpV(), nsmall = 5)
+              }),
+              sgrepdnbtV()
+            )
+          
+          
+          # shinyBS::bsModal(
+          #   "tableout1V",
+          #   sigtestTitleV(),
+          #   "comptestrunV",
+          #   size = "large",
+          #   uiOutput("mixTableV")
+          # )
+        }
+        else if (input$comptestBV == "pair") {
+            tagList(
+            h2(PairTestTitlV()),
+            uiOutput("modaloutV")
+          )
+          # shinyBS::bsModal(
+          #   "tableout2V",
+          #   PairTestTitlV(),
+          #   "comptestrunV",
+          #   size = "large",
+          #   uiOutput("modaloutV")
+          # )
+        }
       }
-      else if (input$comptestBV == "pair") {
-        bsModal(
-          "tableout2V",
-          PairTestTitlV(),
-          "comptestrunV",
-          size = "large",
-          uiOutput("modaloutV")
-        )
-      }
-    }
+    })
   })
-  
-  observeEvent(input$posthoc, {
-    #Clicking PostHoc Run button will remove active modal box
-    removeModal()
-  })
-  observeEvent(input$posthocV, {
-    #Clicking PostHoc Run button will remove active modal box
-    removeModal()
-  })
+
   
   #Pairwise Modal box output
   groups <- reactive({
@@ -3394,7 +3418,7 @@ server <- shinyServer(function(input, output, session) {
           label = comparison_label,
           value = FALSE
         )
-      }), style = "background-color:#efefef; padding:10px;"),
+      }), style = "background-color:#efefef; padding:10px;overflow-y:scroll;max-height:300px;"),
       # actionButton("submit", "Select"),
       # actionButton('reset', "Reset Table"),
       uiOutput('submitCompV'),
@@ -4017,9 +4041,7 @@ server <- shinyServer(function(input, output, session) {
     }
     sgreps <- sgreps
   })
-  output$sigtableV <- renderTable({
-    format(sigtestInpV(), nsmall = 5)
-  })
+
   
   
   sigtestTitle <- reactive({
@@ -4195,7 +4217,7 @@ server <- shinyServer(function(input, output, session) {
         } else{
           
         },
-        bsModal(
+        shinyBS::bsModal(
           "posthocModal",
           "Post Hoc Analysis",
           "runposthoc",
@@ -4227,21 +4249,31 @@ server <- shinyServer(function(input, output, session) {
     })
     
     #Displaying Post Hoc Analysis Result on Modal box
+    
     output$posthocBtnV <- renderUI({
       tagList(
         if (input$comptestV == T && input$comptestBV == 'group') {
           actionButton("runposthocV", "Run Post Hoc Test", style = 'margin-bottom:10px;')
         } else{
           
-        },
-        bsModal(
-          "posthocModalV",
-          "Post Hoc Analysis",
-          "runposthocV",
-          size = "large",
-          tableOutput("posthocTableV"),
-          downloadButton("downphtrprtV", "Download Report")
-        )
+        }
+        # shinyBS::bsModal(
+        #   "posthocModalV",
+        #   "Post Hoc Analysis",
+        #   "runposthocV",
+        #   size = "large",
+        #   tableOutput("posthocTableV"),
+        #   downloadButton("downphtrprtV", "Download Report")
+        # )
+      )
+    })
+  })
+  observeEvent(input$runposthocV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2("Post Hoc Analysis"),
+        tableOutput("posthocTableV"),
+        downloadButton("downphtrprtV", "Download Report")
       )
     })
   })
@@ -4682,22 +4714,22 @@ server <- shinyServer(function(input, output, session) {
       
     })
   })
-  observeEvent(input$runposthoc, {
-    output$askAnnotation <- renderUI({
-      tagList(
-        uiOutput('statdnld'),
-        br(),
-        radioButtons(
-          "askBars",
-          "Add significance annotations to the plot",
-          choices = c('No' = 'no', 'Yes' = 'yes'),
-          inline = T
-        )
-      )
-    })
-  })
   observeEvent(input$runposthocV, {
-    output$askAnnotationV <- renderUI({
+    # if (input$boxTab==T){
+    #   output$askAnnotationV <- renderUI({
+    #   tagList(
+    #     uiOutput('statdnld'),
+    #     br(),
+    #     radioButtons(
+    #       "askBars",
+    #       "Add significance annotations to the plot",
+    #       choices = c('No' = 'no', 'Yes' = 'yes'),
+    #       inline = T
+    #     )
+    #   )
+    # })
+    # }else if (input$violinTab==T){
+      output$askAnnotationV <- renderUI({
       tagList(
         uiOutput('statdnldV'),
         br(),
@@ -4710,7 +4742,12 @@ server <- shinyServer(function(input, output, session) {
       )
       
     })
+    # }
+    
   })
+  # observeEvent(input$runposthocV, {
+  #   
+  # })
   
   #Button to select groups
   
@@ -4776,7 +4813,7 @@ server <- shinyServer(function(input, output, session) {
           max = 15,
           value = 5
         ),
-        bsModal(
+        shinyBS::bsModal(
           "annoteLines",
           "Select Groups for Annotation",
           "chooseGrps",
@@ -4837,7 +4874,7 @@ server <- shinyServer(function(input, output, session) {
           max = 15,
           value = 5
         ),
-        bsModal(
+        shinyBS::bsModal(
           "annoteLinesV",
           "Select Groups for Annotation",
           "chooseGrpsV",
@@ -5813,6 +5850,5 @@ server <- shinyServer(function(input, output, session) {
     runjs(HTML(jsV))
   }, ignoreNULL = FALSE)
 })
-
 
 shinyApp(ui = ui, server = server)
