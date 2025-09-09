@@ -1,7 +1,7 @@
 {
   "version": 1,
   "locale": "en_IN",
-  "platform": "4.5.0",
+  "platform": "4.5.1",
   "metadata": {
     "appmode": "shiny",
     "primary_rmd": null,
@@ -83,7 +83,7 @@
         "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2025-02-28 17:44:52 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:17:02 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:52:07 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -117,7 +117,7 @@
         "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
         "Repository": "CRAN",
         "Date/Publication": "2025-03-11 07:20:02 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:17:21 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:52:27 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -402,7 +402,7 @@
         "Author": "Angelo Canty [aut] (author of original code for S),\n  Brian Ripley [aut, trl] (conversion to R, maintainer 1999--2022, author\n    of parallel support),\n  Alessandra R. Brazzale [ctb, cre] (minor bug fixes)",
         "Repository": "CRAN",
         "Date/Publication": "2024-08-28 13:20:02 UTC",
-        "Built": "R 4.5.0; ; 2025-04-11 10:22:22 UTC; windows"
+        "Built": "R 4.5.1; ; 2025-06-13 07:57:56 UTC; windows"
       }
     },
     "broom": {
@@ -1223,8 +1223,8 @@
       "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "lattice",
-        "Version": "0.22-6",
-        "Date": "2024-03-20",
+        "Version": "0.22-7",
+        "Date": "2025-03-31",
         "Priority": "recommended",
         "Title": "Trellis Graphics for R",
         "Authors@R": "c(person(\"Deepayan\", \"Sarkar\", role = c(\"aut\", \"cre\"),\n\t            email = \"deepayan.sarkar@r-project.org\",\n\t\t    comment = c(ORCID = \"0000-0003-4107-1553\")),\n              person(\"Felix\", \"Andrews\", role = \"ctb\"),\n\t      person(\"Kevin\", \"Wright\", role = \"ctb\", comment = \"documentation\"),\n\t      person(\"Neil\", \"Klepeis\", role = \"ctb\"),\n\t      person(\"Johan\", \"Larsson\", role = \"ctb\", comment = \"miscellaneous improvements\"),\n              person(\"Zhijian (Jason)\", \"Wen\", role = \"cph\", comment = \"filled contour code\"),\n              person(\"Paul\", \"Murrell\", role = \"ctb\", email = \"paul@stat.auckland.ac.nz\"),\n\t      person(\"Stefan\", \"Eng\", role = \"ctb\", comment = \"violin plot improvements\"),\n\t      person(\"Achim\", \"Zeileis\", role = \"ctb\", comment = \"modern colors\"),\n              person(\"Alexandre\", \"Courtiol\", role = \"ctb\", comment = \"generics for larrows, lpolygon, lrect and lsegments\")\n\t      )",
@@ -1239,12 +1239,12 @@
         "URL": "https://lattice.r-forge.r-project.org/",
         "BugReports": "https://github.com/deepayan/lattice/issues",
         "NeedsCompilation": "yes",
-        "Packaged": "2024-03-20 03:08:45 UTC; deepayan",
+        "Packaged": "2025-04-02 04:55:57 UTC; deepayan",
         "Author": "Deepayan Sarkar [aut, cre] (<https://orcid.org/0000-0003-4107-1553>),\n  Felix Andrews [ctb],\n  Kevin Wright [ctb] (documentation),\n  Neil Klepeis [ctb],\n  Johan Larsson [ctb] (miscellaneous improvements),\n  Zhijian (Jason) Wen [cph] (filled contour code),\n  Paul Murrell [ctb],\n  Stefan Eng [ctb] (violin plot improvements),\n  Achim Zeileis [ctb] (modern colors),\n  Alexandre Courtiol [ctb] (generics for larrows, lpolygon, lrect and\n    lsegments)",
         "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
         "Repository": "CRAN",
-        "Date/Publication": "2024-03-20 06:10:02 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:17:11 UTC; windows",
+        "Date/Publication": "2025-04-02 15:40:02 UTC",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:52:16 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -1366,9 +1366,8 @@
       "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "mgcv",
-        "Version": "1.9-1",
-        "Author": "Simon Wood <simon.wood@r-project.org>",
-        "Maintainer": "Simon Wood <simon.wood@r-project.org>",
+        "Version": "1.9-3",
+        "Authors@R": "person(given = \"Simon\",\n                    family = \"Wood\",\n                    role = c(\"aut\", \"cre\"),\n                    email = \"simon.wood@r-project.org\")",
         "Title": "Mixed GAM Computation Vehicle with Automatic Smoothness\nEstimation",
         "Description": "Generalized additive (mixed) models, some of their extensions and \n             other generalized ridge regression with multiple smoothing \n             parameter estimation by (Restricted) Marginal Likelihood, \n             Generalized Cross Validation and similar, or using iterated \n             nested Laplace approximation for fully Bayesian inference. See \n             Wood (2017) <doi:10.1201/9781315370279> for an overview. \n             Includes a gam() function, a wide variety of smoothers, 'JAGS' \n             support and distributions beyond the exponential family. ",
         "Priority": "recommended",
@@ -1379,10 +1378,12 @@
         "ByteCompile": "yes",
         "License": "GPL (>= 2)",
         "NeedsCompilation": "yes",
-        "Packaged": "2023-12-20 10:39:06 UTC; sw283",
+        "Packaged": "2025-04-03 13:22:13 UTC; sw283",
+        "Author": "Simon Wood [aut, cre]",
+        "Maintainer": "Simon Wood <simon.wood@r-project.org>",
         "Repository": "CRAN",
-        "Date/Publication": "2023-12-21 00:30:02 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:23:12 UTC; windows",
+        "Date/Publication": "2025-04-04 05:40:02 UTC",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:58:51 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -1520,7 +1521,7 @@
         "Maintainer": "R Core Team <R-core@R-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2025-03-31 11:21:01 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:21:20 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:56:48 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -1575,7 +1576,7 @@
         "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2025-01-01 10:25:43 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:23:04 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:58:42 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -2045,6 +2046,26 @@
         "Built": "R 4.5.0; ; 2025-05-07 02:10:35 UTC; windows"
       }
     },
+    "shinythemes":{
+	"Source": "CRAN",
+	"Repository" : "https://cran.rstudio.com",
+	"description": {
+		"Package": "shinythemes",
+        "Title": "Themes for Shiny",
+        "Version": "1.2.0",
+        "Authors@R": "c(person(\"Winston\", \"Chang\", role = c(\"aut\", \"cre\"), email = \"winston@rstudio.com\"), person(family = \"RStudio\", role = \"cph\"), person(\"Thomas\", \"Park\", role = c(\"ctb\", \"cph\"), comment = \"Bootswatch themes\"), person(\"Lukasz\", \"Dziedzic\", role = c(\"ctb\", \"cph\"), comment = \"Lato font\"), person(\"Nathan\", \"Willis\", role = c(\"ctb\", \"cph\"), comment = \"News Cycle font\"), person(family = \"Google Corporation\", role = c(\"ctb\", \"cph\"), comment = \"Open Sans and Roboto fonts\"), person(\"Matt\", \"McInerney\", role = c(\"ctb\", \"cph\"), comment = \"Raleway font\"), person(family = \"Adobe Systems Incorporated\", role = c(\"ctb\", \"cph\"), comment = \"Source Sans Pro font\"), person(family = \"Canonical Ltd\", role = c(\"ctb\", \"cph\"), comment = \"Ubuntu font\"))",
+        "Description": "Themes for use with Shiny. Includes several Bootstrap themes from https://bootswatch.com/, which are packaged for use with Shiny applications.",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "shiny (>= 0.11)",
+        "URL": "https://rstudio.github.io/shinythemes/",
+        "License": "GPL-3 | file LICENSE",
+        "RoxygenNote": "7.1.1",
+        "NeedsCompilation": "no",
+        "Repository": "CRAN",
+        "Date/Publication": "2020-06-09 05:50:02 UTC",
+        "Built": "R 4.5.0; ; 2025-05-07 00:32:38 UTC; windows"
+	}
+       },
     "sourcetools": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2155,7 +2176,7 @@
         "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
         "Repository": "CRAN",
         "Date/Publication": "2024-12-17 20:20:02 UTC",
-        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-11 10:21:40 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-06-13 07:57:09 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -2431,7 +2452,13 @@
       "checksum": "05bdb783ee6514c8c072e47680af8ff7"
     },
     "app.R": {
-      "checksum": "707c5ba64e2911a3384af2baae74f833"
+      "checksum": "a9263cf2f27c025ab08ea41156a31705"
+    },
+    "darkly.min.css": {
+      "checksum": "5cb0454c3daf593a4b5ecf25df720ef5"
+    },
+    "flatly.min.css": {
+      "checksum": "a020c4e88478f1802eee04b6ba3c0be2"
     },
     "README.md": {
       "checksum": "1036f9090023f4b633fbe7663da2bee5"
