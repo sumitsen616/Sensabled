@@ -1148,7 +1148,7 @@ server <- shinyServer(function(input, output, session) {
   sheetName <- reactive({
     req(input$file1) #  require that the input is available
     inFile <- input$file1
-    sheet <- getSheetNames(inFile$datapath)
+    sheet <- openxlsx::getSheetNames(inFile$datapath)
   })
   colNames <- reactive({
     req(input$file1, input$sheetlist)
