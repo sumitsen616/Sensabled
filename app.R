@@ -2302,9 +2302,9 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if ((input$radio1V == "Yes")) {
-      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
         geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
+          mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2313,7 +2313,7 @@ server <- shinyServer(function(input, output, session) {
         stat_boxplot(
           geom = "errorbar",
           width = 0.15,
-          mapping=aes(color = variable),
+          mapping=ggplot2::aes(color = variable),
           lwd = 1
         ) +
         geom_hline(
@@ -2325,7 +2325,7 @@ server <- shinyServer(function(input, output, session) {
         geom_boxplot(
           width = input$boxWidthV,
           size = 1,
-          mapping=aes(color = variable),
+          mapping=ggplot2::aes(color = variable),
           outlier.shape = NA
         ) +
         scale_color_manual(values = vioborder()) +
@@ -2349,7 +2349,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2358,9 +2358,9 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else{
-      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
         geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
+          mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2401,7 +2401,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2415,9 +2415,9 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if (input$radio1V == "Yes") {
-      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
         geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
+          mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2465,7 +2465,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2475,7 +2475,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2485,7 +2485,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2495,7 +2495,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLinesV()[, 5]))
@@ -2504,7 +2504,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldistV * (y1) / 100),
             label = paste(c(pairLinesV()[, 6]))
@@ -2512,7 +2512,7 @@ server <- shinyServer(function(input, output, session) {
           size = input$pvalfontV
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2521,9 +2521,9 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else if ((input$radio1V == "No")) {
-      ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
+      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
         geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
+          mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2564,7 +2564,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2574,7 +2574,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2584,7 +2584,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2594,7 +2594,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLinesV()[, 5]))
@@ -2603,7 +2603,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldistV * (y1) / 100),
             label = paste(c(pairLinesV()[, 6]))
@@ -2611,7 +2611,7 @@ server <- shinyServer(function(input, output, session) {
           size = input$pvalfontV
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2680,9 +2680,9 @@ server <- shinyServer(function(input, output, session) {
     x <- orderdata()
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
-    ggplot2::ggplot(x, aes(x = x_axis, y = value)) +
+    ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
       geom_boxplot(
-        mapping = aes(fill = x_axis, color = variable),
+        mapping = ggplot2::aes(fill = x_axis, color = variable),
         width = input$boxwidth,
         size = 1,
         lwd = input$linewidth,
@@ -2695,7 +2695,7 @@ server <- shinyServer(function(input, output, session) {
       stat_boxplot(
         geom = "errorbar",
         width = 0.15,
-        mapping = aes(color = variable),
+        mapping = ggplot2::aes(color = variable),
         lwd = 1
       ) +
       scale_color_manual(values = boxborder()) +
@@ -2716,7 +2716,7 @@ server <- shinyServer(function(input, output, session) {
         text = element_text(family = fontfamily())
       ) + geom_text(
         data = addDataPointLabel(),
-        mapping = aes(
+        mapping = ggplot2::aes(
           x = x,
           y = y,
           label = paste(c(addDataPointLabel()$text))
@@ -2743,7 +2743,7 @@ server <- shinyServer(function(input, output, session) {
       plotinput() +
         geom_segment(
           pairLines(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2753,7 +2753,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLines(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2763,7 +2763,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLines(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2773,7 +2773,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLines(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLines()[, 5]))
@@ -2782,7 +2782,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLines(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldist * (y1) / 100),
             label = paste(c(pairLines()[, 6]))
@@ -2791,7 +2791,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           data = addDataPointLabel(),
-          mapping = aes(
+          mapping = ggplot2::aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabel()$text))
