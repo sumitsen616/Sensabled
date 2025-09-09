@@ -197,7 +197,7 @@ ui <- shinyUI(
     theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
-      HTML((css)
+      HTML((css),(js)
       )
     )),
     # App Title
