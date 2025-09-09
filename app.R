@@ -10,7 +10,34 @@
 
 ##Loading Necessary Packages##
 
-library(ggplot2)
+library(shiny)
+library(shinythemes)
+library(shinyjs)
+library(shinyBS)
+library(shinycssloaders)
+library(rJava)
+library(openxlsx)
+library(datasets)
+library(tidyr)
+library(dplyr)
+library(DT)
+library(tidyverse)
+library(remotes)
+library(magrittr)
+library(ggplot2)  # Ensure ggplot2 is loaded
+library(ggbeeswarm)
+library(extrafont)
+library(colorspace)
+library(colourpicker)
+library(bsplus)
+library(DescTools)
+library(rclipboard)
+library(FSA)
+library(dunn.test)
+library(broom)
+library(asht)
+library(car)
+library(xlsx)
 
 if (interactive()) {
   pkg <-
