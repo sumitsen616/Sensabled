@@ -10,6 +10,8 @@
 
 ##Loading Necessary Packages##
 
+library(ggplot2)
+
 if (interactive()) {
   pkg <-
     #For running the app
