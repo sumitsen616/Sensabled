@@ -563,7 +563,7 @@ ui <- shinyUI(
                 # tableOutput('testModBox'),
                 uiOutput("plot_notice2"),
                 # uiOutput('themeSubmitV'),
-                withSpinner(
+                shinycssloaders::withSpinner(
                   uiOutput("MyVPlotFinal"),
                   type = 5,
                   color = "#9e9e9e",
@@ -962,7 +962,7 @@ ui <- shinyUI(
               # tableOutput('testModBox'),
               uiOutput("plot_notice"),
               # uiOutput('themeSubmit'),
-              withSpinner(
+              shinycssloaders::withSpinner(
                 uiOutput("MyBPlotFinal"),
                 type = 5,
                 color = "#9e9e9e",
@@ -2623,7 +2623,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   output$MyVPlotFinal <- renderUI({
-    withSpinner(
+    shinycssloaders::withSpinner(
       plotOutput(
         "MyVPlot",
         width = input$widthV,
@@ -2803,7 +2803,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   output$MyBPlotFinal <- renderUI({
-    withSpinner(
+    shinycssloaders::withSpinner(
       plotOutput(
         "MyBPlot",
         width = input$width,
