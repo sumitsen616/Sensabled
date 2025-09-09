@@ -1229,7 +1229,7 @@ server <- shinyServer(function(input, output, session) {
   
   
   orderdata <- reactive({
-    newcols <- all_of(colnames(data()))
+    newcols <- any_of(colnames(data()))
     order_data <-
       data() |> pivot_longer(cols = newcols,
                               names_to = "variable",
