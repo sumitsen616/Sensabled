@@ -1260,10 +1260,10 @@ server <- shinyServer(function(input, output, session) {
   orderdata <- reactive({
     newcols <- tidyselect::all_of(colnames(data()))
     order_data <-
-      data() |> tidyr::pivot_longer(cols = newcols,
+      data() |> pivot_longer(cols = newcols,
                               names_to = "variable",
                               values_to = "value") |>
-      dplyr::arrange(variable)
+      arrange(variable)
     # for (i in 1:nrow(orderdata)){
     #   if (is.na(order_data[i,2])==TRUE){
     #     order_data <- order_data[-i,]
@@ -2331,30 +2331,30 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if ((input$radio1V == "Yes")) {
-      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        ggplot2::geom_violin(
-          mapping = ggplot2::aes(fill = x_axis, color = variable),
+      ggplot(x, aes(x = x_axis, y = value)) +
+        geom_violin(
+          mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
         ) +
-        ggplot2::stat_summary(fun = median) +
-        ggplot2::stat_boxplot(
+        stat_summary(fun = median) +
+        stat_boxplot(
           geom = "errorbar",
           width = 0.15,
-          mapping=ggplot2::aes(color = variable),
+          mapping=aes(color = variable),
           lwd = 1
         ) +
-        ggplot2::geom_hline(
+        geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
           linewidth = hlwdV()
         ) +
-        ggplot2::geom_boxplot(
+        geom_boxplot(
           width = input$boxWidthV,
           size = 1,
-          mapping=ggplot2::aes(color = variable),
+          mapping=aes(color = variable),
           outlier.shape = NA
         ) +
         scale_color_manual(values = vioborder()) +
@@ -2378,7 +2378,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2387,9 +2387,9 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else{
-      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        ggplot2::geom_violin(
-          mapping = ggplot2::aes(fill = x_axis, color = variable),
+      ggplot(x, aes(x = x_axis, y = value)) +
+        geom_violin(
+          mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2397,14 +2397,14 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        ggplot2::stat_summary(fun = median) +
-        ggplot2::stat_boxplot(
+        stat_summary(fun = median) +
+        stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
           lwd = 1
         ) +
-        ggplot2::geom_hline(
+        geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
@@ -2430,7 +2430,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2444,9 +2444,9 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if (input$radio1V == "Yes") {
-      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        ggplot2::geom_violin(
-          mapping = ggplot2::aes(fill = x_axis, color = variable),
+      ggplot(x, aes(x = x_axis, y = value)) +
+        geom_violin(
+          mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2454,20 +2454,20 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        ggplot2::stat_summary(fun = median) +
-        ggplot2::stat_boxplot(
+        stat_summary(fun = median) +
+        stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
           lwd = 1
         ) +
-        ggplot2::geom_hline(
+        geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
           linewidth = hlwdV()
         ) +
-        ggplot2::geom_boxplot(
+        geom_boxplot(
           width = input$boxWidthV,
           size = 1,
           color = c('black'),
@@ -2494,7 +2494,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2504,7 +2504,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2514,7 +2514,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2524,7 +2524,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLinesV()[, 5]))
@@ -2533,7 +2533,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldistV * (y1) / 100),
             label = paste(c(pairLinesV()[, 6]))
@@ -2541,7 +2541,7 @@ server <- shinyServer(function(input, output, session) {
           size = input$pvalfontV
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2550,9 +2550,9 @@ server <- shinyServer(function(input, output, session) {
         )
     }
     else if ((input$radio1V == "No")) {
-      ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        ggplot2::geom_violin(
-          mapping = ggplot2::aes(fill = x_axis, color = variable),
+      ggplot(x, aes(x = x_axis, y = value)) +
+        geom_violin(
+          mapping = aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
           scale = "count"
@@ -2560,14 +2560,14 @@ server <- shinyServer(function(input, output, session) {
         scale_color_manual(values = rep(c("black"), each = length(colnames(data(
           
         ))))) +
-        ggplot2::stat_summary(fun = median) +
-        ggplot2::stat_boxplot(
+        stat_summary(fun = median) +
+        stat_boxplot(
           geom = "errorbar",
           width = 0.15,
           color = 1,
           lwd = 1
         ) +
-        ggplot2::geom_hline(
+        geom_hline(
           yintercept = addhLine(),
           color = '#2c2c2c',
           linetype = 5,
@@ -2593,7 +2593,7 @@ server <- shinyServer(function(input, output, session) {
           text = element_text(family = fontfamilyV())
         ) + geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2603,7 +2603,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2613,7 +2613,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2623,7 +2623,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLinesV()[, 5]))
@@ -2632,7 +2632,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLinesV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldistV * (y1) / 100),
             label = paste(c(pairLinesV()[, 6]))
@@ -2640,7 +2640,7 @@ server <- shinyServer(function(input, output, session) {
           size = input$pvalfontV
         ) + geom_text(
           data = addDataPointLabelV(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabelV()$text))
@@ -2709,9 +2709,9 @@ server <- shinyServer(function(input, output, session) {
     x <- orderdata()
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
-    ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-      ggplot2::geom_boxplot(
-        mapping = ggplot2::aes(fill = x_axis, color = variable),
+    ggplot(x, aes(x = x_axis, y = value)) +
+      geom_boxplot(
+        mapping = aes(fill = x_axis, color = variable),
         width = input$boxwidth,
         size = 1,
         lwd = input$linewidth,
@@ -2720,11 +2720,11 @@ server <- shinyServer(function(input, output, session) {
         notch = input$notch,
         outlier.shape = as.numeric(input$outlier)
       ) +
-      ggplot2::stat_summary(fun = median) +
-      ggplot2::stat_boxplot(
+      stat_summary(fun = median) +
+      stat_boxplot(
         geom = "errorbar",
         width = 0.15,
-        mapping = ggplot2::aes(color = variable),
+        mapping = aes(color = variable),
         lwd = 1
       ) +
       scale_color_manual(values = boxborder()) +
@@ -2745,7 +2745,7 @@ server <- shinyServer(function(input, output, session) {
         text = element_text(family = fontfamily())
       ) + geom_text(
         data = addDataPointLabel(),
-        mapping = ggplot2::aes(
+        mapping = aes(
           x = x,
           y = y,
           label = paste(c(addDataPointLabel()$text))
@@ -2772,7 +2772,7 @@ server <- shinyServer(function(input, output, session) {
       plotinput() +
         geom_segment(
           pairLines(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x2,
             y = y1,
@@ -2782,7 +2782,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLines(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x1,
             xend = x1,
             y = y1 - (2 * (y1) / 100),
@@ -2792,7 +2792,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_segment(
           pairLines(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x2,
             xend = x2,
             y = y1 - (2 * (y1) / 100),
@@ -2802,7 +2802,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLines(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (3 * (y1) / 100),
             label = paste(c(pairLines()[, 5]))
@@ -2811,7 +2811,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           pairLines(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = (x1 + x2) / 2,
             y = y1 + (input$pvaldist * (y1) / 100),
             label = paste(c(pairLines()[, 6]))
@@ -2820,7 +2820,7 @@ server <- shinyServer(function(input, output, session) {
         ) +
         geom_text(
           data = addDataPointLabel(),
-          mapping = ggplot2::aes(
+          mapping = aes(
             x = x,
             y = y,
             label = paste(c(addDataPointLabel()$text))
@@ -3567,16 +3567,16 @@ server <- shinyServer(function(input, output, session) {
     
     mwz <- function(x, y) {
       xy <- data.frame(x, y)
-      xy_long <- tidyr::pivot_longer(
+      xy_long <- pivot_longer(
         xy,
         names_to = 'para',
         values_to = 'val',
         cols = colnames(xy)
       )
-      xy_order <- dplyr::arrange(xy_long, val)
+      xy_order <- arrange(xy_long, val)
       xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
       colnames(xy_rank) <- c('para', 'val', 'rank')
-      xy_reorder <- dplyr::arrange(xy_rank, para)
+      xy_reorder <- arrange(xy_rank, para)
       xy_wide <- pivot_wider(xy_reorder,
                              names_from = para,
                              values_from = c(val, rank))
@@ -3669,16 +3669,16 @@ server <- shinyServer(function(input, output, session) {
     
     mwz <- function(x, y) {
       xy <- data.frame(x, y)
-      xy_long <- tidyr::pivot_longer(
+      xy_long <- pivot_longer(
         xy,
         names_to = 'para',
         values_to = 'val',
         cols = colnames(xy)
       )
-      xy_order <- dplyr::arrange(xy_long, val)
+      xy_order <- arrange(xy_long, val)
       xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
       colnames(xy_rank) <- c('para', 'val', 'rank')
-      xy_reorder <- dplyr::arrange(xy_rank, para)
+      xy_reorder <- arrange(xy_rank, para)
       xy_wide <- pivot_wider(xy_reorder,
                              names_from = para,
                              values_from = c(val, rank))
