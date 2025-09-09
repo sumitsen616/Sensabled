@@ -1234,7 +1234,7 @@ server <- shinyServer(function(input, output, session) {
       data() |> pivot_longer(cols = newcols,
                               names_to = "variable",
                               values_to = "value") |>
-      arrange(variable)
+      dplyr::arrange(variable)
     # for (i in 1:nrow(orderdata)){
     #   if (is.na(order_data[i,2])==TRUE){
     #     order_data <- order_data[-i,]
@@ -3544,10 +3544,10 @@ server <- shinyServer(function(input, output, session) {
         values_to = 'val',
         cols = colnames(xy)
       )
-      xy_order <- arrange(xy_long, val)
+      xy_order <- dplyr::arrange(xy_long, val)
       xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
       colnames(xy_rank) <- c('para', 'val', 'rank')
-      xy_reorder <- arrange(xy_rank, para)
+      xy_reorder <- dplyr::arrange(xy_rank, para)
       xy_wide <- pivot_wider(xy_reorder,
                              names_from = para,
                              values_from = c(val, rank))
@@ -3646,10 +3646,10 @@ server <- shinyServer(function(input, output, session) {
         values_to = 'val',
         cols = colnames(xy)
       )
-      xy_order <- arrange(xy_long, val)
+      xy_order <- dplyr::arrange(xy_long, val)
       xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
       colnames(xy_rank) <- c('para', 'val', 'rank')
-      xy_reorder <- arrange(xy_rank, para)
+      xy_reorder <- dplyr::arrange(xy_rank, para)
       xy_wide <- pivot_wider(xy_reorder,
                              names_from = para,
                              values_from = c(val, rank))
