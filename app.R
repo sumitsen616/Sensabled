@@ -1231,7 +1231,7 @@ server <- shinyServer(function(input, output, session) {
   orderdata <- reactive({
     newcols <- tidyselect::all_of(colnames(data()))
     order_data <-
-      data() |> pivot_longer(cols = newcols,
+      data() |> tidyr::pivot_longer(cols = newcols,
                               names_to = "variable",
                               values_to = "value") |>
       dplyr::arrange(variable)
@@ -3538,7 +3538,7 @@ server <- shinyServer(function(input, output, session) {
     
     mwz <- function(x, y) {
       xy <- data.frame(x, y)
-      xy_long <- pivot_longer(
+      xy_long <- tidyr::pivot_longer(
         xy,
         names_to = 'para',
         values_to = 'val',
@@ -3640,7 +3640,7 @@ server <- shinyServer(function(input, output, session) {
     
     mwz <- function(x, y) {
       xy <- data.frame(x, y)
-      xy_long <- pivot_longer(
+      xy_long <- tidyr::pivot_longer(
         xy,
         names_to = 'para',
         values_to = 'val',
