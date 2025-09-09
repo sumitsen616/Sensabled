@@ -1197,7 +1197,7 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(input$submitFile, {
     output$contents <- renderDataTable({
       format(data(), nsmall = 2)
-    }, rownames = FALSE)
+    })
     output$sheetnames <- renderUI({
       selectInput("sheetlist",
                   "Select the sheet to plot your data",
