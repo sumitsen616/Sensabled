@@ -165,7 +165,7 @@ options(shiny.maxRequestSize = 250 * 1024^2) #Max file size to be uploaded is 25
 ui <- shinyUI(
   fluidPage(
     shinyjs::useShinyjs(),
-    inlineCSS(css),
+    shinyjs::inlineCSS(css),
     # themeSelector(),
     theme = shinythemes::shinytheme("darkly"),
     
