@@ -2303,7 +2303,7 @@ server <- shinyServer(function(input, output, session) {
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if ((input$radio1V == "Yes")) {
       ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        geom_violin(
+        ggplot2::geom_violin(
           mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
@@ -2322,7 +2322,7 @@ server <- shinyServer(function(input, output, session) {
           linetype = 5,
           linewidth = hlwdV()
         ) +
-        geom_boxplot(
+        ggplot2::geom_boxplot(
           width = input$boxWidthV,
           size = 1,
           mapping=ggplot2::aes(color = variable),
@@ -2359,7 +2359,7 @@ server <- shinyServer(function(input, output, session) {
     }
     else{
       ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        geom_violin(
+        ggplot2::geom_violin(
           mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
@@ -2416,7 +2416,7 @@ server <- shinyServer(function(input, output, session) {
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     if (input$radio1V == "Yes") {
       ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        geom_violin(
+        ggplot2::geom_violin(
           mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
@@ -2438,7 +2438,7 @@ server <- shinyServer(function(input, output, session) {
           linetype = 5,
           linewidth = hlwdV()
         ) +
-        geom_boxplot(
+        ggplot2::geom_boxplot(
           width = input$boxWidthV,
           size = 1,
           color = c('black'),
@@ -2522,7 +2522,7 @@ server <- shinyServer(function(input, output, session) {
     }
     else if ((input$radio1V == "No")) {
       ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-        geom_violin(
+        ggplot2::geom_violin(
           mapping = ggplot2::aes(fill = x_axis, color = variable),
           size = input$borderWidthV,
           trim = TRUE,
@@ -2681,7 +2681,7 @@ server <- shinyServer(function(input, output, session) {
     x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
     x_axis_col <- gsub('[.]', ' ', colnames(data()))
     ggplot2::ggplot(x, ggplot2::aes(x = x_axis, y = value)) +
-      geom_boxplot(
+      ggplot2::geom_boxplot(
         mapping = ggplot2::aes(fill = x_axis, color = variable),
         width = input$boxwidth,
         size = 1,
