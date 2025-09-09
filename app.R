@@ -167,7 +167,7 @@ ui <- shinyUI(
     useShinyjs(),
     inlineCSS(css),
     # themeSelector(),
-    theme = shinytheme("darkly"),
+    theme = shinythemes::shinytheme("darkly"),
     
     tags$head(tags$style(
       HTML(
