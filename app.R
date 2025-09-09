@@ -330,7 +330,7 @@ ui <- shinyUI(
               "General Settings",
               br(),
               bs_accordion('Vioplot') |>
-                bs_set_opts(use_head_link =
+                bsplus::bs_set_opts(use_head_link =
                               T) |>
                 bsplus::bs_append(
                   title = 'Modify Violin Shape',
@@ -652,7 +652,7 @@ ui <- shinyUI(
             "General Settings",
             br(),
             bs_accordion('Boxplot') |>
-              bs_set_opts(use_heading_link =
+              bsplus::bs_set_opts(use_heading_link =
                             TRUE) |>
               bsplus::bs_append(
                 title = 'Modify Box shape',
