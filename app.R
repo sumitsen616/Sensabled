@@ -1,15 +1,9 @@
-
-
-
 ### Source Code for SEN'sabale Plotting App ###
 ### Author: Sumit Sen ###
 ### TIFR, Mumbai ###
 
-
-## Running the app in an interactive session ##
-
 ##Loading Necessary Packages##
-
+# options(shiny.trace = TRUE)
 library(shiny)
 library(shinythemes)
 library(shinyjs)
@@ -93,32 +87,69 @@ if (interactive()) {
       }
     }
   }
-  
-  
-  ##Copy Plot to clipboard code was written by Stephane Laurent
-  ##from Stackexchange and modified accordingly
-  js <- '
-'
-jsV <- '
-'
 }
 #Tab Panel enable/disable script was taken from bretauv
 ##of Stackexchange and modified accordingly
 css <- "
+body,html{
+  margin:0;
+  padding:0;
+}
+
+.nav{
+  display:flex;
+  flex-direction:row;
+  width:100%;
+  justify-content:space-evenly;
+  }
 .nav li a.disabled, #savesettingV.disabled, #savesetting.disabled, #compTabInp.disabled {
   background-color: #aaa !important;
   color: #333 !important;
   cursor: not-allowed !important;
   border-color: #aaa !important;
+  border-radius:0px !important;
+}
+.nav li{
+  text-align:center;
+  width:100%;
+  border:1px solid;
+}
+.nav-tabs>li.active{
+  font-weight:bolder;
 }
 .nav li:hover{
-border-bottom:1px solid #333;
+  border-bottom:1px solid #333;
 }
 #modalout .checkbox label{
-color:#333333!important;
+  color:#333333!important;
 }
+/*
 .modal-body{
-overflow-x:scroll;
+  overflow-x:auto;
+}*/
+.shiny-spinner-output-container{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  width:100%;
+}
+.col-sm-4{
+  padding-left:0;
+  padding-right:0;
+}
+.col-sm-8>div{
+  display:flex;
+  position:relative;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding-top:15px;
+
+}
+.dataTables_wrapper{
+  width:100%;
 }
 .suggested {
         color: #87ce0a;
@@ -149,7 +180,7 @@ overflow-x:scroll;
         }
 # CSS fix for overflowing DataTable in modal box
 .modal-lg div{
-  overflow-y:scroll;
+  overflow-y:auto;
 }
 
 #themeToggle,
@@ -196,8 +227,7 @@ ui <- shinyUI(
     tabsetPanel(
       ### File Upload###
       tabPanel(
-        "Upload File",
-        titlePanel("Uploading Files"),
+        "Upload File", titlePanel("Uploading Files"),
         sidebarLayout(
           sidebarPanel(
             #Uploading the file
@@ -309,16 +339,29 @@ ui <- shinyUI(
         disabled = TRUE,
         pageWithSidebar(
           div(),
-          sidebarPanel(tabsetPanel(
+          sidebarPanel(
             id = 'violinTab',
             # Tab to manipulate general parameters of the plot
             tabPanel(
               "General Settings",
               br(),
-              bsplus::bs_accordion('Vioplot') |>
-                bsplus::bs_set_opts(use_head_link =
+              #Adding annotation on plot
+              tagList(
+                uiOutput('grpselectV'),
+                uiOutput('askAnnotationV'),
+                uiOutput('chooseAnnotationV')
+              ),
+              radioButtons(
+                "dpviewV",
+                "Add datapoints count to your plot:",
+                choices = c('No' = 0, 'Yes' =
+                              5),
+                inline = T
+              ),
+              bs_accordion('Vioplot') |>
+                bs_set_opts(use_head_link =
                               T) |>
-                bsplus::bs_append(
+                bs_append(
                   title = 'Modify Violin Shape',
                   content = list(
                     #Selecting border width of the plot
@@ -343,7 +386,7 @@ ui <- shinyUI(
                     uiOutput("hLineV")
                   )
                 ) |>
-                bsplus::bs_append(
+                bs_append(
                   title = 'Modify Plot Axes',
                   content = list(
                     #Y-axis Title
@@ -411,7 +454,7 @@ ui <- shinyUI(
                     )
                   )
                 ) |>
-                bsplus::bs_append(
+                bs_append(
                   title = 'Modify Axes Font',
                   content = list(
                     #Selecting type face
@@ -481,7 +524,7 @@ ui <- shinyUI(
                     )
                   )
                 ) |>
-                bsplus::bs_append(
+                bs_append(
                   title = 'Modify Plot Theme',
                   content = list(
                     radioButtons(
@@ -526,121 +569,117 @@ ui <- shinyUI(
                     ),
                     uiOutput('shadevalV')
                   )
-                ),
-              radioButtons(
-                "dpviewV",
-                "Add datapoints count to your plot:",
-                choices = c('No' = 0, 'Yes' =
-                              5),
-                inline = T
-              ),
-              #Adding annotation on plot
-              tagList(
-                uiOutput('grpselectV'),
-                uiOutput('askAnnotationV'),
-                uiOutput('chooseAnnotationV')
-              )
-            )
-          )),
+                )
+            )),
+          #Main Panel for Violin plot
           mainPanel(
-            h2("Visualize your plot here"),
+            style = "display: flex; flex-direction: column; align-items: stretch;
+            padding: 20px; height: 100%; overflow-y: auto;",
             div(
+              style = "margin-bottom: 20px;",
+              shinycssloaders::withSpinner(
+                uiOutput("MyVPlotFinal"),
+                type = 5,
+                color = "#9e9e9e",
+                size = 2
+              )
+            ),
+            div(
+              style = "display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px;",
               div(
-                # tableOutput('testModBox'),
-                uiOutput("plot_notice2"),
-                # uiOutput('themeSubmitV'),
-                shinycssloaders::withSpinner(
-                  uiOutput("MyVPlotFinal"),
-                  type = 5,
-                  color = "#9e9e9e",
-                  size = 2
-                ),
-                br()
-              ),
-              div(
-                style = "display:inline-block",
+                style = "display: flex; flex-direction: column; gap: 15px; width: 50%;",
                 numericInput(
                   'widthV',
                   label = "Select Width of your plot",
                   min = 100,
                   max = 800,
-                  value = 500
-                )
-              ),
-              div(
-                style = "display:inline-block",
+                  value = 500,
+                  width = "100%"
+                ),
                 numericInput(
                   'heightV',
                   label = "Select Height of your plot",
                   min = 100,
                   max = 800,
-                  value = 400
+                  value = 400,
+                  width = "100%"
                 )
               ),
               div(
-                style = "display:inline-flex;
-                          justify-content:space-between;
-                          height:45px;
-                          width:80%;
-                          margin:auto;",
+                style = "display: flex; flex-direction: column; gap: 15px; width: 40%;",
                 actionButton(
                   "copybtn",
                   "Copy Plot",
                   icon = icon("copy"),
                   class = "btn-primary",
-                  title = "Click to copy on clickboard"
+                  title = "Click to copy to clipboard"
+                ),
+                selectInput(
+                  "selectFiletypeV",
+                  "Save as",
+                  choices = c('PNG' = 'png', 'JPEG' = 'jpeg', 'TIFF' = 'tiff', 'PDF' = 'pdf'),
+                  multiple = FALSE,
+                  width = "100%"
                 ),
                 downloadButton(
                   "downloadVPlot",
                   "Download Plot",
-                  icon = shiny::icon("download"),
+                  icon = icon("download"),
                   title = "Click to download your plot"
-                ),
-                #Save Settings button
-                downloadButton(
-                  "savesettingV",
-                  "Save settings",
-                  icon = icon("gear"),
-                  class = "btn-primary",
-                  title = "Click to save your plot settings"
-                ),
-                div(
-                  fileInput(
-                    "usesettingV",
-                    label = NULL,
-                    buttonLabel = "Select Settings File",
-                    accept = c(".csv")
-                  ),
-                  title = "Click to load your saved csv file to reuse previous setting"
-                ),
-                actionButton("reusesetV", "Upload")
+                )
               )
             ),
-            style = "position:fixed;
-                        display:flex;
-                        align-content:center;
-                        flex-direction:column;
-                        right: 0;
-                        width:65%;
-                        height:650px;
-                        overflow-y:scroll;
-                        z-index:999;"
+            div(
+              style = "display: flex; flex-direction: row; gap: 15px; margin-bottom: 20px; height:50px;
+            align-items:start;justify-content:center;",
+              downloadButton(
+                "savesettingV",
+                "Save settings",
+                icon = icon("gear"),
+                class = "btn-primary",
+                title = "Click to save your plot settings"
+              ),fileInput(
+                "usesettingV",
+                label = NULL,
+                buttonLabel = "Select Settings File",
+                accept = c(".csv")
+              ),
+              actionButton(
+                "reusesetV",
+                "Upload",
+                title = "Click to load your saved csv file to reuse previous setting"
+              )
+            ),
+            uiOutput("plot_notice2")
           )
         )
       ),
       ### Box-Jitter Plot ###
       tabPanel("Box Plot", pageWithSidebar(
         div(),
-        sidebarPanel(tabsetPanel(
+        sidebarPanel(
           id = 'boxTab',
           # Tab to manipulate general parameters of the plot
           tabPanel(
             "General Settings",
             br(),
-            bsplus::bs_accordion('Boxplot') |>
-              bsplus::bs_set_opts(use_heading_link =
+            #Adding annotation on plot
+            tagList(
+              uiOutput('grpselect'),
+              uiOutput('askAnnotation'),
+              uiOutput('chooseAnnotation')
+            ),
+            radioButtons(
+              "dpview",
+              "Add datapoints count to your plot:",
+              choices = c('No' = 0, 'Yes' =
+                            5),
+              inline = T
+            ),
+            bs_accordion('Boxplot') |>
+              bs_set_opts(use_heading_link =
                             TRUE) |>
-              bsplus::bs_append(
+              bs_append(
                 title = 'Modify Box shape',
                 content = list(
                   #Choosing box-width
@@ -688,7 +727,7 @@ ui <- shinyUI(
                   uiOutput("dropDown1")
                 )
               ) |>
-              bsplus::bs_append(
+              bs_append(
                 title = 'Modify Axes',
                 content = list(
                   #Y-axis Title
@@ -759,7 +798,7 @@ ui <- shinyUI(
                   uiOutput('showbreak')
                 )
               ) |>
-              bsplus::bs_append(
+              bs_append(
                 title = 'Modify Font',
                 content = list(
                   #Select type face
@@ -829,7 +868,7 @@ ui <- shinyUI(
                   )
                 )
               ) |>
-              bsplus::bs_append(
+              bs_append(
                 title = 'Modify Plot Theme',
                 content = list(
                   #Choosing the plot background
@@ -892,201 +931,253 @@ ui <- shinyUI(
                   uiOutput('manualcolor'),
                   uiOutput('colUpdate')
                 )
-              ),
-            radioButtons(
-              "dpview",
-              "Add datapoints count to your plot:",
-              choices = c('No' = 0, 'Yes' =
-                            5),
-              inline = T
-            ),
-            #Adding annotation on plot
-            tagList(
-              uiOutput('grpselect'),
-              uiOutput('askAnnotationV'),
-              uiOutput('chooseAnnotation')
-            )
-          ),
-          #Tab for significance analysis
-          tabPanel(
-            "Statistical Analysis",
-            br(),
-            #Get descriptive statistics
-            actionButton('descstat', 'Get Descriptive Stat', style =
-                           "margin-bottom:20px;"),
-            uiOutput('descsStatOut'),
-            #Running Normality test
-            actionButton(
-              "swtestsubmit",
-              "Run Normality Test",
-              title = 'Click to perform Shapiro-Wilk test',
-              style = "margin-bottom:20px;"
-            ),
-            uiOutput("normalityTest"),
-            br(),
-            #Running the comparison tests
-            checkboxInput("comptest", label =
-                            "Run significance test for your dataset:"),
-            tagList(
-              uiOutput("comptestshow1"),
-              uiOutput("comptestshow2"),
-              uiOutput("comptestBtn"),
-              uiOutput("posthoctitle"),
-              uiOutput("posthocList"),
-              uiOutput("posthocBtn"),
-              uiOutput("tableModal")
-            )
-          )
-        )),
+              )
+            
+          )),
         
         ##Mainpanel for Boxplot##
         
         mainPanel(
-          h2("Visualize your plot here"),
+          style = "display: flex; flex-direction: column; align-items: stretch;
+          padding: 20px; height: 100%; overflow-y: auto;",
           div(
+            style = "margin-bottom: 20px;",
+            shinycssloaders::withSpinner(
+              uiOutput("MyBPlotFinal"),
+              type = 5,
+              color = "#9e9e9e",
+              size = 2
+            )
+          ),
+          div(
+            style = "display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px;",
             div(
-              # tableOutput('testModBox'),
-              uiOutput("plot_notice"),
-              # uiOutput('themeSubmit'),
-              shinycssloaders::withSpinner(
-                uiOutput("MyBPlotFinal"),
-                type = 5,
-                color = "#9e9e9e",
-                size = 2
-              ),
-              br()
-            ),
-            div(
-              style = "display:inline-block",
+              style = "display: flex; flex-direction: column; gap: 15px; width: 50%;",
               numericInput(
                 'width',
                 label = "Select Width of your plot",
                 min = 100,
                 max = 800,
-                value = 500
-              )
-            ),
-            div(
-              style = "display:inline-block",
+                value = 500,
+                width = "100%"
+              ),
               numericInput(
                 'height',
                 label = "Select Height of your plot",
                 min = 100,
                 max = 800,
-                value = 400
+                value = 400,
+                width = "100%"
               )
             ),
             div(
-              style = "display:inline-flex;
-                          justify-content:space-between;
-                          height:45px;
-                          width:80%;
-                          margin:3px;",
+              style = "display: flex; flex-direction: column; gap: 15px; width: 40%;",
               actionButton(
                 "copybtn2",
                 "Copy Plot",
                 icon = icon("copy"),
                 class = "btn-primary",
-                title = "Click to copy on clickboard"
+                title = "Click to copy to clipboard"
+              ),
+              selectInput(
+                "selectFiletype",
+                "Save as",
+                choices = c('PNG' = 'png', 'JPEG' = 'jpeg', 'TIFF' = 'tiff', 'PDF' = 'pdf'),
+                multiple = FALSE,
+                width = "100%"
               ),
               downloadButton(
                 "downloadBPlot",
                 "Download Plot",
-                icon = shiny::icon("download"),
+                icon = icon("download"),
                 title = "Click to download your plot"
-              ),
-              #Save Settings button
-              downloadButton(
-                "savesetting",
-                "Save settings",
-                icon = icon("gear"),
-                class = "btn-primary",
-                title = "Click to save your plot settings"
-              ),
-              div(
-                fileInput(
-                  "usesetting",
-                  label = NULL,
-                  buttonLabel = "Select Settings File",
-                  accept = c(".csv")
-                ),
-                title = "Click to load your saved csv file to reuse previous setting"
-              ),
-              actionButton("reuseset", "Upload")
+              )
             )
           ),
-          style = "position:fixed;
-            display:flex;
-            align-content:center;
-            flex-direction:column;
-            right: 0;
-            width:65%;
-            height:600px;
-            overflow-y:scroll;
-            z-index:999;"
+          div(
+            style = "display: flex; flex-direction: row; gap: 15px; margin-bottom: 20px; height:50px;
+            align-items:start;justify-content:center;",
+            downloadButton(
+              "savesetting",
+              "Save settings",
+              icon = icon("gear"),
+              class = "btn-primary",
+              title = "Click to save your plot settings"
+            ),fileInput(
+              "usesetting",
+              label = NULL,
+              buttonLabel = "Select Settings File",
+              accept = c(".csv")
+            ),
+            actionButton(
+              "reuseset",
+              "Upload",
+              title = "Click to load your saved csv file to reuse previous setting"
+            )
+          ),
+          uiOutput("plot_notice")
         )
       )),
+      
       #Tab for significance analysis
+      tabPanel("Statistical Analysis",
+               pageWithSidebar(
+                 div(),
+                 sidebarPanel(
+                   #Get descriptive statistics
+                   actionButton('descstatV', 'Get Descriptive Stat', style =
+                                  "margin-bottom:20px;"),
+                   # uiOutput('descsStatOutV'),
+                   #Running Normality test
+                   actionButton(
+                     "swtestsubmitV",
+                     "Run Normality Test",
+                     title = 'Click to perform Shapiro-Wilk test',
+                     style = "margin-bottom:20px;"
+                   ),
+                   # uiOutput('normalityTestV'),
+                   br(),
+                   #Running the comparison tests
+                   actionButton("comptestV", label =
+                                  "Run Significance Test"),
+                   tagList(
+                     uiOutput("comptestshow1V"),
+                     uiOutput("posthoctitleV"),
+                     uiOutput("posthocListV"),
+                     uiOutput("posthocBtnV"),
+                     uiOutput("tableModalV"),
+                     uiOutput('statdnldV')
+                   )
+                 ),
+                 # Main Panel for Stat tab
+                 mainPanel(uiOutput('stattableout'))
+               )),
       tabPanel(
-        "Statistical Analysis",pageWithSidebar(div(),
-          sidebarPanel(#Get descriptive statistics
-            actionButton('descstatV', 'Get Descriptive Stat', style =
-                           "margin-bottom:20px;"),
-            # uiOutput('descsStatOutV'),
-            #Running Normality test
-            actionButton(
-              "swtestsubmitV",
-              "Run Normality Test",
-              title = 'Click to perform Shapiro-Wilk test',
-              style = "margin-bottom:20px;"
-            ),
-            # uiOutput('normalityTestV'),
-            br(),
-            #Running the comparison tests
-            checkboxInput("comptestV", label =
-                            "Run significance test for your dataset:"),
-            tagList(
-              uiOutput("comptestshow1V"),
-              uiOutput("comptestshow2V"),
-              uiOutput("comptestBtnV"),
-              uiOutput("posthoctitleV"),
-              uiOutput("posthocListV"),
-              uiOutput("posthocBtnV"),
-              uiOutput("tableModalV")
-            )),
-          mainPanel(uiOutput('stattableout'))
-        )
-      ),
-      tabPanel(
-        "Info",
-        p(
-          "Thank You for using this app. I made this app to make customizable
-        plots of mainly Violin and Box-Jitter-type plots. This app uses R at
-        its core to handle the basic programming and the 'Shiny' Package to build
-        the interface. The following packages have also been used to make this app
-        for which I am thankful to its developers. For the Web-Based UI 'shinythemes',
-        'shinyjs', 'shinyBS', and 'shinycssloaders' were used. For data handling 'openxlsx',
-        'datasets', 'DT', 'tidyr', 'dplyr' and 'tidyverse' packages were used. For generation of
-        the plot 'ggplot2' was mainly used along with an add on 'ggbeeswarm' to
-        generate the jitter plot. For the theme generation 'DescTools', 'colorspace' and 'colourPicker' packages
-        were used. For doing the statistical calculation majorly basic R was used. Apart from that 'FSA',
-        'dunn.test', and 'asht' was used. For creating visual data tables 'broom'
-        package was used.",
-          style = "width:75%; padding:50px;text-align:center;
-        margin:0 auto;margin-top:10%;
-        font-size:17px;"
+        # "Info",
+        # p(
+        #   "Thank You for using this app. I made this app to make customizable
+        # plots of mainly Violin and Box-Jitter-type plots. This app uses R at
+        # its core to handle the basic programming and the 'Shiny' Package to build
+        # the interface. The following packages have also been used to make this app
+        # for which I am thankful to its developers. For the Web-Based UI 'shinythemes',
+        # 'shinyjs', 'shinyBS', and 'shinycssloaders' were used. For data handling 'openxlsx',
+        # 'datasets', 'DT', 'tidyr', 'dplyr' and 'tidyverse' packages were used. For generation of
+        # the plot 'ggplot2' was mainly used along with an add on 'ggbeeswarm' to
+        # generate the jitter plot. For the theme generation 'DescTools', 'colorspace' and 'colourPicker' packages
+        # were used. For doing the statistical calculation majorly basic R was used. Apart from that 'FSA',
+        # 'dunn.test', and 'asht' was used. For creating visual data tables 'broom'
+        # package was used.",
+        #   style = "width:75%; padding:50px;text-align:center;
+        # margin:0 auto;margin-top:10%;
+        # font-size:17px;"
+        # ),
+        # p(
+        #   "Please", a("email", href = "mailto:sumitsen616@outlook.com"), "me for your feedback or if you find any issues/ bugs.",
+        #   style = "width:75%; padding-top:10px;text-align:center;margin:0 auto;margin-top:10%"
+        # ),
+        # p("App developed by Sumit. CC 2025.", style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"),
+        # p(
+        #   a("Twitter", href = "https://twitter.com/SumitSen616"),
+        #   "||",
+        #   a("LinkedIn", href = "https://www.linkedin.com/in/sumitsen616/"),
+        #   style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"
+        # )
+        # 
+        
+        "Info", 
+        h3("How to Use SEN'sable Plotting v2.0"),
+        p("Welcome to SEN'sable Plotting v2.0, a tool designed by Sumit Sen at TIFR, Mumbai, for creating and customizing boxplots and violin plots from your data. Follow these steps to get started:"),
+        tags$ol(
+          tags$li("Upload your data by selecting an Excel (.xlsx) file in the 'Upload File' tab. Ensure the first row contains column headers if applicable, and toggle the 'Header' checkbox accordingly."),
+          tags$li("Choose the sheet from the dropdown menu provided after uploading and required columns from the checkboxes to select your data."),
+          tags$li("Navigate to the 'Box Plot' or 'Violin Plot' tab to visualize your data. Customize the plot by adjusting settings such as width, height, axis titles, colors, themes, etc."),
+          tags$li("For statistical analysis of your dataset, select 'Statistical Analysis' tab.
+                        Find out the descriptive statistics report or the distribution type. 
+                        For hypothesis testing select the test type (parametric/non-parametric) and 
+                        comparison type (paired/group). Choose a post-hoc method for group comparisons.
+                        The algorithm automatically suggests you to select the correct type of test;
+                        however, independently varify the hypothesis testing from other resources.
+                        Download a complete publication-ready statistical test report."),
+          tags$li("When the statistical test is completed, significance 
+                        annotations (e.g., p-values) can be added to your plots by configuring the 
+                        comparison inputs and ensuring valid data pairs are provided. This option 
+                        is accessible from individual Boxplot or Violin plot tabs."),
+          tags$li("Download your plot as PNG, JPEG, TIFF, or PDF by using the 'Download Plot'.
+                        You can save your plot settings (excluding annotations) as a CSV
+                        file for reuse by 'Save settings' buttons."),
+          tags$li("To reuse saved settings, upload a CSV file in the respective tab
+                        and click 'Upload' to apply them. 
+                        Important to note that colors of the plot can be updated
+                        by clicking 'Update Colours' twice if needed."),
+          tags$li("Toggle the display mode using the 'Change Display Mode'
+                        checkbox in the 'Upload File' tab to switch between dark and light themes.")
         ),
-        p(
-          "Please write to me at (sumit.sen@tifr.res.in) for your feedback or if you find any issues/ bugs.",
-          style = "width:75%; padding-top:10px;text-align:center;margin:0 auto;margin-top:10%"
+        p("Note: Ensure your uploaded file contains numeric data in a wide format
+              to enable proper plotting and statistical analysis."),
+        br(),
+        h4("Acknowledgement to the Authors of Dependent Packages"),
+        p("This app relies on the following packages to function:"),
+        tags$ul(
+          tags$li("For running the app:"),
+          tags$ul(
+            tags$li("'shiny'"),
+            tags$li("'shinythemes'"),
+            tags$li("'shinyjs'"),
+            tags$li("'shinyBS'"),
+            tags$li("'shinycssloaders'"),
+            tags$li("'rJava'")
+          ),
+          tags$li("For handling the data:"),
+          tags$ul(
+            tags$li("'openxlsx'"),
+            tags$li("'datasets'"),
+            tags$li("'tidyr'"),
+            tags$li("'dplyr'"),
+            tags$li("'DT'"),
+            tags$li("'tidyverse'"),
+            tags$li("'remotes'"),
+            tags$li("'magrittr'")
+          ),
+          tags$li("For creating the plot:"),
+          tags$ul(
+            tags$li("'ggplot2'"),
+            tags$li("'ggbeeswarm'")
+          ),
+          tags$li("For beautifying the plot:"),
+          tags$ul(
+            tags$li("'extrafont'"),
+            tags$li("'colorspace'"),
+            tags$li("'colourpicker'"),
+            tags$li("'bsplus'"),
+            tags$li("'DescTools'")
+          ),
+          tags$li("For saving the data:"),
+          tags$ul(
+            tags$li("'rclipboard'")
+          ),
+          tags$li("For Stats:"),
+          tags$ul(
+            tags$li("'FSA'"),
+            tags$li("'dunn.test'"),
+            tags$li("'broom'"),
+            tags$li("'asht'"),
+            tags$li("'car'")
+          ),
+          tags$li("For making stat report:"),
+          tags$ul(
+            tags$li("'xlsx'")
+          )
         ),
-        p("App developed by Sumit. CC 2025.", style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"),
-        p(
-          a("Twitter", href = "https://twitter.com/SumitSen616"),
-          "||",
-          a("LinkedIn", href = "https://www.linkedin.com/in/sumitsen616/"),
-          style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"
-        )
+        
+        h3("About SEN'sable Plotting v2.0"),
+        p("SEN'sable Plotting v2.0 is an open-source Shiny application developed
+                to assist researchers in visualizing and analyzing data through customizable plots.
+                It supports statistical comparisons and offers a user-friendly interface
+                for data exploration. This tool is actively maintained by Sumit Sen, and contributions or feedback are welcome via ",
+          a('email',href="mailto:sumitsen616@outlook.com"),"."),
+        br(),
+        p("Version: 2.0 | Last Updated: September 11, 2025")
+        
         
       )
     )
@@ -1103,6 +1194,7 @@ server <- shinyServer(function(input, output, session) {
   
   shinyjs::disable(selector = '.tabbable a[data-value="Violin Plot"')
   shinyjs::disable(selector = '.tabbable a[data-value="Box Plot"')
+  shinyjs::disable(selector = '.tabbable a[data-value="Statistical Analysis"')
   
   #Disabling save setting button by default and enabling only when 'Theme' tab is selected
   shinyjs::disable("savesetting")
@@ -1121,6 +1213,8 @@ server <- shinyServer(function(input, output, session) {
     input$MyVPlot,
     {
       shinyjs::runjs(
+        ##Copy Plot to clipboard code was written by Stephane Laurent
+        ##from Stackexchange and modified accordingly
         '   async function getImageBlobFromUrl(url) {
             const fetchedImageData = await fetch(url);
             const blob = await fetchedImageData.blob();
@@ -1149,7 +1243,9 @@ server <- shinyServer(function(input, output, session) {
     input$MyBPlot,
     {
       shinyjs::runjs(
-         'async function getImageBlobFromUrl(url) {
+        ##Copy Plot to clipboard code was written by Stephane Laurent
+        ##from Stackexchange and modified accordingly
+        'async function getImageBlobFromUrl(url) {
           const fetchedImageData = await fetch(url);
           const blob = await fetchedImageData.blob();
           return blob;
@@ -1173,7 +1269,7 @@ server <- shinyServer(function(input, output, session) {
         });'
       )
     })
-
+  
   sheetName <- reactive({
     req(input$file1) #  require that the input is available
     inFile <- input$file1
@@ -1245,24 +1341,22 @@ server <- shinyServer(function(input, output, session) {
     if (input$askPlotType == 'violin') {
       shinyjs::enable(selector = '.tabbable a[data-value="Violin Plot"')
       shinyjs::disable(selector = '.tabbable a[data-value="Box Plot"')
+      shinyjs::enable(selector = '.tabbable a[data-value="Statistical Analysis"')
     }
     else if (input$askPlotType == 'box') {
       shinyjs::disable(selector = '.tabbable a[data-value="Violin Plot"')
       shinyjs::enable(selector = '.tabbable a[data-value="Box Plot"')
-    }
+      shinyjs::enable(selector = '.tabbable a[data-value="Statistical Analysis"')
+    } 
   })
   
-  observeEvent(input$Vtheme, {
-    showNotification("Hello")
-  })
-  
-  
+  # Arranging Input Raw Data
   orderdata <- reactive({
-    newcols <- tidyselect::all_of(colnames(data()))
+    newcols <- all_of(colnames(data()))
     order_data <-
       data() |> pivot_longer(cols = newcols,
-                              names_to = "variable",
-                              values_to = "value") |>
+                             names_to = "variable",
+                             values_to = "value") |>
       arrange(variable)
     # for (i in 1:nrow(orderdata)){
     #   if (is.na(order_data[i,2])==TRUE){
@@ -2367,7 +2461,7 @@ server <- shinyServer(function(input, output, session) {
         scale_fill_manual(values = addvioTheme()) +
         scale_y_continuous(trans = logaxisV()) +
         scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                  as.numeric(input$XrotateV))) +
+                                                                                                    as.numeric(input$XrotateV))) +
         theme(
           axis.text.x = element_text(size = input$XfontcolV, color = "black"),
           axis.title.x = element_text(size = input$XfontszV, color = "black"),
@@ -2419,7 +2513,7 @@ server <- shinyServer(function(input, output, session) {
         scale_fill_manual(values = addvioTheme()) +
         scale_y_continuous(trans = logaxisV()) +
         scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                  as.numeric(input$XrotateV))) +
+                                                                                                    as.numeric(input$XrotateV))) +
         theme(
           axis.text.x = element_text(size = input$XfontcolV, color = "black"),
           axis.title.x = element_text(size = input$XfontszV, color = "black"),
@@ -2482,7 +2576,7 @@ server <- shinyServer(function(input, output, session) {
         scale_fill_manual(values = addvioTheme()) +
         scale_y_continuous(trans = logaxisV()) +
         scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                  as.numeric(input$XrotateV))) +
+                                                                                                    as.numeric(input$XrotateV))) +
         theme(
           axis.text.x = element_text(size = input$XfontcolV, color = "black"),
           axis.title.x = element_text(size = input$XfontszV, color = "black"),
@@ -2582,7 +2676,7 @@ server <- shinyServer(function(input, output, session) {
         scale_fill_manual(values = addvioTheme()) +
         scale_y_continuous(trans = logaxisV()) +
         scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                  as.numeric(input$XrotateV))) +
+                                                                                                    as.numeric(input$XrotateV))) +
         theme(
           axis.text.x = element_text(size = input$XfontcolV, color = "black"),
           axis.title.x = element_text(size = input$XfontszV, color = "black"),
@@ -2658,12 +2752,43 @@ server <- shinyServer(function(input, output, session) {
       plotinputV()
     }
   })
+  plotwidthV <- reactive({
+    width <- 200 #fallback
+    if (is.na(input$widthV)){
+      showNotification("Plot width cannot be blank", type='error')
+    } else if(input$widthV>800){
+      width <- 800
+      showNotification("Plot width cannot be more than 800", type = 'error')
+    }else if(input$widthV<200){
+      width <- 200
+      showNotification("Plot width cannot be lesser than 200", type = 'error')
+    }else{
+      width <- input$widthV
+    }
+    return(width)
+  })
+  plotheightV <- reactive({
+    height <- 200 #fallback
+    if (is.na(input$heightV)){
+      showNotification("Plot height cannot be blank", type='error')
+    } else if(input$heightV>600){
+      height <- 600
+      showNotification("Plot height cannot be more than 600", type = 'error')
+    }else if(input$heightV<200){
+      height <- 200
+      showNotification("Plot height cannot be lesser than 200", type = 'error')
+    }else{
+      height <- input$heightV
+    }
+    return(height)
+  })
+  
   output$MyVPlotFinal <- renderUI({
     shinycssloaders::withSpinner(
       plotOutput(
         "MyVPlot",
-        width = input$widthV,
-        height = input$heightV
+        width = plotwidthV(),
+        height = plotheightV()
       ),
       type = getOption("spinner.type", default = 6),
       color = getOption("spinner.color", default = "#BCE290"),
@@ -2673,9 +2798,21 @@ server <- shinyServer(function(input, output, session) {
   
   #Download ViolinPlot
   output$downloadVPlot <- downloadHandler(
-    filename = "Violinplot.png",
+    filename = function() {
+      paste("Violinplot", ".", input$selectFiletypeV, sep = "")  # Dynamic filename
+    },
     content = function(file) {
-      png(file)
+      # Determine the graphics device based on selected file type
+      if (input$selectFiletypeV == "png") {
+        png(file, width = plotwidthV()*2.08, height = plotheightV()*2.08,units = 'px', res = 150, pointsize=1)
+      } else if (input$selectFiletypeV == "jpeg") {
+        jpeg(file, width = plotwidthV()*2.08, height = plotheightV()*2.08, quality = 90, res = 150)
+      } else if (input$selectFiletypeV == "tiff") {
+        tiff(file, width = plotwidthV()*2.08, height = plotheightV()*2.08, compression = "lzw", res = 150)
+      } else if (input$selectFiletypeV == "pdf") {
+        pdf(file, onefile = T)  # px to inches
+      }
+      
       if (nrow(grpdataV$df) != 0) {
         print(plotAnnoteinputV())
       }
@@ -2769,65 +2906,65 @@ server <- shinyServer(function(input, output, session) {
     }
   }
   plotAnnoteinput <- function() {
-      plotinput() +
-        geom_segment(
-          pairLines(),
-          mapping = aes(
-            x = x1,
-            xend = x2,
-            y = y1,
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLines(),
-          mapping = aes(
-            x = x1,
-            xend = x1,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLines(),
-          mapping = aes(
-            x = x2,
-            xend = x2,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_text(
-          pairLines(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (3 * (y1) / 100),
-            label = paste(c(pairLines()[, 5]))
-          ),
-          size = input$annoteSize
-        ) +
-        geom_text(
-          pairLines(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (input$pvaldist * (y1) / 100),
-            label = paste(c(pairLines()[, 6]))
-          ),
-          size = input$pvalfont
-        ) +
-        geom_text(
-          data = addDataPointLabel(),
-          mapping = aes(
-            x = x,
-            y = y,
-            label = paste(c(addDataPointLabel()$text))
-          ),
-          size = as.numeric(input$dpview)
-        )
-   
+    plotinput() +
+      geom_segment(
+        pairLines(),
+        mapping = aes(
+          x = x1,
+          xend = x2,
+          y = y1,
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_segment(
+        pairLines(),
+        mapping = aes(
+          x = x1,
+          xend = x1,
+          y = y1 - (2 * (y1) / 100),
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_segment(
+        pairLines(),
+        mapping = aes(
+          x = x2,
+          xend = x2,
+          y = y1 - (2 * (y1) / 100),
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_text(
+        pairLines(),
+        mapping = aes(
+          x = (x1 + x2) / 2,
+          y = y1 + (3 * (y1) / 100),
+          label = paste(c(pairLines()[, 5]))
+        ),
+        size = input$annoteSize
+      ) +
+      geom_text(
+        pairLines(),
+        mapping = aes(
+          x = (x1 + x2) / 2,
+          y = y1 + (input$pvaldist * (y1) / 100),
+          label = paste(c(pairLines()[, 6]))
+        ),
+        size = input$pvalfont
+      ) +
+      geom_text(
+        data = addDataPointLabel(),
+        mapping = aes(
+          x = x,
+          y = y,
+          label = paste(c(addDataPointLabel()$text))
+        ),
+        size = as.numeric(input$dpview)
+      )
+    
   }
   
   output$MyBPlot <- renderPlot({
@@ -2838,12 +2975,42 @@ server <- shinyServer(function(input, output, session) {
       plotinput()
     }
   })
+  plotwidth <- reactive({
+    width <- 200 #fallback
+    if (is.na(input$width)){
+      showNotification("Plot width cannot be blank", type='error')
+    } else if(input$width>800){
+      width <- 800
+      showNotification("Plot width cannot be more than 800", type = 'error')
+    }else if(input$width<200){
+      width <- 200
+      showNotification("Plot width cannot be lesser than 200", type = 'error')
+    }else{
+      width <- input$width
+    }
+    return(width)
+  })
+  plotheight <- reactive({
+    height <- 200 #fallback
+    if (is.na(input$height)){
+      showNotification("Plot height cannot be blank", type='error')
+    } else if(input$height>600){
+      height <- 600
+      showNotification("Plot height cannot be more than 600", type = 'error')
+    }else if(input$height<200){
+      height <- 200
+      showNotification("Plot height cannot be lesser than 200", type = 'error')
+    }else{
+      height <- input$height
+    }
+    return(height)
+  })
   output$MyBPlotFinal <- renderUI({
     shinycssloaders::withSpinner(
       plotOutput(
         "MyBPlot",
-        width = input$width,
-        height = input$height
+        width = plotwidth(),
+        height = plotheight()
       ),
       type = getOption("spinner.type", default = 6),
       color = getOption("spinner.color", default = "#BCE290"),
@@ -2853,15 +3020,29 @@ server <- shinyServer(function(input, output, session) {
   
   #Download BoxPlot as PNG
   output$downloadBPlot <- downloadHandler(
-    filename = "Boxplot.png",
+    filename = function() {
+      paste("Boxplot", ".", input$selectFiletype, sep = "")  # Dynamic filename
+    },
     content = function(file) {
-      png(file)
+      # Determine the graphics device based on selected file type
+      if (input$selectFiletype == "png") {
+        png(file, width = plotwidth()*2.08, height = plotheight()*2.08,units = 'px', res = 150, pointsize=1)
+      } else if (input$selectFiletype == "jpeg") {
+        jpeg(file, width = plotwidth()*2.08, height = plotheight()*2.08, quality = 90, res = 150)
+      } else if (input$selectFiletype == "tiff") {
+        tiff(file, width = plotwidth()*2.08, height = plotheight()*2.08, compression = "lzw", res = 150)
+      } else if (input$selectFiletype == "pdf") {
+        pdf(file, onefile = T)  # px to inches
+      }
+      
+      # Render the plot based on data availability
       if (nrow(grpdata$df) != 0) {
         print(plotAnnoteinput())
-      }
-      else{
+      } else {
         print(plotinput())
       }
+      
+      # Close the device
       dev.off()
     }
   )
@@ -3130,27 +3311,16 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
-  
- 
-  
-    # shinyBS::bsModal(
-    #   'swtestvio',
-    #   title = "Result of Shapiro-Wilk Test",
-    #   trigger = 'swtestsubmitV',
-    #   size = 'large',
-    #   tableOutput('SWtestV'),
-    #   downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
-    # )
-    observeEvent(input$swtestsubmitV,{
-      output$stattableout <- renderUI({
-        tagList(
-          h2("Result of Shapiro-Wilk Test"),
+  observeEvent(input$swtestsubmitV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2("Result of Shapiro-Wilk Test"),
         ## Normality test report display
         output$SWtestV <- renderTable({
           format(SWtestdnldV(), nsmall = 5)
         }),
         downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
-        )
+      )
     })
   })
   
@@ -3191,31 +3361,50 @@ server <- shinyServer(function(input, output, session) {
       tags$span("Nonparametric Test"))
     }
   })
-  output$comptestshow1 <- renderUI({
-    if (input$comptest == T) {
-      radioButtons(
-        "comptestA",
-        label = "Choose parameters to perform significance test:",
-        choiceValues = c('para', 'nonpara'),
-        choiceNames = normcheck()
+  observeEvent(input$comptestV, {
+    output$comptestshow1 <- renderUI({
+      tagList(
+        radioButtons(
+          "comptestA",
+          label = "Choose parameters to perform significance test:",
+          choiceValues = c('para', 'nonpara'),
+          choiceNames = normcheck()
+        ),
+        radioButtons(
+          "comptestB",
+          label = "",
+          choiceValues = c('pair', 'group'),
+          choiceNames = testcheck()
+        ),
+        actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
       )
-    }
+    })
   })
-  output$comptestshow2 <- renderUI({
-    if (input$comptest == T) {
-      radioButtons(
-        "comptestB",
-        label = "",
-        choiceValues = c('pair', 'group'),
-        choiceNames = testcheck()
-      )
-    }
-  })
-  output$comptestBtn <- renderUI({
-    if (input$comptest == T) {
-      actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
-    }
-  })
+  # output$comptestshow1 <- renderUI({
+  #   if (input$comptest == T) {
+  #     radioButtons(
+  #       "comptestA",
+  #       label = "Choose parameters to perform significance test:",
+  #       choiceValues = c('para', 'nonpara'),
+  #       choiceNames = normcheck()
+  #     )
+  #   }
+  # })
+  # output$comptestshow2 <- renderUI({
+  #   if (input$comptest == T) {
+  #     radioButtons(
+  #       "comptestB",
+  #       label = "",
+  #       choiceValues = c('pair', 'group'),
+  #       choiceNames = testcheck()
+  #     )
+  #   }
+  # })
+  # output$comptestBtn <- renderUI({
+  #   if (input$comptest == T) {
+  #     actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
+  #   }
+  # })
   
   #Asking for significance test (violin plot)
   
@@ -3251,32 +3440,56 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  
-  output$comptestshow1V <- renderUI({
-    if (input$comptestV == T) {
-      radioButtons(
-        "comptestAV",
-        label = "Choose parameters to perform significance test:",
-        choiceValues = c('para', 'nonpara'),
-        choiceNames = normcheckV()
+  observeEvent(input$comptestV,{
+    
+    output$comptestshow1V <- renderUI({
+      tagList(
+        radioButtons(
+          "comptestAV",
+          label = "Choose parameters to perform significance test:",
+          choiceValues = c('para', 'nonpara'),
+          choiceNames = normcheckV()
+        ),
+        # }),
+        # output$comptestshow2V <- renderUI({
+        radioButtons(
+          "comptestBV",
+          label = "",
+          choiceValues = c('pair', 'group'),
+          choiceNames = testcheckV()
+        ),
+        # }),
+        # output$comptestBtnV <- renderUI({
+        actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
       )
-    }
+    })
+    
   })
-  output$comptestshow2V <- renderUI({
-    if (input$comptestV == T) {
-      radioButtons(
-        "comptestBV",
-        label = "",
-        choiceValues = c('pair', 'group'),
-        choiceNames = testcheckV()
-      )
-    }
-  })
-  output$comptestBtnV <- renderUI({
-    if (input$comptestV == T) {
-      actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
-    }
-  })
+  # output$comptestshow1V <- renderUI({
+  #   if (input$comptestV == T) {
+  #     radioButtons(
+  #       "comptestAV",
+  #       label = "Choose parameters to perform significance test:",
+  #       choiceValues = c('para', 'nonpara'),
+  #       choiceNames = normcheckV()
+  #     )
+  #   }
+  # })
+  # output$comptestshow2V <- renderUI({
+  #   if (input$comptestV == T) {
+  #     radioButtons(
+  #       "comptestBV",
+  #       label = "",
+  #       choiceValues = c('pair', 'group'),
+  #       choiceNames = testcheckV()
+  #     )
+  #   }
+  # })
+  # output$comptestBtnV <- renderUI({
+  #   if (input$comptestV == T) {
+  #     actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
+  #   }
+  # })
   
   observeEvent(input$swtestsubmit, {
     if (length(input$file1) == 0) {
@@ -3320,19 +3533,19 @@ server <- shinyServer(function(input, output, session) {
   # })
   output$tableModal <- renderUI({
     if (input$comptest == T) {
-      if (input$comptestB == "group") {
+      if (input$comptestBV == "group") {
         shinyBS::bsModal("tableout1",
-                sigtestTitle(),
-                "comptestrun",
-                size = "large",
-                uiOutput("mixTable"))
+                         sigtestTitle(),
+                         "comptestrun",
+                         size = "large",
+                         uiOutput("mixTable"))
       }
-      else if (input$comptestB == "pair") {
+      else if (input$comptestBV == "pair") {
         shinyBS::bsModal("tableout2",
-                PairTestTitl(),
-                "comptestrun",
-                size = "large",
-                uiOutput("modalout"))
+                         PairTestTitl(),
+                         "comptestrun",
+                         size = "large",
+                         uiOutput("modalout"))
       }
     }
   })
@@ -3340,13 +3553,13 @@ server <- shinyServer(function(input, output, session) {
     output$stattableout <- renderUI({
       if (input$comptestV == T) {
         if (input$comptestBV == "group") {
-            tagList(
-              h2(sigtestTitleV()),
-              output$sigtableV <- renderTable({
-                format(sigtestInpV(), nsmall = 5)
-              }),
-              sgrepdnbtV()
-            )
+          tagList(
+            h2(sigtestTitleV()),
+            output$sigtableV <- renderTable({
+              format(sigtestInpV(), nsmall = 5)
+            }),
+            sgrepdnbtV()
+          )
           
           
           # shinyBS::bsModal(
@@ -3358,7 +3571,7 @@ server <- shinyServer(function(input, output, session) {
           # )
         }
         else if (input$comptestBV == "pair") {
-            tagList(
+          tagList(
             h2(PairTestTitlV()),
             uiOutput("modaloutV")
           )
@@ -3373,7 +3586,7 @@ server <- shinyServer(function(input, output, session) {
       }
     })
   })
-
+  
   
   #Pairwise Modal box output
   groups <- reactive({
@@ -3455,7 +3668,7 @@ server <- shinyServer(function(input, output, session) {
           label = comparison_label,
           value = FALSE
         )
-      }), style = "background-color:#efefef; padding:10px;overflow-y:scroll;max-height:300px;"),
+      }), style = "background-color:#efefef; padding:10px;overflow-y:auto;max-height:300px;"),
       # actionButton("submit", "Select"),
       # actionButton('reset', "Reset Table"),
       uiOutput('submitCompV'),
@@ -3527,7 +3740,7 @@ server <- shinyServer(function(input, output, session) {
     }
     
   })
-  observeEvent(input$comptestrunV, {
+  observeEvent(input$runposthocV, {
     output$statdnldV <- renderUI({
       downloadButton('reportdnldV', 'Download Complete Stat Report')
     })
@@ -3536,11 +3749,11 @@ server <- shinyServer(function(input, output, session) {
   ##calculation of pairwise Tests##
   
   PairTestTitl <- reactive({
-    if (input$comptestA == 'para') {
+    if (input$comptestAV == 'para') {
       #for box plot || for vio Plot
       boxTitle <- paste("Result of Welch's t- Test")
     }
-    else if (input$comptestA == 'nonpara') {
+    else if (input$comptestAV == 'nonpara') {
       #for box plot || for vio plot
       boxTitle <- paste("Result of Wilcoxon-Mann-Whitney Test")
     }
@@ -3603,7 +3816,7 @@ server <- shinyServer(function(input, output, session) {
       showNotification("Please select the conditions first.", type = "warning")
     }
     else{
-      if (input$comptestA == 'para' && input$comptestB == 'pair') {
+      if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
         colname <- as.factor(colnames(data()))
         dfNew <- data.frame()
         for (i in 1:nrow(testdata)) {
@@ -3635,8 +3848,8 @@ server <- shinyServer(function(input, output, session) {
         dffinal <- dffinal
       }
       
-      else if (input$comptestA == 'nonpara' &&
-               input$comptestB == 'pair') {
+      else if (input$comptestAV == 'nonpara' &&
+               input$comptestBV == 'pair') {
         # colname <- gsub("[[:punct:]]",'',colnames(data()))
         colname <- as.factor(colnames(data()))
         dfnew <- data.frame()
@@ -3868,7 +4081,7 @@ server <- shinyServer(function(input, output, session) {
   
   ##For Box plot##
   sigtestInp <- reactive({
-    if (input$comptestA == 'nonpara' && input$comptestB == 'group') {
+    if (input$comptestAV == 'nonpara' && input$comptestBV == 'group') {
       ##Kruskal Wallis calculation##
       kwrep <- kruskal.test(data())
       kwrepTab <- data.frame(kwrep$statistic, kwrep$parameter, kwrep$p.value)
@@ -3895,8 +4108,8 @@ server <- shinyServer(function(input, output, session) {
         
       }
     }
-    else if (input$comptestA == 'para' &&
-             input$comptestB == 'group') {
+    else if (input$comptestAV == 'para' &&
+             input$comptestBV == 'group') {
       ##ANNOVA test calculation##
       varT <- car::leveneTest(value ~ variable, na.omit(orderdata()))
       if (varT$`Pr(>F)`[1] < 0.05) {
@@ -4078,14 +4291,14 @@ server <- shinyServer(function(input, output, session) {
     }
     sgreps <- sgreps
   })
-
+  
   
   
   sigtestTitle <- reactive({
-    if (input$comptestA == 'nonpara') {
+    if (input$comptestAV == 'nonpara') {
       #for box plot|| for vio plot
       sigtitl <- paste("Result of Kruskal-Wallis Test")
-    } else if (input$comptestA == 'para') {
+    } else if (input$comptestAV == 'para') {
       #for box plot|| for vio plot
       sigtitl <- paste("Result of One way ANNOVA Test")
     }
@@ -4105,11 +4318,11 @@ server <- shinyServer(function(input, output, session) {
   #Kruskal-Wallis Report Download#
   sigtestrep <- reactive({
     #preparation of the report
-    if (input$comptestA == 'nonpara' &&
-        input$comptestB == 'group') {
+    if (input$comptestAV == 'nonpara' &&
+        input$comptestBV == 'group') {
       sgtest <- as.data.frame.list(kruskal.test(data()), row.names = F)
-    } else if (input$comptestA == 'para' &&
-               input$comptestB == 'group') {
+    } else if (input$comptestAV == 'para' &&
+               input$comptestBV == 'group') {
       owa <- as.data.frame.list(oneway.test(value ~ variable, na.omit(orderdata()), var.equal = F))
       owat <- as.data.frame.list(oneway.test(value ~ variable, na.omit(orderdata()), var.equal = T))
       owarep <- rbind(owa[2, ], owat[2, ])
@@ -4166,11 +4379,11 @@ server <- shinyServer(function(input, output, session) {
   
   posthoctitleInp <- reactive({
     #for box plot
-    if (input$comptestA == 'nonpara' &&
-        input$comptestB == 'group') {
+    if (input$comptestAV == 'nonpara' &&
+        input$comptestBV == 'group') {
       sigtitl <- paste("Post Hoc Test: Dunn's Method")
-    } else if (input$comptestA == 'para' &&
-               input$comptestB == 'group') {
+    } else if (input$comptestAV == 'para' &&
+               input$comptestBV == 'group') {
       sigtitl <- paste("Post Hoc Test: Tukey's HSD Test")
     }
     sigtitl <- sigtitl
@@ -4189,8 +4402,8 @@ server <- shinyServer(function(input, output, session) {
   
   posthoclistInp <- reactive({
     #for box plot
-    if (input$comptestA == 'nonpara' &&
-        input$comptestB == 'group') {
+    if (input$comptestAV == 'nonpara' &&
+        input$comptestBV == 'group') {
       sigtitl <- c(
         "No Correction" = 'none',
         "Bonferroni" = 'bonferroni',
@@ -4201,8 +4414,8 @@ server <- shinyServer(function(input, output, session) {
         "Benjamini-Hochberg" = 'bh',
         "Benjamini-Yekutieli" = 'by'
       )
-    } else if (input$comptestA == 'para' &&
-               input$comptestB == 'group') {
+    } else if (input$comptestAV == 'para' &&
+               input$comptestBV == 'group') {
       sigtitl <- c("95% Confidence Interval" = 0.95,
                    "99% Confidence Interval" = 0.99)
     }
@@ -4230,42 +4443,42 @@ server <- shinyServer(function(input, output, session) {
     sigtitl <- sigtitl
   })
   
-  observeEvent(input$comptestrun, {
-    output$posthoctitle <- renderText({
-      if (input$comptest == T && input$comptestB == 'group') {
-        posthoctitleInp()
-      } else{
-        
-      }
-    })
-    output$posthocList <- renderUI({
-      if (input$comptest == T && input$comptestB == 'group') {
-        selectInput("methods", label = "Select a method to be used", choices = posthoclistInp())
-      } else{
-        
-      }
-    })
-    
-    #Displaying Post Hoc Analysis Result on Modal box
-    output$posthocBtn <- renderUI({
-      tagList(
-        if (input$comptest == T && input$comptestB == 'group') {
-          actionButton("runposthoc", "Run Post Hoc Test", style = 'margin-bottom:10px;')
-        } else{
-          
-        },
-        shinyBS::bsModal(
-          "posthocModal",
-          "Post Hoc Analysis",
-          "runposthoc",
-          size = "large",
-          tableOutput("posthocTable"),
-          downloadButton("downphtrprt", "Download Report")
-        )
-      )
-      
-    })
-  })
+  # observeEvent(input$comptestrun, {
+  #   output$posthoctitle <- renderText({
+  #     if (input$comptest == T && input$comptestB == 'group') {
+  #       posthoctitleInp()
+  #     } else{
+  #       
+  #     }
+  #   })
+  #   output$posthocList <- renderUI({
+  #     if (input$comptest == T && input$comptestB == 'group') {
+  #       selectInput("methods", label = "Select a method to be used", choices = posthoclistInp())
+  #     } else{
+  #       
+  #     }
+  #   })
+  #   
+  #   #Displaying Post Hoc Analysis Result on Modal box
+  #   output$posthocBtn <- renderUI({
+  #     tagList(
+  #       if (input$comptest == T && input$comptestB == 'group') {
+  #         actionButton("runposthoc", "Run Post Hoc Test", style = 'margin-bottom:10px;')
+  #       } else{
+  #         
+  #       },
+  #       shinyBS::bsModal(
+  #         "posthocModal",
+  #         "Post Hoc Analysis",
+  #         "runposthoc",
+  #         size = "large",
+  #         tableOutput("posthocTable"),
+  #         downloadButton("downphtrprt", "Download Report")
+  #       )
+  #     )
+  #     
+  #   })
+  # })
   
   observeEvent(input$comptestrunV, {
     #For vio plot
@@ -4291,18 +4504,7 @@ server <- shinyServer(function(input, output, session) {
       tagList(
         if (input$comptestV == T && input$comptestBV == 'group') {
           actionButton("runposthocV", "Run Post Hoc Test", style = 'margin-bottom:10px;')
-        } else{
-          
-        }
-        # shinyBS::bsModal(
-        #   "posthocModalV",
-        #   "Post Hoc Analysis",
-        #   "runposthocV",
-        #   size = "large",
-        #   tableOutput("posthocTableV"),
-        #   downloadButton("downphtrprtV", "Download Report")
-        # )
-      )
+        })
     })
   })
   observeEvent(input$runposthocV,{
@@ -4315,22 +4517,22 @@ server <- shinyServer(function(input, output, session) {
     })
   })
   ##Post Hoc test calculation and table preparation
-  posthocinput <- eventReactive(input$methods, {
-    userselect <- input$methods
-  })
+  # posthocinput <- eventReactive(input$methods, {
+  #   userselect <- input$methods
+  # })
   posthocinputV <- eventReactive(input$methodsV, {
     userselect <- input$methodsV
   })
   posthoctest <- reactive({
-    if (input$comptestA == 'nonpara' && input$comptestB == 'group') {
+    if (input$comptestAV == 'nonpara' && input$comptestBV == 'group') {
       dunntest <- dunn.test(
         x = na.omit(orderdata())$value,
         g = na.omit(orderdata())$variable,
         list = T,
-        method = posthocinput()
+        method = posthocinputV()
       )
       dunntest <- as.data.frame(dunntest)
-      newcol <- paste("Dunn's Test with ", posthocinput(), " correction")
+      newcol <- paste("Dunn's Test with ", posthocinputV(), " correction")
       newcol <- as.data.frame.list(rep(newcol, nrow(dunntest)))
       newcol <- t(newcol)
       row.names(newcol) <- NULL
@@ -4348,10 +4550,10 @@ server <- shinyServer(function(input, output, session) {
                               "Corrected p Value",
                               "Method")
       phtrep <- dunntest
-    } else if (input$comptestA == 'para' &&
-               input$comptestB == 'group') {
+    } else if (input$comptestAV == 'para' &&
+               input$comptestBV == 'group') {
       model <- aov(na.omit(orderdata())$value ~ na.omit(orderdata())$variable)
-      tuktest <- TukeyHSD(model, conf.level = as.numeric(posthocinput()))
+      tuktest <- TukeyHSD(model, conf.level = as.numeric(posthocinputV()))
       tuktest <- as.data.frame.list(tuktest)
       tuktest$row_names <- row.names(tuktest)
       colnames(tuktest) <- c(
@@ -4523,14 +4725,14 @@ server <- shinyServer(function(input, output, session) {
     
     row <- row + nrow(levTest()) + 2
     
-    if (input$comptestB == 'pair') {
+    if (input$comptestBV == 'pair') {
       addDataFrame(
         PairTestTitl(),
         sheet = sh,
         startRow = row,
         row.names = F
       )
-    } else if (input$comptestB == 'group') {
+    } else if (input$comptestBV == 'group') {
       addDataFrame(
         sigtestTitle(),
         sheet = sh,
@@ -4540,14 +4742,14 @@ server <- shinyServer(function(input, output, session) {
     }
     
     row <- row + 3
-    if (input$comptestB == 'pair') {
+    if (input$comptestBV == 'pair') {
       addDataFrame(
         PairTestCal(),
         sheet = sh,
         startRow = row,
         row.names = F
       )
-    } else if (input$comptestB == 'group') {
+    } else if (input$comptestBV == 'group') {
       addDataFrame(
         sigtestInp(),
         sheet = sh,
@@ -4725,66 +4927,52 @@ server <- shinyServer(function(input, output, session) {
   
   observeEvent(input$compTabInp, {
     output$askAnnotation <- renderUI({
-      tagList(
-        uiOutput('statdnld'),
-        radioButtons(
-          "askBars",
-          "Add significance annotations to the plot",
-          choices = c('No' = 'no', 'Yes' = 'yes'),
-          inline = T
-        )
-      )
       
+      radioButtons(
+        "askBars",
+        "Add significance annotations to the plot",
+        choices = c('No' = 'no', 'Yes' = 'yes'),
+        inline = T
+      )
     })
   })
   observeEvent(input$compTabInpV, {
     output$askAnnotationV <- renderUI({
-      tagList(
-        uiOutput('statdnldV'),
-        radioButtons(
-          "askBarsV",
-          "Add significance annotations to the plot",
-          choices = c('No' = 'no', 'Yes' = 'yes'),
-          inline = T
-        )
+      radioButtons(
+        "askBarsV",
+        "Add significance annotations to the plot",
+        choices = c('No' = 'no', 'Yes' = 'yes'),
+        inline = T
       )
-      
+    })
+    output$askAnnotation <- renderUI({
+      radioButtons(
+        "askBars",
+        "Add significance annotations to the plot",
+        choices = c('No' = 'no', 'Yes' = 'yes'),
+        inline = T
+      )
     })
   })
   observeEvent(input$runposthocV, {
-    # if (input$boxTab==T){
-    #   output$askAnnotationV <- renderUI({
-    #   tagList(
-    #     uiOutput('statdnld'),
-    #     br(),
-    #     radioButtons(
-    #       "askBars",
-    #       "Add significance annotations to the plot",
-    #       choices = c('No' = 'no', 'Yes' = 'yes'),
-    #       inline = T
-    #     )
-    #   )
-    # })
-    # }else if (input$violinTab==T){
-      output$askAnnotationV <- renderUI({
-      tagList(
-        uiOutput('statdnldV'),
-        br(),
-        radioButtons(
-          "askBarsV",
-          "Add significance annotations to the plot",
-          choices = c('No' = 'no', 'Yes' = 'yes'),
-          inline = T
-        )
+    output$askAnnotationV <- renderUI({
+      radioButtons(
+        "askBarsV",
+        "Add significance annotations to the plot",
+        choices = c('No' = 'no', 'Yes' = 'yes'),
+        inline = T
       )
-      
     })
-    # }
-    
+    output$askAnnotation <- renderUI({
+      radioButtons(
+        "askBars",
+        "Add significance annotations to the plot",
+        choices = c('No' = 'no', 'Yes' = 'yes'),
+        inline = T
+      )
+    })
   })
-  # observeEvent(input$runposthocV, {
-  #   
-  # })
+  
   
   #Button to select groups
   
@@ -4813,7 +5001,7 @@ server <- shinyServer(function(input, output, session) {
             label = comparison_label,
             value = FALSE
           )
-        }), style = 'padding:10px;border:1px solid;max-height:600px;overflow-Y:scroll;'),
+        }), style = 'padding:10px;border:1px solid;max-height:300px;overflow-Y:auto;'),
         actionButton("submitAnnote", "Add Annotations", style = 'margin-top:10px;'),
         sliderInput(
           'annoteSize',
@@ -4874,7 +5062,7 @@ server <- shinyServer(function(input, output, session) {
             label = comparison_label,
             value = FALSE
           )
-        }), style = 'padding:10px;border:1px solid;max-height:600px;overflow-Y:scroll;'),
+        }), style = 'padding:10px;border:1px solid;max-height:300px;overflow-Y:auto;'),
         actionButton("submitAnnoteV", "Add Annotations", style = 'margin-top:10px;'),
         sliderInput(
           'annoteSizeV',
@@ -4970,14 +5158,13 @@ server <- shinyServer(function(input, output, session) {
     
   })
   
-  
   annotationCal <- eventReactive(input$submitAnnote, {
     #for box plot
-    
+    # browser()
     testdata <- grpdata$df
     #Calculation for Welch's t Test
     #Parametric pairwise comparison
-    if (input$comptestA == 'para' && input$comptestB == 'pair') {
+    if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
       colname <- as.factor(colnames(data()))
       dfNew <- data.frame()
       for (i in 1:nrow(testdata)) {
@@ -5007,8 +5194,8 @@ server <- shinyServer(function(input, output, session) {
     }
     #Calculation for Mann Whitney U test
     #Non-parametric pairwise comparison
-    else if (input$comptestA == 'nonpara' &&
-             input$comptestB == 'pair') {
+    else if (input$comptestAV == 'nonpara' &&
+             input$comptestBV == 'pair') {
       # colname <- gsub("[[:punct:]]",'',colnames(data()))
       colname <- as.factor(colnames(data()))
       dfNew <- data.frame()
@@ -5034,17 +5221,18 @@ server <- shinyServer(function(input, output, session) {
       dffinal <- cbind(testdata, dfNew)
       row.names(dffinal) <- NULL
       dffinal <- dffinal
-      
+      # `bros` seems to be a typo; it might have been meant to be `browser()`
+      # if you are debugging.
     }
     #Calculation for PostHoc Dunn's test
     #Non-parametric groupwise comparison
-    else if (input$comptestA == 'nonpara' &&
-             input$comptestB == 'group') {
+    else if (input$comptestAV == 'nonpara' &&
+             input$comptestBV == 'group') {
       dunntest <- dunn.test(
         x = na.omit(orderdata())$value,
         g = na.omit(orderdata())$variable,
         list = T,
-        method = posthocinput()
+        method = posthocinputV()
       )
       dunntest <- as.data.frame(dunntest)
       dunndf <- data.frame(p_value = dunntest$P.adjusted,
@@ -5070,17 +5258,17 @@ server <- shinyServer(function(input, output, session) {
         }
         df <- rbind(df, tempdf)
       }
-      colnames(df) <- c('Condition1', 'Condtion2', 'p_value')
+      colnames(df) <- c('Condition1', 'Condition2', 'p_value')
       dffinal <- df
       row.names(dffinal) <- NULL
     }
     
     #Calculation for PostHoc Tukey's HSD test
     #Parametric groupwise comparison
-    else if (input$comptestA == 'para' &&
-             input$comptestB == 'group') {
+    else if (input$comptestAV == 'para' &&
+             input$comptestBV == 'group') {
       model <- aov(na.omit(orderdata())$value ~ na.omit(orderdata())$variable)
-      tuktest <- TukeyHSD(model, conf.level = as.numeric(posthocinput()))
+      tuktest <- TukeyHSD(model, conf.level = as.numeric(posthocinputV()))
       tuktest <- as.data.frame.list(tuktest)
       tuktest$row_names <- row.names(tuktest)
       row.names(tuktest) <- NULL
@@ -5877,15 +6065,6 @@ server <- shinyServer(function(input, output, session) {
       updateTextInput(session, inputId = uploaded_inputs[i, 3], value = uploaded_inputs[i, 4])
     }
   })
-  
-  ## JS- To initiate copy to clipboard for the plot
-  # observeEvent(input[["MyBPlot"]], {
-  #   shinyjs::runjs(HTML(js))
-  # }, ignoreNULL = FALSE)
-  # 
-  # observeEvent(input[["MyVPlot"]], {
-  #   shinyjs::runjs(HTML(jsV))
-  # }, ignoreNULL = FALSE)
 })
 
 shinyApp(ui = ui, server = server)
