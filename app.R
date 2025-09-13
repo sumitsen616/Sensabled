@@ -3061,63 +3061,8 @@ server <- shinyServer(function(input, output, session) {
   ###Output for stats###
   ######################
   
-  ###Descriptive Statistics for Box plot###
   
-  # descStatCalc <- reactive({
-  #   descTab <- data.frame()
-  #   for (i in 1:ncol(data())) {
-  #     descStat <- data.frame(as.matrix(summary(na.omit(data()[, i]))))
-  #     descStat <- rbind(na.omit(length(data()[[i]])), descStat)
-  #     descSD <- apply(data()[i], 2, sd, na.rm = T)
-  #     descErr <- descSD / sqrt(nrow(data()[i]))
-  #     descStat <- rbind(descStat, descSD, descErr)
-  #     colnames(descStat) <- c(colnames(data()[i]))
-  #     descTab <- append(descTab, descStat)
-  #   }
-  #   descTab <- data.frame(descTab, check.names = F)
-  #   rows <- data.frame(
-  #     Parameter = c(
-  #       'N',
-  #       'Minimum',
-  #       "1st Quartile",
-  #       'Median',
-  #       'Mean',
-  #       '3rd Quartile',
-  #       'Maximum',
-  #       'Std. Dev.',
-  #       'Std. Err.'
-  #     )
-  #   )
-  #   descTab <- cbind(rows, descTab)
-  #   rownames(descTab) <- descTab$Parameter
-  #   descTab <- descTab[, 2:ncol(descTab)]
-  # })
-  # 
-  # output$descTable <- renderTable(descStatCalc(), rownames = T)
-  # output$descUI <- renderUI('descTable')
-  # 
-  # #Descriptive test report download
-  # output$descDnld <- downloadHandler(
-  #   filename = function() {
-  #     paste("Descriptive Stat report-", Sys.Date(), "csv", sep = ".")
-  #   },
-  #   content = function(file) {
-  #     write.csv(descStatCalc(), file)
-  #   }
-  # )
-  # 
-  # #Descriptive test report display
-  # output$descsStatOut <- renderUI({
-  #   shinyBS::bsModal(
-  #     'descModal',
-  #     title = "Result of Descriptive Statistics",
-  #     'descstat',
-  #     tableOutput('descTable'),
-  #     downloadButton('descDnld', 'Download Report', style = "margin-top:10px;")
-  #   )
-  # })
-  
-  ###Descriptive Statistics for Violin Plot###
+  ###Descriptive Statistics###
   
   descStatCalcV <- reactive({
     descTab <- data.frame()
@@ -3162,98 +3107,7 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
-  #Descriptive test report display
-  # output$descsStatOutV <- renderUI({
-  #   shinyBS::bsModal(
-  #     'descModalV',
-  #     title = "Result of Descriptive Statistics",
-  #     'descstatV',
-  #     tableOutput('descTableV'),
-  #     downloadButton('descDnldV', 'Download Report', style = "margin-top:10px;")
-  #   )
-  # })
-  observeEvent(input$descstatV,{
-    output$stattableout <- renderUI({
-      tagList(
-        h2("Result of Descriptive statistics"),
-        ## Normality test report display
-        output$descTableV <- renderTable(descStatCalcV(), rownames = T),
-        downloadButton('descDnldV', 'Download Report', style = "margin-top:10px;")
-      )
-    })
-  })
-  
-  ###Normality test for Box Plot###
-  
-  #generation of Normality test report
-  SWtestdnld <- reactive({
-    normdf <- data.frame()
-    dataN <- na.omit(data())
-    if (nrow(dataN) > 3000 || nrow(dataN) < 3) {
-      data.frame(
-        Test_Report = c(
-          'Can not perform Shapiro test for sample number less than 3 or more than 3000.'
-        )
-      )
-    } else{
-      for (i in 1:ncol(dataN)) {
-        tempdf <- tidy(shapiro.test(dataN[, i]))
-        normdf <- rbind(normdf, tempdf)
-      }
-      testrep <- data.frame(normdf[, 1:3])
-      newcol <- data.frame("condition" = as.character(colnames(dataN)))
-      testrep <- cbind(testrep, newcol)
-      testrep <- testrep
-      df <- data.frame()
-      for (i in 1:nrow(testrep)) {
-        if (testrep[i, 2] < 0.05) {
-          tempdf2 <- paste0('No')
-          df <- rbind(df, tempdf2)
-        } else if (testrep[i, 2] > 0.05) {
-          tempdf2 <- paste0("Yes")
-          df <- rbind(df, tempdf2)
-        }
-      }
-      testrep <- cbind(testrep, df)
-      testrep <- data.frame(testrep[, 4], testrep[1], testrep[2], testrep[5])
-      colnames(testrep) <- c(
-        'Condition',
-        'Shapiro-Wilk Statistics',
-        'p.Value',
-        'Passed normality test (p<0.05)?'
-      )
-      testrep <- testrep
-    }
-  })
-  
-  #Normality test report download
-  output$dnldswtest <- downloadHandler(
-    #Normality test report download
-    filename = function() {
-      paste("normality_test_report-", Sys.Date(), "csv", sep = ".")
-    },
-    content = function(file) {
-      write.csv(SWtestdnld(), file)
-    }
-  )
-  
-  ## Normality test report display
-  output$SWtest <- renderTable({
-    format(SWtestdnld(), nsmall = 5)
-  })
-  
-  output$normalityTest <- renderUI({
-    shinyBS::bsModal(
-      'swtestbox',
-      title = "Result of Shapiro-Wilk Test",
-      trigger = 'swtestsubmit',
-      size = 'large',
-      tableOutput('SWtest'),
-      downloadButton("dnldswtest", "Download Report", style = "margin-top:10px;")
-    )
-  })
-  
-  ###Normality test for Violin Plot###
+  ###Normality test###
   
   SWtestdnldV <- reactive({
     #generation of Normality test report
@@ -3376,31 +3230,6 @@ server <- shinyServer(function(input, output, session) {
       )
     })
   })
-  # output$comptestshow1 <- renderUI({
-  #   if (input$comptest == T) {
-  #     radioButtons(
-  #       "comptestA",
-  #       label = "Choose parameters to perform significance test:",
-  #       choiceValues = c('para', 'nonpara'),
-  #       choiceNames = normcheck()
-  #     )
-  #   }
-  # })
-  # output$comptestshow2 <- renderUI({
-  #   if (input$comptest == T) {
-  #     radioButtons(
-  #       "comptestB",
-  #       label = "",
-  #       choiceValues = c('pair', 'group'),
-  #       choiceNames = testcheck()
-  #     )
-  #   }
-  # })
-  # output$comptestBtn <- renderUI({
-  #   if (input$comptest == T) {
-  #     actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
-  #   }
-  # })
   
   #Asking for significance test (violin plot)
   
