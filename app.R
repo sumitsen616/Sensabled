@@ -1023,31 +1023,36 @@ ui <- shinyUI(
       tabPanel("Statistical Analysis",
                pageWithSidebar(
                  div(),
-                 sidebarPanel(
-                   #Get descriptive statistics
-                   actionButton('descstatV', 'Get Descriptive Stat', style =
-                                  "margin-bottom:20px;"),
-                   # uiOutput('descsStatOutV'),
-                   #Running Normality test
-                   actionButton(
-                     "swtestsubmitV",
-                     "Run Normality Test",
-                     title = 'Click to perform Shapiro-Wilk test',
-                     style = "margin-bottom:20px;"
-                   ),
-                   # uiOutput('normalityTestV'),
-                   br(),
-                   #Running the comparison tests
-                   actionButton("comptestV", label =
-                                  "Run Significance Test"),
-                   tagList(
-                     uiOutput("comptestshow1V"),
-                     uiOutput("posthoctitleV"),
-                     uiOutput("posthocListV"),
-                     uiOutput("posthocBtnV"),
-                     uiOutput("tableModalV"),
-                     uiOutput('statdnldV')
-                   )
+                 sidebarPanel(style='display:flex; flex-direction:column;',
+                              #Get descriptive statistics
+                              actionButton('descstatV', 'Get Descriptive Stat', style =
+                                             "margin-bottom:20px;"),
+                              # uiOutput('descsStatOutV'),
+                              #Running Normality test
+                              actionButton(
+                                "swtestsubmitV",
+                                "Run Normality Test",
+                                title = 'Click to perform Shapiro-Wilk test',
+                                style = "margin-bottom:20px;"
+                              ),
+                              #Running correlation test
+                              actionButton("corrtestsubmitV",
+                                           "Run Correlation Test",
+                                           title= 'Click to perform Correlation between paired samples',
+                                           style = "margin-bottom:20px"
+                              ),
+                              uiOutput('choosecormethod'),
+                              #Running the comparison tests
+                              actionButton("comptestV", label =
+                                             "Run Significance Test"),
+                              tagList(
+                                uiOutput("comptestshow1V"),
+                                uiOutput("posthoctitleV"),
+                                uiOutput("posthocListV"),
+                                uiOutput("posthocBtnV"),
+                                uiOutput("tableModalV"),
+                                uiOutput('statdnldV')
+                              )
                  ),
                  # Main Panel for Stat tab
                  mainPanel(uiOutput('stattableout'))
@@ -3094,8 +3099,22 @@ server <- shinyServer(function(input, output, session) {
     descTab <- descTab[, 2:ncol(descTab)]
   })
   
+  output$desctableV <- renderDataTable(format(descStatCalcV(),nsmall=3))
   
-  # output$descUIV <- renderUI('descTableV')
+  observeEvent(input$descstatV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2('Descriptive Statistics Report'),
+        dataTableOutput('desctableV'),
+        downloadButton('descDnldV','Download Report', style='margin-top:10px')
+      )
+    })
+    output$choosecormethod <- renderUI({
+      NULL
+    })
+    showcormethod <- (NULL)
+  })
+  
   
   #Descriptive test report download
   output$descDnldV <- downloadHandler(
@@ -3160,21 +3179,90 @@ server <- shinyServer(function(input, output, session) {
       write.csv(SWtestdnldV(), file)
     }
   )
-  
+  output$SWtestV <- renderDataTable({
+    format(SWtestdnldV(), nsmall = 5)
+  })
   observeEvent(input$swtestsubmitV,{
     output$stattableout <- renderUI({
       tagList(
         h2("Result of Shapiro-Wilk Test"),
         ## Normality test report display
-        output$SWtestV <- renderTable({
-          format(SWtestdnldV(), nsmall = 5)
-        }),
+        dataTableOutput('SWtestV'),
         downloadButton("dnldswtestV", "Download Report", style = "margin-top:10px;")
       )
     })
+    output$choosecormethod <- renderUI({
+      NULL
+    })
+    showcormethod <- (NULL)
+  })
+  
+  ###Correalation Test###
+  corrtestV <- reactive({
+    colname <- as.factor(colnames(data()))
+    dfNew <- data.frame()
+    for (i in 1:ncol(data())) {
+      for (j in 1:i+1){
+        if (j>ncol(data())){
+          NULL
+        }else{
+          testrow <- cor.test(data()[, i], data()[, j],method=input$cormethod)
+          testrow <- cbind(paste0(colnames(data()[i]),' - ',colnames(data()[j])),tidy(testrow))
+        }
+        dfNew <- rbind(dfNew, testrow)
+      }
+    }
+    if(input$cormethod=='pearson'){
+      dfNew <- data.frame(dfNew[,1], dfNew[,3],dfNew[,4],dfNew[,8])
+      colnames(dfNew) <- c('Groups','Test Statistics', 'p Value',
+                           'Test Method')
+    }else{
+      dfNew <- data.frame(dfNew[,1], dfNew[,3],dfNew[,4],dfNew[,5])
+      colnames(dfNew) <- c('Groups','Test Statistics', 'p Value',
+                           'Test Method')
+    }
+    
+    return(dfNew)
+  })
+  showcormethod <- reactiveVal(NULL)
+  output$cortableV <- renderDataTable({
+    format('corrtestV'(), nsmall = 5)
+  })
+  observeEvent(input$corrtestsubmitV, {
+    output$stattableout <- renderUI({
+      tagList(
+        h2("Result of Correlation Test"),
+        ## Normality test report display
+        dataTableOutput('cortableV'),
+        downloadButton("dnldcorrtestV", "Download Report", style = "margin-top:10px;")
+      )
+    })
+    output$choosecormethod <- renderUI({
+      selectInput(
+        'cormethod',
+        'Select test method',
+        choices = c(
+          'Pearson' = 'pearson',
+          'Kendall' = 'kendall',
+          'Spearman' = 'spearman'
+        )
+      )
+      
+    })
+    showcormethod <- ("corrtestsubmitV")
   })
   
   
+  #Correlation test report download
+  output$dnldcorrtestV <- downloadHandler(
+    #Normality test report download
+    filename = function() {
+      paste("correlation_test_report-", Sys.Date(), "csv", sep = ".")
+    },
+    content = function(file) {
+      write.csv(corrtestV(), file)
+    }
+  )
   
   ###Significance test###
   
@@ -3229,6 +3317,10 @@ server <- shinyServer(function(input, output, session) {
         actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
       )
     })
+    output$choosecormethod <- renderUI({
+      NULL
+    })
+    showcormethod <- (NULL)
   })
   
   #Asking for significance test (violin plot)
@@ -3290,39 +3382,7 @@ server <- shinyServer(function(input, output, session) {
     })
     
   })
-  # output$comptestshow1V <- renderUI({
-  #   if (input$comptestV == T) {
-  #     radioButtons(
-  #       "comptestAV",
-  #       label = "Choose parameters to perform significance test:",
-  #       choiceValues = c('para', 'nonpara'),
-  #       choiceNames = normcheckV()
-  #     )
-  #   }
-  # })
-  # output$comptestshow2V <- renderUI({
-  #   if (input$comptestV == T) {
-  #     radioButtons(
-  #       "comptestBV",
-  #       label = "",
-  #       choiceValues = c('pair', 'group'),
-  #       choiceNames = testcheckV()
-  #     )
-  #   }
-  # })
-  # output$comptestBtnV <- renderUI({
-  #   if (input$comptestV == T) {
-  #     actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
-  #   }
-  # })
   
-  observeEvent(input$swtestsubmit, {
-    if (length(input$file1) == 0) {
-      showNotification("Please upload your data first",
-                       type = "error",
-                       duration = 2)
-    }
-  })
   observeEvent(input$swtestsubmitV, {
     if (length(input$file1) == 0) {
       showNotification("Please upload your data first",
@@ -3330,13 +3390,7 @@ server <- shinyServer(function(input, output, session) {
                        duration = 2)
     }
   })
-  observeEvent(input$comptestrun, {
-    if (length(input$file1) == 0) {
-      showNotification("Please upload your data first",
-                       type = "error",
-                       duration = 2)
-    }
-  })
+  
   observeEvent(input$comptestrunV, {
     if (length(input$file1) == 0) {
       showNotification("Please upload your data first",
@@ -3346,16 +3400,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   ## JS- To initiate RUN TEST Modal box notification
-  output$mixTable <- renderUI({
-    tagList(tableOutput('sigtable'), br(), sgrepdnbt())
-    # br(),
-    # posthocask()
-  })
-  # output$mixTableV <- renderUI({
-  #   tagList(tableOutput('sigtableV'), br(), sgrepdnbtV())
-  #   # br(),
-  #   # posthocaskV()
-  # })
+  
   output$tableModal <- renderUI({
     if (input$comptest == T) {
       if (input$comptestBV == "group") {
@@ -3386,27 +3431,12 @@ server <- shinyServer(function(input, output, session) {
             sgrepdnbtV()
           )
           
-          
-          # shinyBS::bsModal(
-          #   "tableout1V",
-          #   sigtestTitleV(),
-          #   "comptestrunV",
-          #   size = "large",
-          #   uiOutput("mixTableV")
-          # )
         }
         else if (input$comptestBV == "pair") {
           tagList(
             h2(PairTestTitlV()),
             uiOutput("modaloutV")
           )
-          # shinyBS::bsModal(
-          #   "tableout2V",
-          #   PairTestTitlV(),
-          #   "comptestrunV",
-          #   size = "large",
-          #   uiOutput("modaloutV")
-          # )
         }
       }
     })
@@ -4158,19 +4188,9 @@ server <- shinyServer(function(input, output, session) {
         })
     })
   })
-  observeEvent(input$runposthocV,{
-    output$stattableout <- renderUI({
-      tagList(
-        h2("Post Hoc Analysis"),
-        tableOutput("posthocTableV"),
-        downloadButton("downphtrprtV", "Download Report")
-      )
-    })
-  })
+  
   ##Post Hoc test calculation and table preparation
-  # posthocinput <- eventReactive(input$methods, {
-  #   userselect <- input$methods
-  # })
+  
   posthocinputV <- eventReactive(input$methodsV, {
     userselect <- input$methodsV
   })
@@ -4225,7 +4245,7 @@ server <- shinyServer(function(input, output, session) {
                              'Corrected p Value')
       phtrep <- tuktest
     }
-    phtrep <- phtrep
+    return(phtrep)
   })
   posthoctestV <- reactive({
     if (input$comptestAV == 'nonpara' && input$comptestBV == 'group') {
@@ -4278,16 +4298,22 @@ server <- shinyServer(function(input, output, session) {
                              'Corrected p Value')
       phtrep <- tuktest
     }
-    phtrep <- phtrep
+    return(phtrep) 
   })
   
-  output$posthocTable <- renderTable({
-    format(posthoctest(), nsmall = 5)
-  })
-  output$posthocTableV <- renderTable({
+  
+  output$posthocTableV <- renderDataTable({
     format(posthoctestV(), nsmall = 5)
   })
-  
+  observeEvent(input$runposthocV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2("Post Hoc Analysis"),
+        dataTableOutput("posthocTableV"),
+        downloadButton("downphtrprtV", "Download Report")
+      )
+    })
+  })
   #Post Hoc report download handler
   output$downphtrprt <- downloadHandler(
     #for box plot
