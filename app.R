@@ -3063,73 +3063,69 @@ server <- shinyServer(function(input, output, session) {
   
   ###Descriptive Statistics for Box plot###
   
-  descStatCalc <- reactive({
-    descTab <- data.frame()
-    for (i in 1:ncol(data())) {
-      descStat <- data.frame(as.matrix(summary(na.omit(data(
-        
-      )[, i]))))
-      descStat <- rbind(length(data()[, i]), descStat)
-      descSD <- apply(data()[i], 2, sd, na.rm = T)
-      descErr <- descSD / sqrt(nrow(data()[i]))
-      descStat <- rbind(descStat, descSD, descErr)
-      colnames(descStat) <- c(colnames(data()[i]))
-      descTab <- append(descTab, descStat)
-    }
-    descTab <- data.frame(descTab, check.names = F)
-    rows <- data.frame(
-      Parameter = c(
-        'N',
-        'Minimum',
-        "1st Quartile",
-        'Median',
-        'Mean',
-        '3rd Quartile',
-        'Maximum',
-        'Std. Dev.',
-        'Std. Err.'
-      )
-    )
-    descTab <- cbind(rows, descTab)
-    rownames(descTab) <- descTab$Parameter
-    descTab <- descTab[, 2:ncol(descTab)]
-  })
-  
-  output$descTable <- renderTable(descStatCalc(), rownames = T)
-  output$descUI <- renderUI('descTable')
-  
-  #Descriptive test report download
-  output$descDnld <- downloadHandler(
-    filename = function() {
-      paste("Descriptive Stat report-", Sys.Date(), "csv", sep = ".")
-    },
-    content = function(file) {
-      write.csv(descStatCalc(), file)
-    }
-  )
-  
-  #Descriptive test report display
-  output$descsStatOut <- renderUI({
-    shinyBS::bsModal(
-      'descModal',
-      title = "Result of Descriptive Statistics",
-      'descstat',
-      tableOutput('descTable'),
-      downloadButton('descDnld', 'Download Report', style = "margin-top:10px;")
-    )
-  })
+  # descStatCalc <- reactive({
+  #   descTab <- data.frame()
+  #   for (i in 1:ncol(data())) {
+  #     descStat <- data.frame(as.matrix(summary(na.omit(data()[, i]))))
+  #     descStat <- rbind(na.omit(length(data()[[i]])), descStat)
+  #     descSD <- apply(data()[i], 2, sd, na.rm = T)
+  #     descErr <- descSD / sqrt(nrow(data()[i]))
+  #     descStat <- rbind(descStat, descSD, descErr)
+  #     colnames(descStat) <- c(colnames(data()[i]))
+  #     descTab <- append(descTab, descStat)
+  #   }
+  #   descTab <- data.frame(descTab, check.names = F)
+  #   rows <- data.frame(
+  #     Parameter = c(
+  #       'N',
+  #       'Minimum',
+  #       "1st Quartile",
+  #       'Median',
+  #       'Mean',
+  #       '3rd Quartile',
+  #       'Maximum',
+  #       'Std. Dev.',
+  #       'Std. Err.'
+  #     )
+  #   )
+  #   descTab <- cbind(rows, descTab)
+  #   rownames(descTab) <- descTab$Parameter
+  #   descTab <- descTab[, 2:ncol(descTab)]
+  # })
+  # 
+  # output$descTable <- renderTable(descStatCalc(), rownames = T)
+  # output$descUI <- renderUI('descTable')
+  # 
+  # #Descriptive test report download
+  # output$descDnld <- downloadHandler(
+  #   filename = function() {
+  #     paste("Descriptive Stat report-", Sys.Date(), "csv", sep = ".")
+  #   },
+  #   content = function(file) {
+  #     write.csv(descStatCalc(), file)
+  #   }
+  # )
+  # 
+  # #Descriptive test report display
+  # output$descsStatOut <- renderUI({
+  #   shinyBS::bsModal(
+  #     'descModal',
+  #     title = "Result of Descriptive Statistics",
+  #     'descstat',
+  #     tableOutput('descTable'),
+  #     downloadButton('descDnld', 'Download Report', style = "margin-top:10px;")
+  #   )
+  # })
   
   ###Descriptive Statistics for Violin Plot###
   
   descStatCalcV <- reactive({
     descTab <- data.frame()
     for (i in 1:ncol(data())) {
-      descStat <- data.frame(as.matrix(summary(na.omit(data(
-        
-      )[, i]))))
-      descStat <- rbind(length(data()[, i]), descStat)
+      descStat <- data.frame(as.matrix(summary(na.omit(data()[[i]]))))
+      descStat <- rbind(length(na.omit(data()[[i]])), descStat)
       descSD <- apply(data()[i], 2, sd, na.rm = T)
-      descErr <- descSD / sqrt(nrow(data()[i]))
+      descErr <- descSD / sqrt(length(na.omit(data()[[i]])))
       descStat <- rbind(descStat, descSD, descErr)
       colnames(descStat) <- c(colnames(data()[i]))
       descTab <- append(descTab, descStat)
@@ -4078,116 +4074,6 @@ server <- shinyServer(function(input, output, session) {
   
   ###Calculation for group wise significance tests###
   
-  
-  ##For Box plot##
-  sigtestInp <- reactive({
-    if (input$comptestAV == 'nonpara' && input$comptestBV == 'group') {
-      ##Kruskal Wallis calculation##
-      kwrep <- kruskal.test(data())
-      kwrepTab <- data.frame(kwrep$statistic, kwrep$parameter, kwrep$p.value)
-      colnames(kwrepTab) <- c('Kruskal-Wallis chi-squared', 'DF', 'p Value')
-      if (kwrep$p.value < 0.05) {
-        sgreps <- append(kwrepTab,
-                         c(
-                           'There was a significant difference between sample medians'
-                         ))
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('Kruskal-Wallis chi-squared',
-                              'DF',
-                              'p Value',
-                              'Remarks')
-      } else if (kwrep$p.value >= 0.05) {
-        sgreps <- append(kwrepTab,
-                         c('No significant difference found between sample medians'))
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('Kruskal-Wallis chi-squared',
-                              'DF',
-                              'p Value',
-                              'Remarks')
-      } else{
-        
-      }
-    }
-    else if (input$comptestAV == 'para' &&
-             input$comptestBV == 'group') {
-      ##ANNOVA test calculation##
-      varT <- car::leveneTest(value ~ variable, na.omit(orderdata()))
-      if (varT$`Pr(>F)`[1] < 0.05) {
-        aovrep <- oneway.test(value ~ variable, na.omit(orderdata()))
-      } else{
-        aovrep <- oneway.test(value ~ variable, na.omit(orderdata()), var.equal = T)
-      }
-      aovrepTab <- data.frame(aovrep$statistic,
-                              aovrep$parameter[1],
-                              aovrep$parameter[2],
-                              aovrep$p.value)
-      colnames(aovrepTab) <- c('F statistic',
-                               'DF between Groups',
-                               'DF within groups',
-                               'p Value')
-      if (aovrep$p.value < 0.05 && varT$`Pr(>F)`[1] < 0.05) {
-        sgreps <- append(
-          aovrepTab,
-          c(
-            'There is a significant difference between two groups, while not assuming eql variance.'
-          )
-        )
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('F statistic',
-                              'DF between Groups',
-                              'DF within groups',
-                              'p Value',
-                              'Remarks')
-      } else if (aovrep$p.value < 0.05 && varT$`Pr(>F)`[1] > 0.05) {
-        sgreps <- append(
-          aovrepTab,
-          c(
-            'There is a significant difference between two groups, while assuming eql variance.'
-          )
-        )
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('F statistic',
-                              'DF between Groups',
-                              'DF within groups',
-                              'p Value',
-                              'Remarks')
-      } else if (aovrep$p.value >= 0.05 &&
-                 varT$`Pr(>F)`[1] < 0.05) {
-        sgreps <- append(
-          aovrepTab,
-          c(
-            'There is no significant difference, while not assuming eql variance.'
-          )
-        )
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('F statistic',
-                              'DF between Groups',
-                              'DF within groups',
-                              'p Value',
-                              'Remarks')
-      } else if (aovrep$p.value >= 0.05 &&
-                 varT$`Pr(>F)`[1] > 0.05) {
-        sgreps <- append(
-          aovrepTab,
-          c(
-            'There is no significant difference, while assuming eql variance.'
-          )
-        )
-        sgreps <- data.frame(sgreps)
-        colnames(sgreps) <- c('F statistic',
-                              'DF between Groups',
-                              'DF within groups',
-                              'p Value',
-                              'Remarks')
-      }
-    }
-    sgreps <- sgreps
-  })
-  output$sigtable <- renderTable({
-    format(sigtestInp(), nsmall = 5)
-  })
-  
-  ##For Violin plot##
   sigtestInpV <- reactive({
     if (input$comptestAV == 'nonpara' && input$comptestBV == 'group') {
       ##Kruskal Wallis calculation##
@@ -4294,16 +4180,7 @@ server <- shinyServer(function(input, output, session) {
   
   
   
-  sigtestTitle <- reactive({
-    if (input$comptestAV == 'nonpara') {
-      #for box plot|| for vio plot
-      sigtitl <- paste("Result of Kruskal-Wallis Test")
-    } else if (input$comptestAV == 'para') {
-      #for box plot|| for vio plot
-      sigtitl <- paste("Result of One way ANNOVA Test")
-    }
-    return(sigtitl)
-  })
+  
   sigtestTitleV <- reactive({
     if (input$comptestAV == 'nonpara') {
       #for box plot|| for vio plot
@@ -4316,25 +4193,6 @@ server <- shinyServer(function(input, output, session) {
   })
   
   #Kruskal-Wallis Report Download#
-  sigtestrep <- reactive({
-    #preparation of the report
-    if (input$comptestAV == 'nonpara' &&
-        input$comptestBV == 'group') {
-      sgtest <- as.data.frame.list(kruskal.test(data()), row.names = F)
-    } else if (input$comptestAV == 'para' &&
-               input$comptestBV == 'group') {
-      owa <- as.data.frame.list(oneway.test(value ~ variable, na.omit(orderdata()), var.equal = F))
-      owat <- as.data.frame.list(oneway.test(value ~ variable, na.omit(orderdata()), var.equal = T))
-      owarep <- rbind(owa[2, ], owat[2, ])
-      colnames(owarep) <- c("Welch F test statistics",
-                            "df",
-                            "p value",
-                            "Method Used",
-                            "Data")
-      sgtest <- owarep[, 1:4]
-    }
-    sgtest <- sgtest
-  })
   
   sigtestrepV <- reactive({
     #preparation of the report
@@ -4443,42 +4301,6 @@ server <- shinyServer(function(input, output, session) {
     sigtitl <- sigtitl
   })
   
-  # observeEvent(input$comptestrun, {
-  #   output$posthoctitle <- renderText({
-  #     if (input$comptest == T && input$comptestB == 'group') {
-  #       posthoctitleInp()
-  #     } else{
-  #       
-  #     }
-  #   })
-  #   output$posthocList <- renderUI({
-  #     if (input$comptest == T && input$comptestB == 'group') {
-  #       selectInput("methods", label = "Select a method to be used", choices = posthoclistInp())
-  #     } else{
-  #       
-  #     }
-  #   })
-  #   
-  #   #Displaying Post Hoc Analysis Result on Modal box
-  #   output$posthocBtn <- renderUI({
-  #     tagList(
-  #       if (input$comptest == T && input$comptestB == 'group') {
-  #         actionButton("runposthoc", "Run Post Hoc Test", style = 'margin-bottom:10px;')
-  #       } else{
-  #         
-  #       },
-  #       shinyBS::bsModal(
-  #         "posthocModal",
-  #         "Post Hoc Analysis",
-  #         "runposthoc",
-  #         size = "large",
-  #         tableOutput("posthocTable"),
-  #         downloadButton("downphtrprt", "Download Report")
-  #       )
-  #     )
-  #     
-  #   })
-  # })
   
   observeEvent(input$comptestrunV, {
     #For vio plot
@@ -4663,134 +4485,7 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
-  ### Complete Stat report download for Box Plot
-  # Reactive function to create the workbook and return the file path
-  StatReport <- reactive({
-    wb <- createWorkbook()
-    sh <- createSheet(wb, 'Stat Report')
-    row <- 1
-    addDataFrame(
-      data.frame(
-        "Normality Test Report:" = double(),
-        check.names = F
-      ),
-      sheet = sh,
-      startRow = row,
-      row.names = F
-    )
-    row <- row + 2
-    addDataFrame(
-      SWtestdnld(),
-      sheet = sh,
-      startRow = row,
-      row.names = T
-    )
-    
-    row <- row + nrow(SWtestdnld()) + 2
-    addDataFrame(
-      data.frame(
-        "Descriptive Statistics Report:" = double(),
-        check.names = F
-      ),
-      sheet = sh,
-      startRow = row,
-      row.names = F
-    )
-    
-    row <- row + 2
-    addDataFrame(
-      descStatCalc(),
-      sheet = sh,
-      startRow = row,
-      row.names = T
-    )
-    
-    row <- row + nrow(descStatCalc()) + 2
-    addDataFrame(
-      data.frame(
-        "Levene's Test for equal variance:" = double(),
-        check.names = F
-      ),
-      sheet = sh,
-      startRow = row,
-      row.names = F
-    )
-    row <- row + 2
-    addDataFrame(
-      levTest(),
-      sheet = sh,
-      startRow =  row,
-      row.names = F
-    )
-    
-    row <- row + nrow(levTest()) + 2
-    
-    if (input$comptestBV == 'pair') {
-      addDataFrame(
-        PairTestTitl(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-    } else if (input$comptestBV == 'group') {
-      addDataFrame(
-        sigtestTitle(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-    }
-    
-    row <- row + 3
-    if (input$comptestBV == 'pair') {
-      addDataFrame(
-        PairTestCal(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-    } else if (input$comptestBV == 'group') {
-      addDataFrame(
-        sigtestInp(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-      row <- row + nrow(sigtestInp()) + 2
-      addDataFrame(
-        posthoctitleInp(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-      row <- row + 3
-      addDataFrame(
-        posthoctest(),
-        sheet = sh,
-        startRow = row,
-        row.names = F
-      )
-      
-    }
-    
-    # Save the workbook to a temporary file and return the file path
-    tempFile <- tempfile(fileext = ".xlsx")
-    saveWorkbook(wb, file = tempFile)
-    return(tempFile)
-  })
-  
-  # Download handler for comprehensive stat report
-  output$reportdnld <- downloadHandler(
-    filename = function() {
-      paste("Statistic_Report_", Sys.Date(), ".xlsx", sep = "")
-    },
-    content = function(file) {
-      # Call the reactive to get the file path and copy it to the download location
-      file.copy(StatReport(), file)
-    }
-  )
-  
-  ### Complete Stat report download for Violin Plot
+  ### Complete Stat report download
   # Reactive function to create the workbook and return the file path
   StatReportV <- reactive({
     wb <- createWorkbook()
