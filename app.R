@@ -31,6 +31,7 @@ library(dunn.test)
 library(broom)
 library(asht)
 library(car)
+library(effectsize)
 library(xlsx)
 
 if (interactive()) {
@@ -69,6 +70,7 @@ if (interactive()) {
       'broom',
       'asht',
       'car',
+      'effectsize',
       #For making stat report
       'xlsx'
     )
@@ -1050,7 +1052,7 @@ ui <- shinyUI(
                                 uiOutput("posthoctitleV"),
                                 uiOutput("posthocListV"),
                                 uiOutput("posthocBtnV"),
-                                uiOutput("tableModalV"),
+                                uiOutput("effectdispV"),
                                 uiOutput('statdnldV')
                               )
                  ),
@@ -1166,7 +1168,8 @@ ui <- shinyUI(
             tags$li("'dunn.test'"),
             tags$li("'broom'"),
             tags$li("'asht'"),
-            tags$li("'car'")
+            tags$li("'car'"),
+            tags$li("'effectsize'")
           ),
           tags$li("For making stat report:"),
           tags$ul(
@@ -3400,34 +3403,17 @@ server <- shinyServer(function(input, output, session) {
   })
   
   ## JS- To initiate RUN TEST Modal box notification
-  
-  output$tableModal <- renderUI({
-    if (input$comptest == T) {
-      if (input$comptestBV == "group") {
-        shinyBS::bsModal("tableout1",
-                         sigtestTitle(),
-                         "comptestrun",
-                         size = "large",
-                         uiOutput("mixTable"))
-      }
-      else if (input$comptestBV == "pair") {
-        shinyBS::bsModal("tableout2",
-                         PairTestTitl(),
-                         "comptestrun",
-                         size = "large",
-                         uiOutput("modalout"))
-      }
-    }
+  output$sigtableV <- renderDataTable({
+    format(sigtestInpV(), nsmall = 5)
   })
+  
   observeEvent(input$comptestrunV,{
     output$stattableout <- renderUI({
       if (input$comptestV == T) {
         if (input$comptestBV == "group") {
           tagList(
             h2(sigtestTitleV()),
-            output$sigtableV <- renderTable({
-              format(sigtestInpV(), nsmall = 5)
-            }),
+            dataTableOutput('sigtableV'),
             sgrepdnbtV()
           )
           
@@ -3603,17 +3589,17 @@ server <- shinyServer(function(input, output, session) {
   
   ##calculation of pairwise Tests##
   
-  PairTestTitl <- reactive({
-    if (input$comptestAV == 'para') {
-      #for box plot || for vio Plot
-      boxTitle <- paste("Result of Welch's t- Test")
-    }
-    else if (input$comptestAV == 'nonpara') {
-      #for box plot || for vio plot
-      boxTitle <- paste("Result of Wilcoxon-Mann-Whitney Test")
-    }
-    return(boxTitle)
-  })
+  # PairTestTitl <- reactive({
+  #   if (input$comptestAV == 'para') {
+  #     #for box plot || for vio Plot
+  #     boxTitle <- paste("Result of Welch's t- Test")
+  #   }
+  #   else if (input$comptestAV == 'nonpara') {
+  #     #for box plot || for vio plot
+  #     boxTitle <- paste("Result of Wilcoxon-Mann-Whitney Test")
+  #   }
+  #   return(boxTitle)
+  # })
   
   PairTestTitlV <- reactive({
     if (input$comptestAV == 'para') {
@@ -3627,107 +3613,107 @@ server <- shinyServer(function(input, output, session) {
     return(boxTitle)
   })
   
-  PairTestCal <- eventReactive(input$compTabInp, {
-    #for box plot
-    
-    #Function to get Z-statistics from Mann Whitney U test as
-    #the current package doesn't provide one
-    
-    mwz <- function(x, y) {
-      xy <- data.frame(x, y)
-      xy_long <- pivot_longer(
-        xy,
-        names_to = 'para',
-        values_to = 'val',
-        cols = colnames(xy)
-      )
-      xy_order <- arrange(xy_long, val)
-      xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
-      colnames(xy_rank) <- c('para', 'val', 'rank')
-      xy_reorder <- arrange(xy_rank, para)
-      xy_wide <- pivot_wider(xy_reorder,
-                             names_from = para,
-                             values_from = c(val, rank))
-      ranksumx <- sum(as.numeric(unlist(xy_wide$rank_x)))
-      rankmeanx <- mean(as.numeric(unlist(xy_wide$rank_x)))
-      ranksumy <- sum(as.numeric(unlist(xy_wide$rank_y)))
-      rankmeany <- mean(as.numeric(unlist(xy_wide$rank_y)))
-      
-      rankUx <- (length(x) * length(y)) + (((length(x) + 1) * length(x)) /
-                                             2) - ranksumx
-      rankUy <- (length(x) * length(y)) + (((length(y) + 1) * length(y)) /
-                                             2) - ranksumy
-      
-      U_wert <- min(rankUx, rankUy)
-      expU <- (length(x) * length(y)) / 2
-      stdErrU <- sqrt((length(x) * length(y)) * (length(x) + length(y) +
-                                                   1) / 12)
-      z <- (U_wert - expU) / stdErrU
-      print(abs(z))
-    }
-    #Testing the significant difference
-    testdata <- userdata$df
-    if (nrow(testdata) == 0) {
-      showNotification("Please select the conditions first.", type = "warning")
-    }
-    else{
-      if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
-        colname <- as.factor(colnames(data()))
-        dfNew <- data.frame()
-        for (i in 1:nrow(testdata)) {
-          # conditionx <- gsub("[[:punct:]]",'',testdata[i,1])
-          # conditiony <- gsub("[[:punct:]]",'',testdata[i,2])
-          x <- match(as.factor(testdata[i, 1]), colname)
-          y <- match(as.factor(testdata[i, 2]), colname)
-          testrow <- t.test(data()[, x], data()[, y])
-          testrow <- tidy(testrow)
-          dfNew <- rbind(dfNew, testrow)
-        }
-        # colnames(dfNew) <- c("Difference in Means", "Mean of Condition1", "Mean of Condition2", "t Statistics",
-        #                      "p_value", "Parameter", "Lower Level of 95% CI", "Upper Level of 95% CI", "Method", "Alternative")
-        dffinal <- data.frame(dfNew[4], dfNew[6], dfNew[5], dfNew[, 1], dfNew[, 7], dfNew[, 8], dfNew[, 10])
-        dffinal <- unite(dffinal, tempCol, c(conf.low, conf.high), sep =
-                           ' to ')
-        dffinal <- cbind(testdata, dffinal)
-        colnames(dffinal) <- c(
-          'Group1',
-          'Group2',
-          't Statistic',
-          'DF',
-          'p Value',
-          'Diff in means',
-          '95% Confidence intervals',
-          'Method'
-        )
-        row.names(dffinal) <- NULL
-        dffinal <- dffinal
-      }
-      
-      else if (input$comptestAV == 'nonpara' &&
-               input$comptestBV == 'pair') {
-        # colname <- gsub("[[:punct:]]",'',colnames(data()))
-        colname <- as.factor(colnames(data()))
-        dfnew <- data.frame()
-        for (i in 1:nrow(testdata)) {
-          # conditionx <- gsub("[[:punct:]]",'',testdata[i,1])
-          # conditiony <- gsub("[[:punct:]]",'',testdata[i,2])
-          x <- match(as.factor(testdata[i, 1]), colname)
-          y <- match(as.factor(testdata[i, 2]), colname)
-          testrow <- wilcox.test(data()[, x], data()[, y])
-          testrow <- data.frame(tidy(testrow))
-          zVal <- mwz(data()[, x], data()[, y])
-          testrow <- cbind(zVal, testrow)
-          dfnew <- rbind(dfnew, testrow)
-        }
-        
-        dffinal <- data.frame(dfnew[, 1], dfnew[, 3], dfnew[, 5])
-        dffinal <- cbind(testdata, dffinal)
-        colnames(dffinal) <- c('Group1', 'Group2', 'Z-Statistic', 'p Value', 'Method')
-        row.names(dffinal) <- NULL
-        dffinal <- dffinal
-      }
-    }
-  })
+  # PairTestCal <- eventReactive(input$compTabInp, {
+  #   #for box plot
+  #   
+  #   #Function to get Z-statistics from Mann Whitney U test as
+  #   #the current package doesn't provide one
+  #   
+  #   mwz <- function(x, y) {
+  #     xy <- data.frame(x, y)
+  #     xy_long <- pivot_longer(
+  #       xy,
+  #       names_to = 'para',
+  #       values_to = 'val',
+  #       cols = colnames(xy)
+  #     )
+  #     xy_order <- arrange(xy_long, val)
+  #     xy_rank <- data.frame(xy_order, rownames(xy_order), row.names = NULL)
+  #     colnames(xy_rank) <- c('para', 'val', 'rank')
+  #     xy_reorder <- arrange(xy_rank, para)
+  #     xy_wide <- pivot_wider(xy_reorder,
+  #                            names_from = para,
+  #                            values_from = c(val, rank))
+  #     ranksumx <- sum(as.numeric(unlist(xy_wide$rank_x)))
+  #     rankmeanx <- mean(as.numeric(unlist(xy_wide$rank_x)))
+  #     ranksumy <- sum(as.numeric(unlist(xy_wide$rank_y)))
+  #     rankmeany <- mean(as.numeric(unlist(xy_wide$rank_y)))
+  #     
+  #     rankUx <- (length(x) * length(y)) + (((length(x) + 1) * length(x)) /
+  #                                            2) - ranksumx
+  #     rankUy <- (length(x) * length(y)) + (((length(y) + 1) * length(y)) /
+  #                                            2) - ranksumy
+  #     
+  #     U_wert <- min(rankUx, rankUy)
+  #     expU <- (length(x) * length(y)) / 2
+  #     stdErrU <- sqrt((length(x) * length(y)) * (length(x) + length(y) +
+  #                                                  1) / 12)
+  #     z <- (U_wert - expU) / stdErrU
+  #     print(abs(z))
+  #   }
+  #   #Testing the significant difference
+  #   testdata <- userdata$df
+  #   if (nrow(testdata) == 0) {
+  #     showNotification("Please select the conditions first.", type = "warning")
+  #   }
+  #   else{
+  #     if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
+  #       colname <- as.factor(colnames(data()))
+  #       dfNew <- data.frame()
+  #       for (i in 1:nrow(testdata)) {
+  #         # conditionx <- gsub("[[:punct:]]",'',testdata[i,1])
+  #         # conditiony <- gsub("[[:punct:]]",'',testdata[i,2])
+  #         x <- match(as.factor(testdata[i, 1]), colname)
+  #         y <- match(as.factor(testdata[i, 2]), colname)
+  #         testrow <- t.test(data()[, x], data()[, y])
+  #         testrow <- tidy(testrow)
+  #         dfNew <- rbind(dfNew, testrow)
+  #       }
+  #       # colnames(dfNew) <- c("Difference in Means", "Mean of Condition1", "Mean of Condition2", "t Statistics",
+  #       #                      "p_value", "Parameter", "Lower Level of 95% CI", "Upper Level of 95% CI", "Method", "Alternative")
+  #       dffinal <- data.frame(dfNew[4], dfNew[6], dfNew[5], dfNew[, 1], dfNew[, 7], dfNew[, 8], dfNew[, 10])
+  #       dffinal <- unite(dffinal, tempCol, c(conf.low, conf.high), sep =
+  #                          ' to ')
+  #       dffinal <- cbind(testdata, dffinal)
+  #       colnames(dffinal) <- c(
+  #         'Group1',
+  #         'Group2',
+  #         't Statistic',
+  #         'DF',
+  #         'p Value',
+  #         'Diff in means',
+  #         '95% Confidence intervals',
+  #         'Method'
+  #       )
+  #       row.names(dffinal) <- NULL
+  #       dffinal <- dffinal
+  #     }
+  #     
+  #     else if (input$comptestAV == 'nonpara' &&
+  #              input$comptestBV == 'pair') {
+  #       # colname <- gsub("[[:punct:]]",'',colnames(data()))
+  #       colname <- as.factor(colnames(data()))
+  #       dfnew <- data.frame()
+  #       for (i in 1:nrow(testdata)) {
+  #         # conditionx <- gsub("[[:punct:]]",'',testdata[i,1])
+  #         # conditiony <- gsub("[[:punct:]]",'',testdata[i,2])
+  #         x <- match(as.factor(testdata[i, 1]), colname)
+  #         y <- match(as.factor(testdata[i, 2]), colname)
+  #         testrow <- wilcox.test(data()[, x], data()[, y])
+  #         testrow <- data.frame(tidy(testrow))
+  #         zVal <- mwz(data()[, x], data()[, y])
+  #         testrow <- cbind(zVal, testrow)
+  #         dfnew <- rbind(dfnew, testrow)
+  #       }
+  #       
+  #       dffinal <- data.frame(dfnew[, 1], dfnew[, 3], dfnew[, 5])
+  #       dffinal <- cbind(testdata, dffinal)
+  #       colnames(dffinal) <- c('Group1', 'Group2', 'Z-Statistic', 'p Value', 'Method')
+  #       row.names(dffinal) <- NULL
+  #       dffinal <- dffinal
+  #     }
+  #   }
+  # })
   
   PairTestCalV <- eventReactive(input$compTabInpV, {
     #For vio plot
@@ -4467,6 +4453,74 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
+  #############################
+  ###Effect size Analysis#######
+  effectV <- reactive({
+    if (input$comptestBV == "pair"){
+      colname <- as.factor(colnames(data()))
+      testdata <- userdataV$df
+      dfNew <- data.frame()
+      for (i in 1:nrow(testdata)) {
+        x <- match(as.factor(testdata[i, 1]), colname)
+        y <- match(as.factor(testdata[i, 2]), colname)
+        testrow <- t.test(data()[, x], data()[, y],alternative='two.sided')
+        cohd <- effectsize::effectsize(testrow)
+        dfNew <- rbind(dfNew,abs(cohd$d))
+      }
+      dffinal <- cbind(testdata,dfNew)
+      colnames(dffinal) <- c('Group1','Group2',"Cohen's d")
+      dffinal$`Sample Effect Size`[dffinal$`Cohen's d`<0.2] <- "Weak"
+      dffinal$`Sample Effect Size`[dffinal$`Cohen's d`<0.5 & dffinal$`Cohen's d`>=0.2] <- "Small"
+      dffinal$`Sample Effect Size`[dffinal$`Cohen's d`<0.8& dffinal$`Cohen's d`>=0.5] <- "Medium"
+      dffinal$`Sample Effect Size`[dffinal$`Cohen's d`>=0.8] <- "Large"
+      return(dffinal)
+    } else if (input$comptestBV == "group"){
+      varT <- car::leveneTest(value ~ variable, na.omit(orderdata()))
+      if (varT$`Pr(>F)`[1] < 0.05) {
+        aovrep <- oneway.test(value ~ variable, na.omit(orderdata()))
+      } else{
+        aovrep <- oneway.test(value ~ variable, na.omit(orderdata()), var.equal = T)
+      }
+      cohd <- effectsize::effectsize(aovrep)
+      dffinal <- cohd$Eta2
+      
+      if (dffinal<0.01) {
+        samplesize <- "Weak"
+      } else if (dffinal<0.06 && dffinal>=0.01){
+        samplesize <- "Small"
+      } else if (dffinal<0.14 && dffinal>=0.06){
+        samplesize <- "Medium"
+      } else {
+        samplesize <- "Large"
+      }
+      dffinal <- data.frame(dffinal,samplesize)
+      colnames(dffinal) <- c('Tau_squared','Sample Effect Size')
+      return(dffinal)
+    }
+  })
+  
+  output$effectout <- renderDataTable(effectV())
+  
+  observeEvent(input$runposthocV,{
+    output$effectdispV <- renderUI({
+      actionButton('effectbtnV','Get Effect Size', style='margin-bottom:10px')
+    })
+  })
+  observeEvent(input$compTabInpV,{
+    output$effectdispV <- renderUI({
+      actionButton('effectbtnV','Get Effect Size', style='margin-bottom:10px')
+    })
+  })
+  observeEvent(input$effectbtnV,{
+    output$stattableout <- renderUI({
+      tagList(
+        h2('Result of Effect Size analysis'),
+        dataTableOutput('effectout')
+      )
+    })
+    print(effectV())
+  })
+  
   
   #################################################
   ##** Preparation for Annotation of the plotting #
@@ -4541,7 +4595,8 @@ server <- shinyServer(function(input, output, session) {
     if (input$askBars == 'yes' &&
         !is.null(input$askBars) && input$askBars != "") {
       tagList(
-        h4('Choose the groups to compare'),
+        h4(showtesttype()),
+        h5('Choose the groups to compare'),
         div(lapply(1:ncol(
           comparisons()
         ), function(i) {
@@ -4602,7 +4657,8 @@ server <- shinyServer(function(input, output, session) {
     if (input$askBarsV == 'yes' &&
         !is.null(input$askBarsV) && input$askBarsV != "") {
       tagList(
-        h4('Choose the groups to compare'),
+        h4(showtesttype()),
+        h5('Choose the groups to compare'),
         div(lapply(1:ncol(
           comparisonsV()
         ), function(i) {
@@ -4659,6 +4715,24 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
+  #Display the type of test choosen
+  showtesttype <- reactive({
+    if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
+      #for box plot || for vio Plot
+      boxTitle <- paste("Annotated from Welch's t- Test report")
+    }
+    else if (input$comptestAV == 'nonpara' && input$comptestBV == 'pair') {
+      #for box plot || for vio plot
+      boxTitle <- paste("Annotated from Wilcoxon-Mann-Whitney Test report")
+    } else if (input$comptestAV == 'para' && input$comptestBV == 'group'){
+      #for box plot || for vio plot
+      boxTitle <- paste("Annotated from Tukey's HSD post hoc test report")
+    } else {
+      #for box plot || for vio plot
+      boxTitle <- paste("Annotated from Dunn's post hoc test report")
+    }
+    return(boxTitle)
+  })
   
   grpdata <- reactiveValues(df = data.frame(Group1 = character(), Group2 = character()))
   grpdataV <- reactiveValues(df = data.frame(Group1 = character(), Group2 = character()))
