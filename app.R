@@ -125,10 +125,13 @@ body,html{
 #modalout .checkbox label{
   color:#333333!important;
 }
-/*
-.modal-body{
-  overflow-x:auto;
-}*/
+
+#violinTab, #boxTab{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+}
+
 .shiny-spinner-output-container{
   display:flex;
   flex-direction:row;
@@ -170,7 +173,6 @@ body,html{
       background-color:#cddcc7;
       color:#444;
 }
-
 .checkbox {
       font-weight:800;
 }
@@ -180,25 +182,63 @@ body,html{
           top: calc(2%);
           right: calc(1%);
         }
-# CSS fix for overflowing DataTable in modal box
-.modal-lg div{
-  overflow-y:auto;
-}
-
-#themeToggle,
-.visually-hidden {
-  dislay:block;
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  clip: rect(0 0 0 0);
-  clip: rect(0, 0, 0, 0);
-  overflow: hidden;
-  padding:3px;
-},
-#themeToggle + span .fa-sun {
-font-size: 16pt;
-padding:3px;
+  #themeToggle,
+  .visually-hidden {
+    dislay:block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip: rect(0 0 0 0);
+    clip: rect(0, 0, 0, 0);
+    overflow: hidden;
+    padding:0px;
+  }
+  #themeToggle + span .fa {
+    font-size: 16pt;
+    border:2px solid;
+    border-radius:50%;
+    width:30px;
+    height:30px;
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+    position:absolute;
+    right:10px;
+  }
+  #themeToggle + span .fa:hover{
+     box-shadow:2px 2px 10px;
+  }
+ .checkbox label{
+    padding:0px;
+    margin:0px;
+ }
+  #comptestshow1V{
+  display:flex;
+  flex-direction:column;
+  padding:10px;
+  border:1px solid;
+  border-radius:10px;
+  position:relative;
+  margin:10px 0 10px 0;
+  z-index:999;
+  }
+  #askAnnotation, #askAnnotationV{
+  width:100%;
+  margin-bottom: 10px;
+  }
+  #askBars, #askBarsV{
+  width:100%;
+  margin-bottom:10px;
+  }
+  #chooseAnnotation, #chooseAnnotationV{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  border:1px solid;
+  border-radius:10px;
+  padding:10px;
+  }
 }
 
 "
@@ -232,6 +272,13 @@ ui <- shinyUI(
         "Upload File", titlePanel("Uploading Files"),
         sidebarLayout(
           sidebarPanel(
+            #Toggle page theme
+            checkboxInput(
+              inputId = "themeToggle",
+              label = tagList(
+                tags$span(class = "fa fa-moon", `aria-hidden` = "true")
+              )
+            ),
             #Uploading the file
             fileInput('file1', 'Choose XLSX File', accept = c('.xlsx')),
             
@@ -247,16 +294,7 @@ ui <- shinyUI(
             
             #Choosing the sheet from the xlsx file
             uiOutput('sheetnames'),
-            uiOutput("colnames"),
-            checkboxInput(
-              inputId = "themeToggle",
-              label = tagList(
-                tags$span('Change Display Mode'),
-                tags$span(class = "visually-hidden", "toggle theme"),
-                tags$span(class = "fa fa-sun", `aria-hidden` = "true")
-                
-              )
-            )
+            uiOutput("colnames")
           ),
           mainPanel(
             #Main User-Data Table Output
@@ -266,73 +304,87 @@ ui <- shinyUI(
         ),
         tags$script(
           "// Define css theme filepaths
-        const themes = {
-            dark: 'shinythemes/css/darkly.min.css',
-            light: 'shinythemes/css/flatly.min.css'
-        };
+  const themes = {
+      dark: 'shinythemes/css/darkly.min.css',
+      light: 'shinythemes/css/flatly.min.css'
+  };
 
-        // Function that creates a new link element
-        function newLink(theme) {
-            let el = document.createElement('link');
-            el.setAttribute('rel', 'stylesheet');
-            el.setAttribute('type', 'text/css');
-            el.setAttribute('href', theme);
-            return el;
-        }
+  // Function that creates a new link element
+  function newLink(theme) {
+      let el = document.createElement('link');
+      el.setAttribute('rel', 'stylesheet');
+      el.setAttribute('type', 'text/css');
+      el.setAttribute('href', theme);
+      return el;
+  }
 
-        // Function that removes <link> of current theme by href
-        function removeLink(themeUrl) {
-            let el = document.querySelector(`link[href='${themeUrl}']`);
-            if (el) {
-                el.parentNode.removeChild(el);
-            }
-        }
+  // Function that removes <link> of current theme by href
+  function removeLink(themeUrl) {
+      let el = document.querySelector(`link[href='${themeUrl}']`);
+      if (el) {
+          el.parentNode.removeChild(el);
+      }
+  }
 
-        // Define vars
-        const darkThemeLink = newLink(themes.dark);
-        const lightThemeLink = newLink(themes.light);
-        const head = document.getElementsByTagName('head')[0];
-        const toggle = document.getElementById('themeToggle');
+  // Define vars
+  const darkThemeLink = newLink(themes.dark);
+  const lightThemeLink = newLink(themes.light);
+  const head = document.getElementsByTagName('head')[0];
+  const toggle = document.getElementById('themeToggle');
 
-        // Define extra CSS for dark theme specific elements (e.g., DataTables)
-        const extraDarkThemeCSS = '.dataTables_length label select {color: white;} .dataTables_filter label, .dataTables_info {color: white!important;} .paginate_button { background: white!important;} tbody{color:#ccc;} thead { color: white;}';
-        const extraDarkThemeStyleElement = document.createElement('style');
-        extraDarkThemeStyleElement.appendChild(document.createTextNode(extraDarkThemeCSS));
+  // Define extra CSS for dark theme specific elements (e.g., DataTables)
+  const extraDarkThemeCSS = '.dataTables_length label select {color: white;} .dataTables_filter label, .dataTables_info {color: white!important;} .paginate_button { background: white!important;} tbody{color:#ccc;} thead { color: white;}';
+  const extraDarkThemeStyleElement = document.createElement('style');
+  extraDarkThemeStyleElement.appendChild(document.createTextNode(extraDarkThemeCSS));
 
-        // --- Initial Setup (Runs when the script loads) ---
-        // Set initial theme to light mode and ensure checkbox state matches.
-        // Use a DOMContentLoaded listener to ensure elements are available.
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ensure the checkbox is unchecked for light mode
-            toggle.checked = false;
+  // --- Initial Setup (Runs when the script loads) ---
+  document.addEventListener('DOMContentLoaded', function() {
+      // Ensure the checkbox is unchecked for light mode
+      toggle.checked = false;
 
-            // Remove any existing theme links before adding the default
-            removeLink(themes.dark);
-            removeLink(themes.light); // Remove both to be sure
+      // Remove any existing theme links before adding the default
+      removeLink(themes.dark);
+      removeLink(themes.light);
 
-            // Add the light theme as default
-            head.appendChild(lightThemeLink);
+      // Add the light theme as default
+      head.appendChild(lightThemeLink);
 
-            // Ensure extra dark theme styles are NOT present initially
-            if (head.contains(extraDarkThemeStyleElement)) {
-                head.removeChild(extraDarkThemeStyleElement);
-            }
-        });
+      // Ensure extra dark theme styles are NOT present initially
+      if (head.contains(extraDarkThemeStyleElement)) {
+          head.removeChild(extraDarkThemeStyleElement);
+      }
 
-        // --- Event Listener for Toggle ---
-        toggle.addEventListener('input', function() {
-            if (toggle.checked) { // If checkbox is checked (switch to dark)
-                removeLink(themes.light); // Remove light theme
-                head.appendChild(darkThemeLink); // Add dark theme
-                head.appendChild(extraDarkThemeStyleElement); // Add extra dark theme CSS
-            } else { // If checkbox is unchecked (switch to light)
-                removeLink(themes.dark); // Remove dark theme
-                if (head.contains(extraDarkThemeStyleElement)) {
-                    head.removeChild(extraDarkThemeStyleElement); // Remove extra dark theme CSS
-                }
-                head.appendChild(lightThemeLink); // Add light theme
-            }
-        });"
+      // Set initial icon to fa-moon
+      const iconSpan = toggle.nextElementSibling.querySelector('.fa');
+      if (iconSpan) {
+          iconSpan.classList.remove('fa-sun');
+          iconSpan.classList.add('fa-moon');
+      }
+  });
+
+  // --- Event Listener for Toggle ---
+  toggle.addEventListener('input', function() {
+      const iconSpan = toggle.nextElementSibling.querySelector('.fa');
+      if (toggle.checked) { // If checkbox is checked (switch to dark)
+          removeLink(themes.light);
+          head.appendChild(darkThemeLink);
+          head.appendChild(extraDarkThemeStyleElement);
+          if (iconSpan) {
+              iconSpan.classList.remove('fa-moon');
+              iconSpan.classList.add('fa-sun');
+          }
+      } else { // If checkbox is unchecked (switch to light)
+          removeLink(themes.dark);
+          if (head.contains(extraDarkThemeStyleElement)) {
+              head.removeChild(extraDarkThemeStyleElement);
+          }
+          head.appendChild(lightThemeLink);
+          if (iconSpan) {
+              iconSpan.classList.remove('fa-sun');
+              iconSpan.classList.add('fa-moon');
+          }
+      }
+  });"
         )
       ),
       ### Violin Plot ###
@@ -345,20 +397,12 @@ ui <- shinyUI(
             id = 'violinTab',
             # Tab to manipulate general parameters of the plot
             tabPanel(
-              "General Settings",
+              "",
               br(),
               #Adding annotation on plot
               tagList(
                 uiOutput('grpselectV'),
-                uiOutput('askAnnotationV'),
-                uiOutput('chooseAnnotationV')
-              ),
-              radioButtons(
-                "dpviewV",
-                "Add datapoints count to your plot:",
-                choices = c('No' = 0, 'Yes' =
-                              5),
-                inline = T
+                uiOutput('askAnnotationV')
               ),
               bs_accordion('Vioplot') |>
                 bs_set_opts(use_head_link =
@@ -571,7 +615,14 @@ ui <- shinyUI(
                     ),
                     uiOutput('shadevalV')
                   )
-                )
+                ),
+              radioButtons(
+                "dpviewV",
+                "Add datapoints count to your plot:",
+                choices = c('No' = 0, 'Yes' =
+                              5),
+                inline = T
+              )
             )),
           #Main Panel for Violin plot
           mainPanel(
@@ -663,20 +714,12 @@ ui <- shinyUI(
           id = 'boxTab',
           # Tab to manipulate general parameters of the plot
           tabPanel(
-            "General Settings",
+            "",
             br(),
             #Adding annotation on plot
             tagList(
               uiOutput('grpselect'),
-              uiOutput('askAnnotation'),
-              uiOutput('chooseAnnotation')
-            ),
-            radioButtons(
-              "dpview",
-              "Add datapoints count to your plot:",
-              choices = c('No' = 0, 'Yes' =
-                            5),
-              inline = T
+              uiOutput('askAnnotation')
             ),
             bs_accordion('Boxplot') |>
               bs_set_opts(use_heading_link =
@@ -933,7 +976,14 @@ ui <- shinyUI(
                   uiOutput('manualcolor'),
                   uiOutput('colUpdate')
                 )
-              )
+              ),
+            radioButtons(
+              "dpview",
+              "Add datapoints count to your plot:",
+              choices = c('No' = 0, 'Yes' =
+                            5),
+              inline = T
+            )
             
           )),
         
@@ -2542,214 +2592,63 @@ server <- shinyServer(function(input, output, session) {
     }
   }
   plotAnnoteinputV <- function() {
-    x <- orderdata()
-    x_axis <- c(factor(orderdata()$variable, levels = colnames(data())))
-    x_axis_col <- gsub('[.]', ' ', colnames(data()))
-    if (input$radio1V == "Yes") {
-      ggplot(x, aes(x = x_axis, y = value)) +
-        geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
-          size = input$borderWidthV,
-          trim = TRUE,
-          scale = "count"
-        ) +
-        scale_color_manual(values = rep(c("black"), each = length(colnames(data(
-          
-        ))))) +
-        stat_summary(fun = median) +
-        stat_boxplot(
-          geom = "errorbar",
-          width = 0.15,
-          color = 1,
-          lwd = 1
-        ) +
-        geom_hline(
-          yintercept = addhLine(),
-          color = '#2c2c2c',
-          linetype = 5,
-          linewidth = hlwdV()
-        ) +
-        geom_boxplot(
-          width = input$boxWidthV,
-          size = 1,
-          color = c('black'),
-          outlier.shape = NA
-        ) +
-        addThemeV() +
-        labs(
-          y = str_wrap(input$aytitleV, width = input$YlinebreakV),
-          x = input$axtitleV
-        ) +
-        coord_trans(limy = c(yaxisMinV(), yaxisMaxV())) +
-        scale_fill_manual(values = addvioTheme()) +
-        scale_y_continuous(trans = logaxisV()) +
-        scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                                                    as.numeric(input$XrotateV))) +
-        theme(
-          axis.text.x = element_text(size = input$XfontcolV, color = "black"),
-          axis.title.x = element_text(size = input$XfontszV, color = "black"),
-          axis.text.y = element_text(size = input$YfontcolV, color = "black"),
-          axis.title.y = element_text(size = input$YfontszV, color = "black"),
-          legend.position = "none",
-          axis.line = element_line(linewidth = input$axislineV),
-          text = element_text(family = fontfamilyV())
-        ) +
-        geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x1,
-            xend = x2,
-            y = y1,
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x1,
-            xend = x1,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x2,
-            xend = x2,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_text(
-          pairLinesV(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (3 * (y1) / 100),
-            label = paste(c(pairLinesV()[, 5]))
-          ),
-          size = input$annoteSizeV
-        ) +
-        geom_text(
-          pairLinesV(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (input$pvaldistV * (y1) / 100),
-            label = paste(c(pairLinesV()[, 6]))
-          ),
-          size = input$pvalfontV
-        ) + geom_text(
-          data = addDataPointLabelV(),
-          mapping = aes(
-            x = x,
-            y = y,
-            label = paste(c(addDataPointLabelV()$text))
-          ),
-          size = as.numeric(input$dpviewV)
-        )
-    }
-    else if ((input$radio1V == "No")) {
-      ggplot(x, aes(x = x_axis, y = value)) +
-        geom_violin(
-          mapping = aes(fill = x_axis, color = variable),
-          size = input$borderWidthV,
-          trim = TRUE,
-          scale = "count"
-        ) +
-        scale_color_manual(values = rep(c("black"), each = length(colnames(data(
-          
-        ))))) +
-        stat_summary(fun = median) +
-        stat_boxplot(
-          geom = "errorbar",
-          width = 0.15,
-          color = 1,
-          lwd = 1
-        ) +
-        geom_hline(
-          yintercept = addhLine(),
-          color = '#2c2c2c',
-          linetype = 5,
-          linewidth = hlwdV()
-        ) +
-        addThemeV() +
-        labs(
-          y = str_wrap(input$aytitleV, width = input$YlinebreakV),
-          x = input$axtitleV
-        ) +
-        coord_trans(limy = c(yaxisMinV(), yaxisMaxV())) +
-        scale_fill_manual(values = addvioTheme()) +
-        scale_y_continuous(trans = logaxisV()) +
-        scale_x_discrete(label = str_wrap(x_axis_col,width=input$XlinebreakV), guide = guide_axis(angle =
-                                                                                                    as.numeric(input$XrotateV))) +
-        theme(
-          axis.text.x = element_text(size = input$XfontcolV, color = "black"),
-          axis.title.x = element_text(size = input$XfontszV, color = "black"),
-          axis.text.y = element_text(size = input$YfontcolV, color = "black"),
-          axis.title.y = element_text(size = input$YfontszV, color = "black"),
-          legend.position = "none",
-          axis.line = element_line(linewidth = input$axislineV),
-          text = element_text(family = fontfamilyV())
-        ) + geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x1,
-            xend = x2,
-            y = y1,
-            yend = y2
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x1,
-            xend = x1,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2 + (2 * (y2) / 100)
-          ),
-          size = 0.8
-        ) +
-        geom_segment(
-          pairLinesV(),
-          mapping = aes(
-            x = x2,
-            xend = x2,
-            y = y1 - (2 * (y1) / 100),
-            yend = y2 + (2 * (y2) / 100)
-          ),
-          size = 0.8
-        ) +
-        geom_text(
-          pairLinesV(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (3 * (y1) / 100),
-            label = paste(c(pairLinesV()[, 5]))
-          ),
-          size = input$annoteSizeV
-        ) +
-        geom_text(
-          pairLinesV(),
-          mapping = aes(
-            x = (x1 + x2) / 2,
-            y = y1 + (input$pvaldistV * (y1) / 100),
-            label = paste(c(pairLinesV()[, 6]))
-          ),
-          size = input$pvalfontV
-        ) + geom_text(
-          data = addDataPointLabelV(),
-          mapping = aes(
-            x = x,
-            y = y,
-            label = paste(c(addDataPointLabelV()$text))
-          ),
-          size = as.numeric(input$dpviewV)
-        )
-    }
+    plotinputV() +
+      geom_segment(
+        pairLinesV(),
+        mapping = aes(
+          x = x1,
+          xend = x2,
+          y = y1,
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_segment(
+        pairLinesV(),
+        mapping = aes(
+          x = x1,
+          xend = x1,
+          y = y1 - (2 * (y1) / 100),
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_segment(
+        pairLinesV(),
+        mapping = aes(
+          x = x2,
+          xend = x2,
+          y = y1 - (2 * (y1) / 100),
+          yend = y2
+        ),
+        size = 0.8
+      ) +
+      geom_text(
+        pairLinesV(),
+        mapping = aes(
+          x = (x1 + x2) / 2,
+          y = y1 + (3 * (y1) / 100),
+          label = paste(c(pairLinesV()[, 5]))
+        ),
+        size = input$annoteSizeV
+      ) +
+      geom_text(
+        pairLinesV(),
+        mapping = aes(
+          x = (x1 + x2) / 2,
+          y = y1 + (input$pvaldistV * (y1) / 100),
+          label = paste(c(pairLinesV()[, 6]))
+        ),
+        size = input$pvalfontV
+      ) + geom_text(
+        data = addDataPointLabelV(),
+        mapping = aes(
+          x = x,
+          y = y,
+          label = paste(c(addDataPointLabelV()$text))
+        ),
+        size = as.numeric(input$dpviewV)
+      )
   }
   
   output$MyVPlot <- renderPlot({
@@ -3302,29 +3201,6 @@ server <- shinyServer(function(input, output, session) {
       tags$span("Nonparametric Test"))
     }
   })
-  observeEvent(input$comptestV, {
-    output$comptestshow1 <- renderUI({
-      tagList(
-        radioButtons(
-          "comptestA",
-          label = "Choose parameters to perform significance test:",
-          choiceValues = c('para', 'nonpara'),
-          choiceNames = normcheck()
-        ),
-        radioButtons(
-          "comptestB",
-          label = "",
-          choiceValues = c('pair', 'group'),
-          choiceNames = testcheck()
-        ),
-        actionButton("comptestrun", "Run Test", style = "margin-bottom:10px;")
-      )
-    })
-    output$choosecormethod <- renderUI({
-      NULL
-    })
-    showcormethod <- (NULL)
-  })
   
   #Asking for significance test (violin plot)
   
@@ -3370,16 +3246,12 @@ server <- shinyServer(function(input, output, session) {
           choiceValues = c('para', 'nonpara'),
           choiceNames = normcheckV()
         ),
-        # }),
-        # output$comptestshow2V <- renderUI({
         radioButtons(
           "comptestBV",
           label = "",
           choiceValues = c('pair', 'group'),
           choiceNames = testcheckV()
         ),
-        # }),
-        # output$comptestBtnV <- renderUI({
         actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
       )
     })
@@ -4529,51 +4401,38 @@ server <- shinyServer(function(input, output, session) {
   
   #Asking for adding significance bar
   
-  observeEvent(input$compTabInp, {
-    output$askAnnotation <- renderUI({
-      
-      radioButtons(
-        "askBars",
-        "Add significance annotations to the plot",
-        choices = c('No' = 'no', 'Yes' = 'yes'),
-        inline = T
-      )
-    })
-  })
   observeEvent(input$compTabInpV, {
     output$askAnnotationV <- renderUI({
-      radioButtons(
-        "askBarsV",
-        "Add significance annotations to the plot",
-        choices = c('No' = 'no', 'Yes' = 'yes'),
-        inline = T
+      tagList(
+        tipify(bsButton('askBarsV',label = 'Annotation Toolbox',
+                        type = 'action', value = 'toggle',icon=icon('toolbox'))
+               ,'Click to open/close annotation toolbox settings', 'right'),
+        uiOutput('chooseAnnotationV')
       )
     })
     output$askAnnotation <- renderUI({
-      radioButtons(
-        "askBars",
-        "Add significance annotations to the plot",
-        choices = c('No' = 'no', 'Yes' = 'yes'),
-        inline = T
-      )
+      tagList(
+        tipify(bsButton('askBars',label = 'Annotation Toolbox',
+                        type = 'action', value = 'toggle',icon=icon('toolbox'))
+               ,'Click to open/close annotation toolbox settings', 'right'),
+        uiOutput('chooseAnnotation'))
     })
   })
   observeEvent(input$runposthocV, {
     output$askAnnotationV <- renderUI({
-      radioButtons(
-        "askBarsV",
-        "Add significance annotations to the plot",
-        choices = c('No' = 'no', 'Yes' = 'yes'),
-        inline = T
+      tagList(
+        tipify(bsButton('askBarsV',label = 'Annotation Toolbox',
+                        type = 'action', value = 'toggle',icon=icon('toolbox'))
+               ,'Click to open/close annotation toolbox settings', 'right'),
+        uiOutput('chooseAnnotationV')
       )
     })
     output$askAnnotation <- renderUI({
-      radioButtons(
-        "askBars",
-        "Add significance annotations to the plot",
-        choices = c('No' = 'no', 'Yes' = 'yes'),
-        inline = T
-      )
+      tagList(
+        tipify(bsButton('askBars',label = 'Annotation Toolbox',
+                        type = 'action', value = 'toggle',icon=icon('toolbox'))
+               ,'Click to open/close annotation toolbox settings', 'right'),
+        uiOutput('chooseAnnotation'))
     })
   })
   
@@ -4589,17 +4448,18 @@ server <- shinyServer(function(input, output, session) {
     groups <- combn(c(colnames(data())), 2)
   })
   
+  #Annotation toolbox settings UI for Boxplot
   
-  output$chooseAnnotation <- renderUI({
-    #for box plot
-    if (input$askBars == 'yes' &&
-        !is.null(input$askBars) && input$askBars != "") {
-      tagList(
+  askbarsstate <- reactiveVal(FALSE)
+  observeEvent(input$askBars, {
+    askbarsstate(!askbarsstate())
+    output$chooseAnnotation <- renderUI({
+      #for box plot
+      if (askbarsstate()){tagList(
         h4(showtesttype()),
         h5('Choose the groups to compare'),
-        div(lapply(1:ncol(
-          comparisons()
-        ), function(i) {
+        div(lapply(1:ncol(comparisons(
+        )), function(i) {
           comparison_label <- paste0(comparisons()[1, i], " vs ", comparisons()[2, i])
           checkboxInput(
             inputId = paste0("comparison", i),
@@ -4642,78 +4502,81 @@ server <- shinyServer(function(input, output, session) {
           min = 1,
           max = 15,
           value = 5
-        ),
-        shinyBS::bsModal(
-          "annoteLines",
-          "Select Groups for Annotation",
-          "chooseGrps",
-          uiOutput('grpModBox')
-        ),
-      )
-    }
+        )
+      )} else{
+        NULL
+      }
+    })
   })
-  output$chooseAnnotationV <- renderUI({
-    #For vio plot
-    if (input$askBarsV == 'yes' &&
-        !is.null(input$askBarsV) && input$askBarsV != "") {
-      tagList(
-        h4(showtesttype()),
-        h5('Choose the groups to compare'),
-        div(lapply(1:ncol(
-          comparisonsV()
-        ), function(i) {
-          comparison_label <- paste0(comparisonsV()[1, i], " vs ", comparisonsV()[2, i])
-          checkboxInput(
-            inputId = paste0("comparisonV", i),
-            label = comparison_label,
-            value = FALSE
+  
+  #Annotation toolbox settings UI for Violinplot
+  askbarsstateV <- reactiveVal(FALSE)
+  observeEvent(input$askBarsV,{
+    askbarsstateV(!askbarsstateV())
+    output$chooseAnnotationV <- renderUI({
+      #For vio plot
+      if (askbarsstateV()){
+        tagList(
+          h4(showtesttype()),
+          h5('Choose the groups to compare'),
+          div(lapply(1:ncol(
+            comparisonsV()
+          ), function(i) {
+            comparison_label <- paste0(comparisonsV()[1, i], " vs ", comparisonsV()[2, i])
+            checkboxInput(
+              inputId = paste0("comparisonV", i),
+              label = comparison_label,
+              value = FALSE
+            )
+          }), style = 'padding:10px;border:1px solid;max-height:300px;overflow-Y:auto;'),
+          actionButton("submitAnnoteV", "Add Annotations", style = 'margin-top:10px;'),
+          sliderInput(
+            'annoteSizeV',
+            "Select size of the text",
+            min = 1,
+            max = 10,
+            value = 5
+          ),
+          sliderInput(
+            'annoteDistV',
+            "Select distance between annotated-lines",
+            min = 1,
+            max = 15,
+            value = 5
+          ),
+          radioButtons(
+            "pvalshowV",
+            label = 'Show P Value',
+            choiceNames = c('None', 'Only for ns', 'For all', 'Only P value'),
+            choiceValues = c('none', 'ns', 'all', 'onlyP'),
+            inline = T
+          ),
+          sliderInput(
+            'pvaldistV',
+            'Adjust p value text position',
+            min = -15,
+            max = 15,
+            value = -4
+          ),
+          sliderInput(
+            'pvalfontV',
+            'Adjust p value text font size',
+            min = 1,
+            max = 15,
+            value = 5
           )
-        }), style = 'padding:10px;border:1px solid;max-height:300px;overflow-Y:auto;'),
-        actionButton("submitAnnoteV", "Add Annotations", style = 'margin-top:10px;'),
-        sliderInput(
-          'annoteSizeV',
-          "Select size of the text",
-          min = 1,
-          max = 10,
-          value = 5
-        ),
-        sliderInput(
-          'annoteDistV',
-          "Select distance between annotated-lines",
-          min = 1,
-          max = 15,
-          value = 5
-        ),
-        radioButtons(
-          "pvalshowV",
-          label = 'Show P Value',
-          choiceNames = c('None', 'Only for ns', 'For all', 'Only P value'),
-          choiceValues = c('none', 'ns', 'all', 'onlyP'),
-          inline = T
-        ),
-        sliderInput(
-          'pvaldistV',
-          'Adjust p value text position',
-          min = -15,
-          max = 15,
-          value = -4
-        ),
-        sliderInput(
-          'pvalfontV',
-          'Adjust p value text font size',
-          min = 1,
-          max = 15,
-          value = 5
-        ),
-        shinyBS::bsModal(
-          "annoteLinesV",
-          "Select Groups for Annotation",
-          "chooseGrpsV",
-          uiOutput('grpModBoxV')
-        ),
-      )
-    }
+          # shinyBS::bsModal(
+          #   "annoteLinesV",
+          #   "Select Groups for Annotation",
+          #   "chooseGrpsV",
+          #   uiOutput('grpModBoxV')
+          # ),
+        )} else{
+          NULL
+        }
+    })
   })
+  
   
   #Display the type of test choosen
   showtesttype <- reactive({
