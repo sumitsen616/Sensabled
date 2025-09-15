@@ -227,7 +227,7 @@ body,html{
   width:100%;
   margin-bottom: 10px;
   }
-  #askBars, #askBarsV{
+  #askBars, #askBarsV,#runposthocV, #effectbtnV, #reportdnldV {
   width:100%;
   margin-bottom:10px;
   }
@@ -1099,9 +1099,6 @@ ui <- shinyUI(
                                              "Run Significance Test"),
                               tagList(
                                 uiOutput("comptestshow1V"),
-                                uiOutput("posthoctitleV"),
-                                uiOutput("posthocListV"),
-                                uiOutput("posthocBtnV"),
                                 uiOutput("effectdispV"),
                                 uiOutput('statdnldV')
                               )
@@ -2640,7 +2637,8 @@ server <- shinyServer(function(input, output, session) {
           label = paste(c(pairLinesV()[, 6]))
         ),
         size = input$pvalfontV
-      ) + geom_text(
+      ) +
+      geom_text(
         data = addDataPointLabelV(),
         mapping = aes(
           x = x,
@@ -3252,7 +3250,8 @@ server <- shinyServer(function(input, output, session) {
           choiceValues = c('pair', 'group'),
           choiceNames = testcheckV()
         ),
-        actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;")
+        actionButton("comptestrunV", "Run Test", style = "margin-bottom:10px;"),
+        uiOutput("posthocBtnV")
       )
     })
     
@@ -3419,11 +3418,11 @@ server <- shinyServer(function(input, output, session) {
     }
     
   })
-  observeEvent(input$comptestrun, {
-    output$statdnld <- renderUI({
-      downloadButton('reportdnld', 'Download Complete Stat Report')
-    })
-  })
+  # observeEvent(input$comptestrun, {
+  #   output$statdnld <- renderUI({
+  #     downloadButton('reportdnld', 'Download Complete Stat Report')
+  #   })
+  # })
   #For Violin plot
   
   userdataV <- reactiveValues(df = data.frame(Condition1 = character(), Condition2 = character()))
@@ -4018,36 +4017,20 @@ server <- shinyServer(function(input, output, session) {
     sigtitl <- sigtitl
   })
   
+  ### Rendering the Posthoc test options###
   
   observeEvent(input$comptestrunV, {
-    #For vio plot
-    output$posthoctitleV <- renderText({
-      if (input$comptestV == T && input$comptestBV == 'group') {
-        posthoctitleInpV()
-      } else{
-        
-      }
-      
-    })
-    output$posthocListV <- renderUI({
-      if (input$comptestV == T && input$comptestBV == 'group') {
-        selectInput("methodsV", label = "Select a method to be used", choices = posthoclistInpV())
-      } else{
-        
-      }
-    })
-    
-    #Displaying Post Hoc Analysis Result on Modal box
-    
     output$posthocBtnV <- renderUI({
-      tagList(
-        if (input$comptestV == T && input$comptestBV == 'group') {
+      if (input$comptestV == T && input$comptestBV == 'group') {
+        tagList(
+          posthoctitleInpV(),
+          selectInput("methodsV", label = "Select a method to be used", choices = posthoclistInpV()),
           actionButton("runposthocV", "Run Post Hoc Test", style = 'margin-bottom:10px;')
-        })
+        )}
     })
   })
   
-  ##Post Hoc test calculation and table preparation
+  ###Post Hoc test calculation and table preparation###
   
   posthocinputV <- eventReactive(input$methodsV, {
     userselect <- input$methodsV
@@ -4565,12 +4548,6 @@ server <- shinyServer(function(input, output, session) {
             max = 15,
             value = 5
           )
-          # shinyBS::bsModal(
-          #   "annoteLinesV",
-          #   "Select Groups for Annotation",
-          #   "chooseGrpsV",
-          #   uiOutput('grpModBoxV')
-          # ),
         )} else{
           NULL
         }
@@ -4647,7 +4624,6 @@ server <- shinyServer(function(input, output, session) {
   
   annotationCal <- eventReactive(input$submitAnnote, {
     #for box plot
-    # browser()
     testdata <- grpdata$df
     #Calculation for Welch's t Test
     #Parametric pairwise comparison
@@ -4804,8 +4780,8 @@ server <- shinyServer(function(input, output, session) {
   
   annotationCalV <- eventReactive(input$submitAnnoteV, {
     testdata <- grpdataV$df
-    #Parametric pairwise comparison
     #Calculation for Welch's t Test
+    #Parametric pairwise comparison
     if (input$comptestAV == 'para' && input$comptestBV == 'pair') {
       colname <- as.factor(colnames(data()))
       dfNew <- data.frame()
@@ -4834,8 +4810,8 @@ server <- shinyServer(function(input, output, session) {
       row.names(dffinal) <- NULL
       dffinal <- dffinal
     }
-    #Non-parametric pairwise comparison
     #Calculation for Mann Whitney U test
+    #Non-parametric pairwise comparison
     else if (input$comptestAV == 'nonpara' &&
              input$comptestBV == 'pair') {
       # colname <- gsub("[[:punct:]]",'',colnames(data()))
@@ -4863,9 +4839,11 @@ server <- shinyServer(function(input, output, session) {
       dffinal <- cbind(testdata, dfNew)
       row.names(dffinal) <- NULL
       dffinal <- dffinal
+      # `bros` seems to be a typo; it might have been meant to be `browser()`
+      # if you are debugging.
     }
-    #Non-parametric Group wise comparison
     #Calculation for PostHoc Dunn's test
+    #Non-parametric groupwise comparison
     else if (input$comptestAV == 'nonpara' &&
              input$comptestBV == 'group') {
       dunntest <- dunn.test(
@@ -4898,13 +4876,13 @@ server <- shinyServer(function(input, output, session) {
         }
         df <- rbind(df, tempdf)
       }
-      colnames(df) <- c('Condition1', 'Condtion2', 'p_value')
+      colnames(df) <- c('Condition1', 'Condition2', 'p_value')
       dffinal <- df
       row.names(dffinal) <- NULL
-      dffinal <- dffinal
     }
-    #Parametric Group wise comparison
+    
     #Calculation for PostHoc Tukey's HSD test
+    #Parametric groupwise comparison
     else if (input$comptestAV == 'para' &&
              input$comptestBV == 'group') {
       model <- aov(na.omit(orderdata())$value ~ na.omit(orderdata())$variable)
@@ -5194,7 +5172,7 @@ server <- shinyServer(function(input, output, session) {
           
           compareRow <- intersect(row1, row2)
           if (length(compareRow) > 0) {
-            varYcord <- df1[j, 8] + ((input$annoteDist / 100) * maxPoint)
+            varYcord <- df1[j, 8] + ((input$annoteDistV / 100) * maxPoint)
             
             df1[j, ] <- replace(df1[j, ], 8, varYcord)
             
