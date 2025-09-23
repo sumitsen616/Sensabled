@@ -1060,7 +1060,7 @@ ui <- shinyUI(
               "usesetting",
               label = NULL,
               buttonLabel = "Select Settings File",
-              accept = c(".csv")
+              accept = c(".xlsx")
             ),
             actionButton(
               "reuseset",
@@ -2818,10 +2818,10 @@ server <- shinyServer(function(input, output, session) {
   #Download Boxplot settings
   output$savesetting <- downloadHandler(
     filename = function() {
-      paste("graph_setting_box-scatter-", Sys.Date(), ".csv", sep = "")
+      paste("graph_setting_box-scatter-", Sys.Date(), ".xlsx", sep = "")
     },
     content = function(file) {
-      write.csv(graphsettings(), file, fileEncoding = "UTF-8")
+      xlsx::write.xlsx(graphsettings(), file)
     }
   )
   
@@ -5369,8 +5369,8 @@ server <- shinyServer(function(input, output, session) {
     file <- input$usesetting
     ext <- tools::file_ext(file$datapath)
     req(file)
-    validate(need(ext == "csv", "Please upload a csv file"))
-    uploaded_inputs <- read.csv(file$datapath)
+    validate(need(ext == "xlsx", "Please upload a xlsx file"))
+    uploaded_inputs <- xlsx::read.xlsx(file$datapath, sheetIndex = 1)
     uploaded_inputs <- data.frame(uploaded_inputs)
     # Update each input
     for (i in 1:20) {
