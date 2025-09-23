@@ -4,6 +4,7 @@
 
 ##Loading Necessary Packages##
 # options(shiny.trace = TRUE)
+options(encoding = "UTF-8")
 library(shiny)
 library(shinythemes)
 library(shinyjs)
@@ -1174,36 +1175,19 @@ ui <- shinyUI(
         tags$ul(
           tags$li("For running the app:"),
           tags$ul(
-            tags$li("'shiny'"),
-            tags$li("'shinythemes'"),
-            tags$li("'shinyjs'"),
-            tags$li("'shinyBS'"),
-            tags$li("'shinycssloaders'"),
-            tags$li("'rJava'")
+            tags$li("'shiny', 'shinythemes', 'shinyjs', 'shinyBS', 'shinycssloaders', 'rJava'")
           ),
           tags$li("For handling the data:"),
           tags$ul(
-            tags$li("'openxlsx'"),
-            tags$li("'datasets'"),
-            tags$li("'tidyr'"),
-            tags$li("'dplyr'"),
-            tags$li("'DT'"),
-            tags$li("'tidyverse'"),
-            tags$li("'remotes'"),
-            tags$li("'magrittr'")
+            tags$li("'openxlsx', 'datasets', 'tidyr', 'dplyr', 'DT', 'tidyverse', 'remotes', 'magrittr'")
           ),
           tags$li("For creating the plot:"),
           tags$ul(
-            tags$li("'ggplot2'"),
-            tags$li("'ggbeeswarm'")
+            tags$li("'ggplot2', 'ggbeeswarm'")
           ),
           tags$li("For beautifying the plot:"),
           tags$ul(
-            tags$li("'extrafont'"),
-            tags$li("'colorspace'"),
-            tags$li("'colourpicker'"),
-            tags$li("'bsplus'"),
-            tags$li("'DescTools'")
+            tags$li("'extrafont', 'colorspace', 'colourpicker', 'bsplus', 'DescTools'")
           ),
           tags$li("For saving the data:"),
           tags$ul(
@@ -1211,12 +1195,7 @@ ui <- shinyUI(
           ),
           tags$li("For Stats:"),
           tags$ul(
-            tags$li("'FSA'"),
-            tags$li("'dunn.test'"),
-            tags$li("'broom'"),
-            tags$li("'asht'"),
-            tags$li("'car'"),
-            tags$li("'effectsize'")
+            tags$li("'FSA', 'dunn.test', 'broom', 'asht', 'car', 'effectsize'")
           ),
           tags$li("For making stat report:"),
           tags$ul(
