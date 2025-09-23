@@ -696,7 +696,7 @@ ui <- shinyUI(
                 "usesettingV",
                 label = NULL,
                 buttonLabel = "Select Settings File",
-                accept = c(".csv")
+                accept = c(".xlsx")
               ),
               actionButton(
                 "reusesetV",
@@ -1430,10 +1430,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsX',
           label = c('Select from the list'),
-          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
-              "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
-              "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
-              "°", "²", "³")
+          choices = intToUtf8(c(945, 946, 947, 948, 949, 950, 951,
+                                952, 953, 954, 955, 956, 957, 958,
+                                959, 960, 961, 963, 964, 965, 966,
+                                967, 968, 969, 176, 178, 179),multiple = T)
         ),
         actionButton('addsymbolX', label = c('Add Character'))
       )
@@ -1453,10 +1453,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsYV',
           label = c('Select from the list'),
-          choices =c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
-                     "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
-                     "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
-                     "°", "²", "³")
+          choices = intToUtf8(c(945, 946, 947, 948, 949, 950, 951,
+                                952, 953, 954, 955, 956, 957, 958,
+                                959, 960, 961, 963, 964, 965, 966,
+                                967, 968, 969, 176, 178, 179),multiple = T)
         ),
         actionButton('addsymbolYV', label = c('Add Character'))
       )
@@ -1468,10 +1468,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsXV',
           label = c('Select from the list'),
-          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
-                      "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
-                      "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
-                      "°", "²", "³")
+          choices = intToUtf8(c(945, 946, 947, 948, 949, 950, 951,
+                                952, 953, 954, 955, 956, 957, 958,
+                                959, 960, 961, 963, 964, 965, 966,
+                                967, 968, 969, 176, 178, 179),multiple = T)
         ),
         actionButton('addsymbolXV', label = c('Add Character'))
       )
@@ -5182,8 +5182,8 @@ server <- shinyServer(function(input, output, session) {
     file <- input$usesettingV
     ext <- tools::file_ext(file$datapath)
     req(file)
-    validate(need(ext == "csv", "Please upload a csv file"))
-    uploaded_inputs <- read.csv(file$datapath)
+    validate(need(ext == "xlsx", "Please upload a xlsx file"))
+    uploaded_inputs <- xlsx::read.xlsx(file$datapath, sheetIndex = 1)
     uploaded_inputs <- data.frame(uploaded_inputs)
     # Update each input
     for (i in 1:14) {
