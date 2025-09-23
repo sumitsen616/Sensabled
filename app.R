@@ -1415,10 +1415,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsY',
           label = c('Select from the list'),
-          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
-                      "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
-                      "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
-                      "°", "²", "³")
+          choices = intToUtf8(c(945, 946, 947, 948, 949, 950, 951,
+                      952, 953, 954, 955, 956, 957, 958,
+                      959, 960, 961, 963, 964, 965, 966,
+                      967, 968, 969, 176, 178, 179),multiple = T)
         ),
         actionButton('addsymbolY', label = c('Add Character'))
       )
