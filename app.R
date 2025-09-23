@@ -2712,7 +2712,7 @@ server <- shinyServer(function(input, output, session) {
       paste("graph_setting_violin-", Sys.Date(), ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(graphsettingsV(), file)
+      write.csv(graphsettingsV(), file, fileEncoding = "UTF-8")
     }
   )
   
@@ -2937,7 +2937,7 @@ server <- shinyServer(function(input, output, session) {
       paste("graph_setting_box-scatter-", Sys.Date(), ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(graphsettings(), file)
+      write.csv(graphsettings(), file, fileEncoding = "UTF-8")
     }
   )
   
