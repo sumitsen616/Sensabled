@@ -1415,39 +1415,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsY',
           label = c('Select from the list'),
-          choices = intToUtf8(
-            c(
-              0x03B1,
-              0x03B2,
-              0x03B3,
-              0x03B4,
-              0x03B5,
-              0x03B6,
-              0x03B7,
-              0x03B8,
-              0x03B9,
-              0x03BA,
-              0x03BB,
-              0x03BC,
-              0x03BD,
-              0x03BE,
-              0x03BF,
-              0x03C0,
-              0x03C1,
-              0x03C2,
-              0x03C3,
-              0x03C4,
-              0x03C5,
-              0x03C6,
-              0x03C7,
-              0x03C8,
-              0x03C9,
-              0x00B0,
-              0x00B2,
-              0x00B3
-            ),
-            multiple = T
-          )
+          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
+                      "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
+                      "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
+                      "°", "²", "³")
         ),
         actionButton('addsymbolY', label = c('Add Character'))
       )
@@ -1459,39 +1430,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsX',
           label = c('Select from the list'),
-          choices = intToUtf8(
-            c(
-              0x03B1,
-              0x03B2,
-              0x03B3,
-              0x03B4,
-              0x03B5,
-              0x03B6,
-              0x03B7,
-              0x03B8,
-              0x03B9,
-              0x03BA,
-              0x03BB,
-              0x03BC,
-              0x03BD,
-              0x03BE,
-              0x03BF,
-              0x03C0,
-              0x03C1,
-              0x03C2,
-              0x03C3,
-              0x03C4,
-              0x03C5,
-              0x03C6,
-              0x03C7,
-              0x03C8,
-              0x03C9,
-              0x00B0,
-              0x00B2,
-              0x00B3
-            ),
-            multiple = T
-          )
+          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
+              "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
+              "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
+              "°", "²", "³")
         ),
         actionButton('addsymbolX', label = c('Add Character'))
       )
@@ -1511,39 +1453,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsYV',
           label = c('Select from the list'),
-          choices = intToUtf8(
-            c(
-              0x03B1,
-              0x03B2,
-              0x03B3,
-              0x03B4,
-              0x03B5,
-              0x03B6,
-              0x03B7,
-              0x03B8,
-              0x03B9,
-              0x03BA,
-              0x03BB,
-              0x03BC,
-              0x03BD,
-              0x03BE,
-              0x03BF,
-              0x03C0,
-              0x03C1,
-              0x03C2,
-              0x03C3,
-              0x03C4,
-              0x03C5,
-              0x03C6,
-              0x03C7,
-              0x03C8,
-              0x03C9,
-              0x00B0,
-              0x00B2,
-              0x00B3
-            ),
-            multiple = T
-          )
+          choices =c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
+                     "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
+                     "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
+                     "°", "²", "³")
         ),
         actionButton('addsymbolYV', label = c('Add Character'))
       )
@@ -1555,39 +1468,10 @@ server <- shinyServer(function(input, output, session) {
         selectInput(
           'symbolsXV',
           label = c('Select from the list'),
-          choices = intToUtf8(
-            c(
-              0x03B1,
-              0x03B2,
-              0x03B3,
-              0x03B4,
-              0x03B5,
-              0x03B6,
-              0x03B7,
-              0x03B8,
-              0x03B9,
-              0x03BA,
-              0x03BB,
-              0x03BC,
-              0x03BD,
-              0x03BE,
-              0x03BF,
-              0x03C0,
-              0x03C1,
-              0x03C2,
-              0x03C3,
-              0x03C4,
-              0x03C5,
-              0x03C6,
-              0x03C7,
-              0x03C8,
-              0x03C9,
-              0x00B0,
-              0x00B2,
-              0x00B3
-            ),
-            multiple = T
-          )
+          choices = c("α", "β", "γ", "δ", "ε", "ζ", "η", "θ",
+                      "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π",
+                      "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
+                      "°", "²", "³")
         ),
         actionButton('addsymbolXV', label = c('Add Character'))
       )
