@@ -1211,7 +1211,7 @@ ui <- shinyUI(
                 for data exploration. This tool is actively maintained by Sumit Sen, and contributions or feedback are welcome via ",
           a('email',href="mailto:sumitsen616@outlook.com"),"."),
         br(),
-        p("Version: 2.0 | Last Updated: September 11, 2025")
+        p("Version: 2.0 | Last Updated: September 28, 2025")
         
         
       )
