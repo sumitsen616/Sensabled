@@ -25,7 +25,9 @@ library(extrafont)
 library(colorspace)
 library(colourpicker)
 library(bsplus)
+library(bslib)
 library(DescTools)
+library(htmltools)
 library(rclipboard)
 library(FSA)
 library(dunn.test)
@@ -62,6 +64,7 @@ if (interactive()) {
       'colorspace',
       'colourpicker',
       'bsplus',
+      'bslib',
       'DescTools',
       #For saving the data
       'rclipboard',
@@ -105,13 +108,23 @@ body,html{
   width:100%;
   justify-content:space-evenly;
   }
-.nav li a.disabled, #savesettingV.disabled, #savesetting.disabled, #compTabInp.disabled {
+.nav li a.disabled, #compTabInp.disabled {
   background-color: #aaa !important;
   color: #333 !important;
   cursor: not-allowed !important;
   border-color: #aaa !important;
   border-radius:0px !important;
+  pointer-events: none !important;  /* This prevents clicks */
 }
+#savesetting.btn.disabled, #savesetting.btn[disabled], #savesettingV.btn.disabled, #savesettingV.btn[disabled]{
+  pointer-events:none !important;
+  cursor: not-allowed !important;
+  opacity: 0.35;
+}
+#tooltip, #tooltipV{
+  cursor:not-allowed !important;
+}
+
 .nav li{
   text-align:center;
   width:100%;
@@ -266,7 +279,15 @@ ui <- shinyUI(
     ######################
     #Main Navbar sections#
     ######################
-    
+    # Script to disable Save Setting Button initially 
+    tags$script(HTML("
+                      $(document).on('shown.bs.collapse', '#Boxplot-3', function () {
+                        Shiny.setInputValue('theme_panel_open', true);
+                      });
+                      $(document).on('shown.bs.collapse', '#Vioplot-3', function () {
+                        Shiny.setInputValue('theme_panel_openV', true);
+                      });
+                    ")),
     tabsetPanel(
       ### File Upload###
       tabPanel(
@@ -391,7 +412,7 @@ ui <- shinyUI(
       ### Violin Plot ###
       tabPanel(
         "Violin Plot",
-        disabled = TRUE,
+        # disabled = TRUE,
         pageWithSidebar(
           div(),
           sidebarPanel(
@@ -608,13 +629,18 @@ ui <- shinyUI(
                       "viobordercol",
                       label = "Choose box border colour:",
                       choices = c(
-                        'Default (Black)' = 'default',
                         "Darker" = 'dark',
-                        "Lighter" = 'light'
+                        "Lighter" = 'light',
+                        'Default (Black)' = 'default'
                       ),
-                      selected = c('default')
-                    ),
-                    uiOutput('shadevalV')
+                      selected = c('dark')
+                    ),sliderInput(
+                      'shadevalueV',
+                      label = 'Select border shade amount',
+                      min = 0.1,
+                      max = 1,
+                      value = 1
+                    )
                   )
                 ),
               radioButtons(
@@ -686,13 +712,13 @@ ui <- shinyUI(
             div(
               style = "display: flex; flex-direction: row; gap: 15px; margin-bottom: 20px; height:50px;
             align-items:start;justify-content:center;",
-              downloadButton(
+              div(downloadButton(
                 "savesettingV",
                 "Save settings",
                 icon = icon("gear"),
                 class = "btn-primary",
-                title = "Click to save your plot settings"
-              ),fileInput(
+                title = "Save your plot settings"
+              ),id='tooltipV', title='Select plot theme to save setting'),fileInput(
                 "usesettingV",
                 label = NULL,
                 buttonLabel = "Select Settings File",
@@ -701,7 +727,7 @@ ui <- shinyUI(
               actionButton(
                 "reusesetV",
                 "Upload",
-                title = "Click to load your saved csv file to reuse previous setting"
+                title = "Click to load your saved xlsx file to reuse previous setting"
               )
             ),
             uiOutput("plot_notice2")
@@ -949,15 +975,21 @@ ui <- shinyUI(
                   uiOutput('themelist'),
                   radioButtons(
                     "boxbordercol",
-                    label = "Choose box border colour:",
+                    label = "Choose border colour:",
                     choices = c(
-                      'Default (Black)' = 'default',
                       "Darker" = 'dark',
-                      "Lighter" = 'light'
+                      "Lighter" = 'light',
+                      "Default (Black)" = 'default'
                     ),
-                    selected = c('default')
+                    selected = c('dark')
                   ),
-                  uiOutput('shadeval'),
+                  sliderInput(
+                    'shadevalue',
+                    label = 'Select border shade amount',
+                    min = 0.1,
+                    max = 1,
+                    value = 1
+                  ),
                   #Choosing datapoint colors
                   radioButtons(
                     "dpcolor",
@@ -1050,13 +1082,13 @@ ui <- shinyUI(
           div(
             style = "display: flex; flex-direction: row; gap: 15px; margin-bottom: 20px; height:50px;
             align-items:start;justify-content:center;",
-            downloadButton(
+            div(downloadButton(
               "savesetting",
               "Save settings",
               icon = icon("gear"),
               class = "btn-primary",
-              title = "Click to save your plot settings"
-            ),fileInput(
+              title = "Save your plot settings"
+            ),id='tooltip',title='Select plot theme to save settings'),fileInput(
               "usesetting",
               label = NULL,
               buttonLabel = "Select Settings File",
@@ -1065,7 +1097,7 @@ ui <- shinyUI(
             actionButton(
               "reuseset",
               "Upload",
-              title = "Click to load your saved csv file to reuse previous setting"
+              title = "Click to load your saved xlsx file to reuse previous setting"
             )
           ),
           uiOutput("plot_notice")
@@ -1108,37 +1140,6 @@ ui <- shinyUI(
                  mainPanel(uiOutput('stattableout'))
                )),
       tabPanel(
-        # "Info",
-        # p(
-        #   "Thank You for using this app. I made this app to make customizable
-        # plots of mainly Violin and Box-Jitter-type plots. This app uses R at
-        # its core to handle the basic programming and the 'Shiny' Package to build
-        # the interface. The following packages have also been used to make this app
-        # for which I am thankful to its developers. For the Web-Based UI 'shinythemes',
-        # 'shinyjs', 'shinyBS', and 'shinycssloaders' were used. For data handling 'openxlsx',
-        # 'datasets', 'DT', 'tidyr', 'dplyr' and 'tidyverse' packages were used. For generation of
-        # the plot 'ggplot2' was mainly used along with an add on 'ggbeeswarm' to
-        # generate the jitter plot. For the theme generation 'DescTools', 'colorspace' and 'colourPicker' packages
-        # were used. For doing the statistical calculation majorly basic R was used. Apart from that 'FSA',
-        # 'dunn.test', and 'asht' was used. For creating visual data tables 'broom'
-        # package was used.",
-        #   style = "width:75%; padding:50px;text-align:center;
-        # margin:0 auto;margin-top:10%;
-        # font-size:17px;"
-        # ),
-        # p(
-        #   "Please", a("email", href = "mailto:sumitsen616@outlook.com"), "me for your feedback or if you find any issues/ bugs.",
-        #   style = "width:75%; padding-top:10px;text-align:center;margin:0 auto;margin-top:10%"
-        # ),
-        # p("App developed by Sumit. CC 2025.", style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"),
-        # p(
-        #   a("Twitter", href = "https://twitter.com/SumitSen616"),
-        #   "||",
-        #   a("LinkedIn", href = "https://www.linkedin.com/in/sumitsen616/"),
-        #   style = "width:75%;padding-top:5px;text-align:center;margin:0 auto;"
-        # )
-        # 
-        
         "Info", 
         h3("How to Use SEN'sable Plotting v2.0"),
         p("Welcome to SEN'sable Plotting v2.0, a tool designed by Sumit Sen at TIFR, Mumbai, for creating and customizing boxplots and violin plots from your data. Follow these steps to get started:"),
@@ -1231,18 +1232,18 @@ server <- shinyServer(function(input, output, session) {
   shinyjs::disable(selector = '.tabbable a[data-value="Statistical Analysis"')
   
   #Disabling save setting button by default and enabling only when 'Theme' tab is selected
+  # For Box Plot
   shinyjs::disable("savesetting")
-  observeEvent(input$boxTab, {
-    if (input$boxTab == 'theme') {
-      shinyjs::enable("savesetting")
-    }
-  })
+  observeEvent(input$theme_panel_open, {
+    shinyjs::enable("savesetting")
+  }, ignoreNULL = TRUE)
+  
+  # For Violin Plot
   shinyjs::disable("savesettingV")
-  observeEvent(input$violinTab, {
-    if (input$violinTab == 'themeV') {
-      shinyjs::enable("savesettingV")
-    }
-  })
+  observeEvent(input$theme_panel_openV, {
+    shinyjs::enable("savesettingV")
+  }, ignoreNULL = TRUE)
+  
   observeEvent(
     input$MyVPlot,
     {
@@ -1416,9 +1417,9 @@ server <- shinyServer(function(input, output, session) {
           'symbolsY',
           label = c('Select from the list'),
           choices = intToUtf8(c(945, 946, 947, 948, 949, 950, 951,
-                      952, 953, 954, 955, 956, 957, 958,
-                      959, 960, 961, 963, 964, 965, 966,
-                      967, 968, 969, 176, 178, 179),multiple = T)
+                                952, 953, 954, 955, 956, 957, 958,
+                                959, 960, 961, 963, 964, 965, 966,
+                                967, 968, 969, 176, 178, 179),multiple = T)
         ),
         actionButton('addsymbolY', label = c('Add Character'))
       )
@@ -1920,7 +1921,6 @@ server <- shinyServer(function(input, output, session) {
   })
   
   userTheme <- reactive({
-    #nrow(val$df)<length(data())
     if (input$choosetheme == 'preset') {
       #Take pre-selected color palette and feed it to ggplot
       usertheme <- switch(
@@ -1967,27 +1967,23 @@ server <- shinyServer(function(input, output, session) {
       usertheme <- userTheme()
     }
   })
-  output$shadeval <- renderUI({
-    if (input$boxbordercol == 'dark' || input$boxbordercol == 'light') {
-      sliderInput(
-        'shadevalue',
-        label = 'Select border shade amount',
-        min = 0.1,
-        max = 1,
-        value = 0.2
-      )
-    }
-  })
+  
   boxborder <- reactive({
-    if (input$boxbordercol == 'default') {
-      boxborder <- rep(c("black"), each = length(colnames(data())))
-    } else if (input$boxbordercol == 'light') {
+    if (input$boxbordercol == 'light') {
       boxborder <- lighten(addboxTheme(), input$shadevalue)
     } else if (input$boxbordercol == 'dark') {
       boxborder <- darken(addboxTheme(), input$shadevalue)
     }
+    return(boxborder)
   })
-  
+  boxbordercolor <- reactive({
+    if (input$boxbordercol == 'default') {
+      boxborder <- rep(c("black"), each = length(colnames(data())))
+    }else {
+      boxborder <- boxborder()
+    }
+    return(boxborder)
+  })
   #Violin theme display
   output$themelistV <- renderUI({
     if (input$choosethemeV == 'preset') {
@@ -2199,25 +2195,22 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   vioborder <- reactive({
-    if (input$viobordercol == 'default') {
-      vioborder <- rep(c("black"), each = length(colnames(data())))
-    } else if (input$viobordercol == 'light') {
+    if (input$viobordercol == 'light') {
       vioborder <- lighten(addvioTheme(), input$shadevalueV)
     } else if (input$viobordercol == 'dark') {
       vioborder <- darken(addvioTheme(), input$shadevalueV)
-    }
+    } 
+    return(vioborder)
   })
-  output$shadevalV <- renderUI({
-    if (input$viobordercol == 'dark' || input$viobordercol == 'light') {
-      sliderInput(
-        'shadevalueV',
-        label = 'Select border shade amount',
-        min = 0.1,
-        max = 1,
-        value = 0.2
-      )
+  viobordercolor <- reactive({
+    if (input$viobordercol == 'default') {
+      vioborder <- rep(c("black"), each = length(colnames(data())))
+    }else {
+      vioborder <- vioborder()
     }
+    return(vioborder)
   })
+  
   ##Data point color process
   output$manualcolor <- renderUI({
     if (input$dpcolor == 'dpgradient') {
@@ -2278,7 +2271,7 @@ server <- shinyServer(function(input, output, session) {
     } else if (input$dpcolor == 'box') {
       dpcolors <- addboxTheme()
     } else if (input$dpcolor == 'border') {
-      dpcolors <-  boxborder()
+      dpcolors <-  boxbordercolor()
     } else if (input$dpcolor == 'dpgradient') {
       dpcolors <- colorRampPalette(c(input$dpgrad1, input$dpgrad2))(ncol(data()))
     } else if (input$dpcolor == 'dppalette') {
@@ -2369,7 +2362,7 @@ server <- shinyServer(function(input, output, session) {
           mapping=aes(color = variable),
           outlier.shape = NA
         ) +
-        scale_color_manual(values = vioborder()) +
+        scale_color_manual(values = viobordercolor()) +
         addThemeV() +
         labs(
           y = str_wrap(input$aytitleV, width = input$YlinebreakV),
@@ -2632,7 +2625,7 @@ server <- shinyServer(function(input, output, session) {
         mapping = aes(color = variable),
         lwd = 1
       ) +
-      scale_color_manual(values = boxborder()) +
+      scale_color_manual(values = boxbordercolor()) +
       addTheme() +
       labs(y = str_wrap(axistitleY(), width = input$Ylinebreak),
            x = axistitleX()) +
@@ -4547,8 +4540,6 @@ server <- shinyServer(function(input, output, session) {
       dffinal <- cbind(testdata, dfNew)
       row.names(dffinal) <- NULL
       dffinal <- dffinal
-      # `bros` seems to be a typo; it might have been meant to be `browser()`
-      # if you are debugging.
     }
     #Calculation for PostHoc Dunn's test
     #Non-parametric groupwise comparison
@@ -4702,8 +4693,6 @@ server <- shinyServer(function(input, output, session) {
       dffinal <- cbind(testdata, dfNew)
       row.names(dffinal) <- NULL
       dffinal <- dffinal
-      # `bros` seems to be a typo; it might have been meant to be `browser()`
-      # if you are debugging.
     }
     #Calculation for PostHoc Dunn's test
     #Non-parametric groupwise comparison
