@@ -73,8 +73,7 @@
 #     }
 #   }
 # }
-install.packages('rsconnect')
-library(rsconnect)
+
 options(encoding = "UTF-8")
 library(shiny)
 library(shinythemes)
