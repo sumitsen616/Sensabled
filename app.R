@@ -10,7 +10,7 @@ library(shinythemes)
 library(shinyjs)
 library(shinyBS)
 library(shinycssloaders)
-library(waiter)
+# library(waiter)
 library(shinyWidgets)
 library(rJava)
 library(openxlsx)
@@ -4201,7 +4201,7 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    Sys.sleep(0)
+    Sys.sleep(3)
     hidePageSpinner()
     removeModal()
     
