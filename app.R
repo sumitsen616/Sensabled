@@ -4,76 +4,6 @@
 
 ##Loading Necessary Packages##
 # options(shiny.trace = TRUE)
-# if (interactive()) {
-#   pkg <-
-#     #For running the app
-#     c(
-#       'shiny',
-#       'shinythemes',
-#       'shinyjs',
-#       'shinyBS',
-#       'shinycssloaders',
-#       'waiter',
-#       'shinyWidgets',
-#       'rJava',
-#       #For handling the data
-#       'openxlsx',
-#       'datasets',
-#       'tidyr',
-#       'dplyr',
-#       'DT',
-#       'tidyverse',
-#       'stringr',
-#       'remotes',
-#       'magrittr',
-#       #For creating the plot
-#       'ggplot2',
-#       'ggbeeswarm',
-#       'ggnewscale',
-#       'ggdist',
-#       'ggtext',
-#       'ggbreak',
-#       'patchwork',
-#       'qqplotr',
-#       #For beautifying the plot
-#       'scales',
-#       'extrafont',
-#       'fontawesome',
-#       'svglite',
-#       'colorspace',
-#       'colourpicker',
-#       'bsplus',
-#       'bslib',
-#       'DescTools',
-#       #For saving the data
-#       'rclipboard',
-#       #For Stats
-#       'lme4',
-#       'emmeans',
-#       'PMCMRplus',
-#       'broom',
-#       'stats',
-#       'car',
-#       'rstatix',
-#       'ARTool'
-#     )
-#   
-#   for (i in pkg) {
-#     print(i)
-#     if (require(i, character.only = TRUE)) {
-#       print(paste(i, "is loaded correctly"))
-#     } else {
-#       print(paste("trying to install", i))
-#       install.packages(i)
-#       if (require(i, character.only = TRUE)) {
-#         print(paste(i, "installed and loaded"))
-#       } else {
-#         stop(paste("could not install", i))
-#       }
-#     }
-#   }
-# }
-
 options(encoding = "UTF-8")
 library(shiny)
 library(shinythemes)
@@ -4687,6 +4617,14 @@ server <- shinyServer(function(input, output, session) {
                   min = 0, max = 100,
                   value = 70, tooltips=TRUE,
                   step=1, height="10px")),
+            
+            div(id='sliderstyle',
+                noUiSliderInput(
+                  'topMargin',
+                  label = 'Top Margin',
+                  min = 0, max = 100,
+                  value = 25, tooltips=TRUE,
+                  step=1, height="10px")),
             conditionalPanel(
               condition = "input.askTipType=='short'",
               div(id='sliderstyle',
@@ -5031,7 +4969,7 @@ server <- shinyServer(function(input, output, session) {
         return(30) # Default margin
       } else {
         layers <- length(unique(df$y))+1
-        return((20 + layers * 25))
+        return((input$topMargin + layers * 25))
       }
     }else{
       return(30)
