@@ -4,13 +4,82 @@
 
 ##Loading Necessary Packages##
 # options(shiny.trace = TRUE)
+if (interactive()) {
+  pkg <-
+    #For running the app
+    c(
+      'shiny',
+      'shinythemes',
+      'shinyjs',
+      'shinyBS',
+      'shinycssloaders',
+      'waiter',
+      'shinyWidgets',
+      'rJava',
+      #For handling the data
+      'openxlsx',
+      'datasets',
+      'tidyr',
+      'dplyr',
+      'DT',
+      'tidyverse',
+      'stringr',
+      'remotes',
+      'magrittr',
+      #For creating the plot
+      'ggplot2',
+      'ggbeeswarm',
+      'ggnewscale',
+      'ggdist',
+      'ggtext',
+      'ggbreak',
+      'patchwork',
+      'qqplotr',
+      #For beautifying the plot
+      'scales',
+      'extrafont',
+      'fontawesome',
+      'svglite',
+      'colorspace',
+      'colourpicker',
+      'bsplus',
+      'bslib',
+      'DescTools',
+      #For saving the data
+      'rclipboard',
+      #For Stats
+      'lme4',
+      'emmeans',
+      'PMCMRplus',
+      'broom',
+      'stats',
+      'car',
+      'rstatix',
+      'ARTool'
+    )
+  
+  for (i in pkg) {
+    print(i)
+    if (require(i, character.only = TRUE)) {
+      print(paste(i, "is loaded correctly"))
+    } else {
+      print(paste("trying to install", i))
+      install.packages(i)
+      if (require(i, character.only = TRUE)) {
+        print(paste(i, "installed and loaded"))
+      } else {
+        stop(paste("could not install", i))
+      }
+    }
+  }
+}
 options(encoding = "UTF-8")
 library(shiny)
 library(shinythemes)
 library(shinyjs)
 library(shinyBS)
 library(shinycssloaders)
-# library(waiter)
+library(waiter)
 library(shinyWidgets)
 library(rJava)
 library(openxlsx)
