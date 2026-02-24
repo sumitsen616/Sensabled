@@ -765,7 +765,7 @@ ui <-page_navbar(
                                     'verAlign',
                                     label = 'Vertical alignment',
                                     min = 1, max = 100,
-                                    value = 75, tooltips=TRUE,
+                                    value = 25, tooltips=TRUE,
                                     step=1, height="10px")),
                               div(id='sliderstyle',
                                   noUiSliderInput(
@@ -1687,7 +1687,7 @@ server <- shinyServer(function(input, output, session) {
       combNames <- setNames(choice_values, choice_labels)
       tagList(
         radioGroupButtons(
-          'mdTit',label=c(''),
+          'mdTit',label=NULL,
           choices = combNames,
           justified=  T, individual = F, size = 'sm'
         ),
@@ -1717,7 +1717,7 @@ server <- shinyServer(function(input, output, session) {
       combNames <- setNames(choice_values, choice_labels)
       tagList(
         radioGroupButtons(
-          'mdy',label=c(''),
+          'mdy',label=NULL,
           choices = combNames,
           justified=  T, individual = F, size = 'sm'
         ),
@@ -1747,7 +1747,7 @@ server <- shinyServer(function(input, output, session) {
       combNames <- setNames(choice_values, choice_labels)
       tagList(
         radioGroupButtons(
-          'mdx',label=c(''),
+          'mdx',label=NULL,
           choices = combNames,
           justified=  T, individual = F, size = 'sm'
         ),
