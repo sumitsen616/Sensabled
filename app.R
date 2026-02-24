@@ -1457,7 +1457,7 @@ server <- shinyServer(function(input, output, session) {
     if (!is.null(file_Path()) && !is.null(input$sheetlist)) {
       df_full <- tryCatch(
         openxlsx::read.xlsx(
-          file_Path()$name,
+          file_Path()$datapath,
           sheet = input$sheetlist,
           colNames = TRUE,
           skipEmptyRows = TRUE
