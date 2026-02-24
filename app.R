@@ -1453,16 +1453,14 @@ server <- shinyServer(function(input, output, session) {
     
     #Normal file upload path
     df_full <- NULL
-    
     #Read from uploaded XLSX file
     if (!is.null(file_Path()) && !is.null(input$sheetlist)) {
       df_full <- tryCatch(
         openxlsx::read.xlsx(
-          xlsxFile   = file_Path()$datapath,
-          sheet      = input$sheetlist,
-          colNames   = TRUE,
-          skipEmptyRows = TRUE,
-          check.names = FALSE
+          file_Path()$name,
+          sheet = input$sheetlist,
+          colNames = TRUE,
+          skipEmptyRows = TRUE
         ),
         error = function(e) {
           showNotification("Failed to read uploaded file.", type = "error")
@@ -1470,7 +1468,6 @@ server <- shinyServer(function(input, output, session) {
         }
       )
     }
-    
     #If pasteDf() or pasted data exists
     if (is.null(df_full) && !is.null(pasteDf())) {
       df_full <- pasteDf()
@@ -1503,9 +1500,7 @@ server <- shinyServer(function(input, output, session) {
   # Data table
   output$contents <- renderDT({
     req(data())
-    validate(
-      need(isTRUE(is.numeric(data()[,1])), "Please paste valid data.")
-    )
+    
     DT::datatable(as.data.frame(data()), 
                   editable = TRUE,
                   rownames = F,
@@ -2579,16 +2574,16 @@ server <- shinyServer(function(input, output, session) {
         fillFact <- unique(temp[,1])
         colFact <- unique(temp[,2])
       }
-      x_axis <- c(factor(x$variable, levels = colFact))
+      x_axis_col <- gsub('[.]', ' ', colFact)
+      x_axis <- c(factor(x$variable, levels = colFact, labels = x_axis_col))
       fillPara <- factor(x$groups, levels = fillFact)
       colPara <- factor(x$groups, levels = fillFact)
-      x_axis_col <- gsub('[.]', ' ', colFact)
       legendPos <- input$legPos
     } else {
-      x_axis <- factor(x$variable, levels = colnames(data()))
+      x_axis_col <- gsub('[.]', ' ', colnames(data()))
+      x_axis <- factor(x$variable, levels = colnames(data()), labels = x_axis_col)
       fillPara <- x_axis
       colPara <- x$variable
-      x_axis_col <- gsub('[.]', ' ', colnames(data()))
       legendPos <- 'none'
     }
     g <- ggplot(x, aes(x = x_axis, y = value))
