@@ -199,8 +199,9 @@ ui <-page_navbar(
                   #Uploading the file
                   fileInput('file', 'Choose XLSX File', accept = c('.xlsx')),
                   p('--or--', style='width=100%;margin-top:-20px; text-align:center;color:darkgrey'),
-                  #Copy-Paste Data from clipboard
-                  actionButton('pasteBtn','Paste Data From Clipboard', icon = icon('paste')),
+                  #Copy-Upload Pasted Data
+                  textAreaInput('pasted_Data', label = 'Paste data in the box'),
+                  actionButton('pasteBtn','Upload Pasted Data', icon = icon('paste')),
                   # p('--or--', style='width=100%;margin-top:0px; text-align:center;color:darkgrey'),
                   #Example data button
                   # actionButton('exampleFile', 'Upload Example File', icon = icon('file-import')),
@@ -1297,12 +1298,12 @@ server <- shinyServer(function(input, output, session) {
   observe({
     req(file_Path())
     updateActionButton(session = session, 'pasteBtn',
-                       'Paste Data From Clipboard', disabled = T)
+                       'Upload Pasted Data', disabled = T)
   })
   observe({
     req(input$exampleFile)
     updateActionButton(session = session, 'pasteBtn',
-                       'Paste Data From Clipboard', disabled = T)
+                       'Upload Pasted Data', disabled = T)
   })
   observe({
     req(input$pasteBtn)
@@ -1370,24 +1371,29 @@ server <- shinyServer(function(input, output, session) {
     )
   })
   
-  pasteDf <- reactiveVal(NULL)
+  pasteDf <- reactiveValues(df = NULL)
   
-  observeEvent(input$pasteBtn,{  
-    pastedData <- read.delim("clipboard", check.names = F)
+  observeEvent(input$pasteBtn,{ 
+    req(input$pasted_Data)
+    pastedData <- read.delim(text = input$pasted_Data, 
+                             header = TRUE,
+                             sep = "\t",
+                             check.names = FALSE,
+                             stringsAsFactors = FALSE)
+    pastedData <- as.data.frame(pastedData)
     
     if (!is.null(pastedData) && nrow(pastedData)>0 && isTRUE(is.data.frame(pastedData))){
       showNotification('Data Pasted Successfully', type = 'message')
-      pasteDf(pastedData)
+      pasteDf$df <- pastedData
     } else {
       showNotification('Invalid Data. Paste Only Datatable', type = 'error')
     }
-    
   })
   
   colNames <- reactive({
     df <- NULL
-    if (!is.null(pasteDf())){
-      df <- pasteDf()
+    if (!is.null(pasteDf$df)){
+      df <- pasteDf$df
     } 
     if (!is.null(file_Path())){
       req(file_Path(), input$sheetlist)
@@ -1449,12 +1455,11 @@ server <- shinyServer(function(input, output, session) {
   # Main data reactive: read full sheet, apply current names, then subset
   
   data <- reactive({
-    req(input$submitFile > 0)
-    
     #Normal file upload path
     df_full <- NULL
     #Read from uploaded XLSX file
-    if (!is.null(file_Path()) && !is.null(input$sheetlist)) {
+    if (!is.null(file_Path()) && !is.null(input$sheetlist) && isTruthy(input$submitFile)) {
+      
       df_full <- tryCatch(
         openxlsx::read.xlsx(
           file_Path()$datapath,
@@ -1468,12 +1473,15 @@ server <- shinyServer(function(input, output, session) {
         }
       )
     }
-    #If pasteDf() or pasted data exists
-    if (is.null(df_full) && !is.null(pasteDf())) {
-      df_full <- pasteDf()
-    }
     
-    if (is.null(df_full) || !is.data.frame(df_full) || nrow(df_full) == 0) {
+    #If pasteDf$df or pasted data exists
+    if (is.null(df_full) && !is.null(pasteDf$df) && is.data.frame(pasteDf$df)) {
+      df_full <- pasteDf$df
+    }
+    #Check whether correct datatable loaded
+    if (is.null(df_full) || !is.data.frame(df_full) || nrow(df_full) == 0 ||
+        isTRUE(has_element(sapply(df_full,is.numeric),FALSE))) {
+      req(input$submitFile>0)
       showNotification("No valid data loaded.", type = "warning")
       return(NULL)
     }
@@ -1482,6 +1490,7 @@ server <- shinyServer(function(input, output, session) {
     if (ncol(df_full) == length(current_colnames())) {
       colnames(df_full) <- current_colnames()
     } else {
+      req(input$submitFile>0)
       showNotification("Column count mismatch after loading — using original names.", type = "warning")
     }
     
@@ -3083,7 +3092,7 @@ server <- shinyServer(function(input, output, session) {
         h3(style = "color: #d35400; margin: 0 0 10px 0;", "No data to plot"),
         p(style = "font-size: 18px; max-width: 600px;",
           "Please go to the ", strong("File Upload"), " tab,",
-          "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or paste data from clipboard to begin.")
+          "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or Upload Pasted Data to begin.")
       )
     } else if (input$dataGroup == T) {
       col_names <- colnames(data())  
@@ -5020,7 +5029,7 @@ server <- shinyServer(function(input, output, session) {
         h3(style = "color: #d35400; margin: 0 0 10px 0;", "No data to run statistical analysis"),
         p(style = "font-size: 18px; max-width: 600px;",
           "Please go to the ", strong("File Upload"), " tab,",
-          "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or paste data from clipboard to begin.")
+          "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or Upload Pasted Data to begin.")
       )
     }  else {
       uiOutput('StatAccordion')
