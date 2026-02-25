@@ -178,7 +178,15 @@ TabToVec <- function(df){
 options(shiny.maxRequestSize = 250 * 1024^2) #Max file size to be uploaded is 250mb
 
 ui <-page_navbar( 
-  title = "SEN'sable Plotting",
+  title = tags$div(
+    tags$img(
+      src = '/logo.png',
+      height = '40px',
+      style = "margin:auto; position:absolute; right:10px; margin-top:-5px;"
+    ),tags$span("SEN'sable Plotting"),
+    style= "display:inline-flex; flex-direction:row; width:100%;
+    height:100%;"
+  ),
   theme = bs_theme("zephyr", version= 5),
   header = tagList(
     shinyjs::useShinyjs(),
@@ -188,6 +196,7 @@ ui <-page_navbar(
     
   ),
   inverse = TRUE,
+  
   nav_panel(title = "File Upload",
             card(
               card_header("Data View"),
@@ -2886,7 +2895,7 @@ server <- shinyServer(function(input, output, session) {
         #                                     halign = as.numeric(input$titlePos)),
         axis.text.x = element_markdown(size = input$Xfontcol, color = "black",
                                        angle = as.numeric(input$Xrotate),
-                                       hjust = xcolPos()),
+                                       hjust = xcolPos(), vjust = 0.5, lineheight = 1),
         axis.title.x = element_textbox(size = input$Xfontsz, color = "black",
                                        width = unit(input$Xlinebreak*5,"pt"),
                                        hjust = 0.5,
