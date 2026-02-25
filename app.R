@@ -181,8 +181,8 @@ ui <-page_navbar(
   title = tags$div(
     tags$img(
       src = '/logo.png',
-      height = '40px',
-      style = "margin:auto; position:absolute; right:10px; margin-top:-5px;"
+      height = '50px',
+      style = "margin:auto; position:absolute; right:10px; margin-top:-10px;"
     ),tags$span("SEN'sable Plotting"),
     style= "display:inline-flex; flex-direction:row; width:100%;
     height:100%;"
@@ -1770,13 +1770,22 @@ server <- shinyServer(function(input, output, session) {
                     value = paste(input$axtitle, input$mdx, sep = ''))
   })
   #X-Axis rotation processing
-  xcolPos <- reactive({
+  xcolPosH <- reactive({
     if(input$Xrotate == 0){
       return(0.5)
     }else {
       return(1)
     }
+    # seq(0.5, 1, length.out = 90)
   })
+  xcolPosV <- reactive({
+    if(input$Xrotate == 90){
+      return(0.5)
+    }else {
+      return(1)
+    }
+  })
+  
   #Y axis log transformation
   logaxis <- reactive({
     logscale <- switch(input$logscale,
@@ -2833,7 +2842,7 @@ server <- shinyServer(function(input, output, session) {
             geom = "col",
             mapping = aes(fill = fillPara),
             color = bordercolor(),
-            width = input$barwidth / 100, # Reusing your box width slider
+            width = input$barwidth / 100, 
             alpha = (input$shapeAlpha / 100),
             linewidth = input$linewidthBar / 40
           )+
@@ -2844,9 +2853,9 @@ server <- shinyServer(function(input, output, session) {
           stat_summary(
             fun = input$barFunc,
             geom = "col",
-            fill = 'white',
-            color = bordercolor(),
-            width = input$barwidth / 100, # Reusing your box width slider
+            fill = input$plotColor,
+            color = input$plotColor,
+            width = 0.9, 
             # alpha = (input$shapeAlpha / 100),
             linewidth = input$linewidthBar / 40
           )+
@@ -2855,7 +2864,7 @@ server <- shinyServer(function(input, output, session) {
             geom = "col",
             mapping = aes(fill = fillPara),
             color = bordercolor(),
-            width = input$barwidth / 100, # Reusing your box width slider
+            width = input$barwidth / 100,
             alpha = (input$shapeAlpha / 100),
             linewidth = input$linewidthBar / 40
           )+
@@ -2895,7 +2904,10 @@ server <- shinyServer(function(input, output, session) {
         #                                     halign = as.numeric(input$titlePos)),
         axis.text.x = element_markdown(size = input$Xfontcol, color = "black",
                                        angle = as.numeric(input$Xrotate),
-                                       hjust = xcolPos(), vjust = 0.5, lineheight = 1),
+                                       hjust = xcolPosH(),
+                                       halign = xcolPosH(),
+                                       valign = xcolPosV(),
+                                       vjust = xcolPosV(), lineheight = 1),
         axis.title.x = element_textbox(size = input$Xfontsz, color = "black",
                                        width = unit(input$Xlinebreak*5,"pt"),
                                        hjust = 0.5,
