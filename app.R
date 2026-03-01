@@ -180,12 +180,12 @@ options(shiny.maxRequestSize = 250 * 1024^2) #Max file size to be uploaded is 25
 ui <-page_navbar( 
   title = tags$div(
     tags$img(
-      src = '/logo.png',
+      src = 'app_logo.png',
       height = '50px',
-      style = "margin:auto; position:absolute; right:10px; margin-top:-10px;"
-    ),tags$span("SEN'sable Plotting"),
-    style= "display:inline-flex; flex-direction:row; width:100%;
-    height:100%;"
+      style = "margin:auto; position:absolute; left:10px; margin-top:-10px;"
+    ),tags$span("SEN'sable Plotting", style = "position:absolute; left:70px"),
+    style= "display:inline-flex; flex-direction:row; width:230px;
+    height:100%; position:relative; top:-23px"
   ),
   theme = bs_theme("zephyr", version= 5),
   header = tagList(
@@ -2971,15 +2971,13 @@ server <- shinyServer(function(input, output, session) {
     } else {
       pF <-  pS +
         geom_segment(segAdd(),
-                     mapping =aes(x = x, xend = x, y = y,yend = yendL),
-                     position = position_dodge(width = 0.2),
-                     linewidth = 1,
+                     mapping =aes(x = x+0.01, xend = x+0.01, y = y,yend = yendL),
+                     linewidth = input$bracWidth/67,
                      linejoin = 'mitre')+ 
         
         geom_segment(segAdd(),
-                     mapping =aes(x = xend, xend = xend, y = yend, yend = yendR),
-                     position = position_dodge(width = 0.2),
-                     linewidth = 1,
+                     mapping =aes(x = xend-0.01, xend = xend-0.01, y = yend, yend = yendR),
+                     linewidth = input$bracWidth/67,
                      linejoin = 'mitre') +
         
         geom_richtext(segAdd(),mapping=aes(x=as.numeric(xT), y=as.numeric(yT),
@@ -2992,8 +2990,7 @@ server <- shinyServer(function(input, output, session) {
         
         geom_segment(segAdd(),
                      mapping=aes(x = x, xend = xend,y = y, yend = yend),
-                     position = position_dodge(width = 0.2),
-                     linewidth = 1,
+                     linewidth = input$bracWidth/67,
                      linejoin = 'mitre')
     }
     ## For Y-axis break
@@ -4579,93 +4576,110 @@ server <- shinyServer(function(input, output, session) {
                         selected = grps[1,1]),
             actionButton('addBrackets','Add Brackets to Plot', width='100%',
                          icon = icon('bars-staggered'), class = 'btn-primary'),
-            radioGroupButtons(
-              'askTipType',
-              'Bracket Type',
-              choices = c('Line'='line',
-                          'Short Bracket'='short',
-                          'Long Bracket'='long'),
-              selected = 'short',
-              size = 'sm'
-            ),
-            radioGroupButtons(
-              'askPvalType',
-              'Significance Report',
-              choices = c('Raw P Value'='raw',
-                          'Asterisks'='star'),
-              selected = 'star',
-              size = 'sm'
-            ),
-            radioGroupButtons(
-              'askPvalStyle',
-              'P Value Style',
-              choices = c('Default'='default',
-                          'APA'='apa',
-                          'NEJM'= 'nejm'),
-              selected = 'default',
-              size = 'sm'
-            ),
-            div(id='sliderstyle',
-                noUiSliderInput(
-                  'pvalSize',
-                  label = 'P Value Text Size',
-                  min = 15, max = 45, value = 25,
-                  tooltips = TRUE, step = 1, height = "10px"
+            br(),
+            div(style = "border:1px solid; border-radius:10px; padding:10px;",
+                radioGroupButtons(
+                  'askTipType',
+                  'Bracket Type',
+                  choices = c('Line'='line',
+                              'Short Bracket'='short',
+                              'Long Bracket'='long'),
+                  selected = 'short',
+                  size = 'sm'
+                ),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'firstBrack',
+                      label = 'Vertical Positioning',
+                      min = 1, max = 100,
+                      value = 50, tooltips=TRUE,
+                      step=1, height="10px")),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'distWidth',
+                      label = 'Inter-bracket Distance',
+                      min = 0, max = 100,
+                      value = 5, tooltips=TRUE,
+                      step=1, height="10px")),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'topMargin',
+                      label = 'Space Around Brackets',
+                      min = 0, max = 100,
+                      value = 25, tooltips=TRUE,
+                      step=1, height="10px")),
+                conditionalPanel(
+                  condition = "input.askTipType=='short'",
+                  div(id='sliderstyle',
+                      noUiSliderInput(
+                        'tipLength',
+                        label = 'Tip Length',
+                        min = 10, max = 100,
+                        value = 40, tooltips=TRUE,
+                        step=1, height="10px"))),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'gapWidth',
+                      label = 'Gap Distance',
+                      min = 10, max = 100,
+                      value = 30, tooltips=TRUE,
+                      step=1, height="10px")),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'bracWidth',
+                      label = 'Line Width',
+                      min = 1, max = 100,
+                      value = 65, tooltips=TRUE,
+                      step=1, height="10px"))),
+            br(),
+            div(style = "border:1px solid; border-radius:10px; padding:10px;",
+                radioGroupButtons(
+                  'askPvalType',
+                  'Significance Report',
+                  choices = c('Raw P Value'='raw',
+                              'Asterisks'='star'),
+                  selected = 'star',
+                  size = 'sm'
+                ),
+                radioGroupButtons(
+                  'askPvalStyle',
+                  'Style',
+                  choices = c('Default'='default',
+                              'APA'='apa',
+                              'NEJM'= 'nejm'),
+                  selected = 'default',
+                  size = 'sm'
+                ),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'pvalSize',
+                      label = 'Text Size',
+                      min = 15, max = 45, value = 25,
+                      tooltips = TRUE, step = 1, height = "10px"
+                    )),
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'pvalTVpos',
+                      label = 'Text Verical Position',
+                      min = 1, max = 100, value = 50,
+                      tooltips = TRUE, step = 1, height = "10px"
+                    )),
+                div(style='display:inline-flex; width:100%; flex-direction:row; align-items:flex-start; justify-content:space-between;',
+                    radioGroupButtons(
+                      'pvalHpos',
+                      label='',
+                      choices = starHicon,
+                      selected = 'center',
+                      size = 'sm'
+                    ),br(),
+                    radioGroupButtons(
+                      'pvalVpos',
+                      label='',
+                      choices = starVicon,
+                      selected = 'top',
+                      size = 'sm'
+                    )
                 )),
-            div(style='display:inline-flex; width:100%; flex-direction:row; align-items:flex-start; justify-content:space-between;',
-                radioGroupButtons(
-                  'pvalHpos',
-                  label='',
-                  choices = starHicon,
-                  selected = 'center',
-                  size = 'sm'
-                ),br(),
-                radioGroupButtons(
-                  'pvalVpos',
-                  label='',
-                  choices = starVicon,
-                  selected = 'top',
-                  size = 'sm'
-                )
-            ),
-            div(id='sliderstyle',
-                noUiSliderInput(
-                  'firstBrack',
-                  label = 'Vertical Positioning',
-                  min = 20, max = 100,
-                  value = 80, tooltips=TRUE,
-                  step=1, height="10px")),
-            div(id='sliderstyle',
-                noUiSliderInput(
-                  'distWidth',
-                  label = 'Inter-bracket Distance',
-                  min = 0, max = 100,
-                  value = 70, tooltips=TRUE,
-                  step=1, height="10px")),
-            
-            div(id='sliderstyle',
-                noUiSliderInput(
-                  'topMargin',
-                  label = 'Space Around Brackets',
-                  min = 0, max = 100,
-                  value = 25, tooltips=TRUE,
-                  step=1, height="10px")),
-            conditionalPanel(
-              condition = "input.askTipType=='short'",
-              div(id='sliderstyle',
-                  noUiSliderInput(
-                    'tipLength',
-                    label = 'Tip Length',
-                    min = 10, max = 100,
-                    value = 40, tooltips=TRUE,
-                    step=1, height="10px"))),
-            div(id='sliderstyle',
-                noUiSliderInput(
-                  'gapWidth',
-                  label = 'Gap Distance',
-                  min = 10, max = 100,
-                  value = 30, tooltips=TRUE,
-                  step=1, height="10px")),
             br()
           )
         )
@@ -4700,6 +4714,7 @@ server <- shinyServer(function(input, output, session) {
   
   ## Offset: dodgeWidth*((var-in-grp-0.5)/totGrp - 0.5)
   statBrackets <- reactive({
+    
     sepV <- ifelse(isTRUE(input$dataGroup),' - ', '-')
     groups <- as.data.frame(str_split(input$grplist,sepV))
     groups <- as.data.frame(t(groups))
@@ -4714,11 +4729,10 @@ server <- shinyServer(function(input, output, session) {
     left <- groups$left |> factor(levels = lv ) 
     right <- groups$right |> factor(levels = lv) 
     
-    first <- input$firstBrack/1000
-    dist <- 1.0+input$distWidth/1000
     tipL <- 0.02
     gap <- input$gapWidth/1000
     
+    # Calculating the bracket vertical end position
     if (isFALSE(input$askJitter)){
       if(input$askPlotTypeII=="bar"){
         sem <- function(x){
@@ -4755,29 +4769,30 @@ server <- shinyServer(function(input, output, session) {
         }
         if (input$barFunc == 'mean'){
           if (input$sum_typeBarMean=='mean_only'){
-            mx <- apply(data(), MARGIN=2, FUN=mean) |> data.frame() |> t() 
+            mx <- apply(na.omit(data()), MARGIN=2, FUN=mean) |> data.frame() |> t() 
           } else if (input$sum_typeBarMean=='mean_sd'){
-            mx <- (apply(data(), MARGIN=2, FUN=sd) + apply(data(), MARGIN=2, FUN=mean)) |> data.frame() |> t()
+            mx <- (apply(na.omit(data()), MARGIN=2, FUN=sd) + 
+                     apply(na.omit(data()), MARGIN=2, FUN=mean)) |> data.frame() |> t()
           } else{
-            mx <- (sapply(data(), sem)+apply(data(), MARGIN=2, FUN=mean)) |> data.frame() |> t()
+            mx <- (sapply(na.omit(data()), sem)+apply(na.omit(data()), MARGIN=2, FUN=mean)) |> data.frame() |> t()
           }
         } else {
           if (input$sum_typeBarMedian=='median_only'){
-            mx <- apply(data(), MARGIN=2, FUN=median) |> data.frame() |> t()
+            mx <- apply(na.omit(data()), MARGIN=2, FUN=median) |> data.frame() |> t()
             
           } else{
             # mx <- (ci95(data())*(1.5/sqrt(length(data())))+apply(data(), MARGIN=2, FUN=median))  
-            mx <- ci95(data())
+            mx <- ci95(na.omit(data()))
           }
         }
       }else{
-        mx <- apply(data(), MARGIN=2, FUN=max) |> data.frame() |> t()
+        mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
       }
     }else{
-      mx <- apply(data(), MARGIN=2, FUN=max) |> data.frame() |> t()
+      mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
     }
     
-    
+    print(mx)
     row.names(mx)<-NULL
     mx <- data.frame(mx)
     colnames(mx) <- colnames(df)
@@ -4786,80 +4801,21 @@ server <- shinyServer(function(input, output, session) {
     }else{
       mx <- mx
     }
-    mxx <- yaxisMax()
     
+    first <- (1+(input$firstBrack-50.5)/500)
+    base_y <- yaxisMax()*first
+    #Basic data frame to handle the bracket coordinates
+    statup <- data.frame(x = as.numeric(left),
+                         xend = as.numeric(right),
+                         y = (base_y+(base_y*first)),
+                         yend = (base_y+(base_y*first)))
     
-    statup <- data.frame(x = as.numeric(left), xend = as.numeric(right), y = (mxx+(mxx*first)), yend = (mxx+(mxx*first)))
     #To order the lowest x on left side always
     statup <- statup |> mutate(x_min=pmin(x,xend),x_max=pmax(x,xend)) |>
       select(-x,-xend) |> rename(x = x_min, xend = x_max) |> select(x, xend,everything())
+    
+    #difference between x and xend
     statup$diff <- statup$xend-statup$x
-    statup <- statup  |> 
-      group_by(x) |> 
-      mutate(
-        new_x = dist^((diff) - 1),
-        y = y * new_x,
-        yend = yend * new_x
-      ) |> select(-new_x) |> 
-      ungroup()  |> 
-      group_by(xend)  |> 
-      mutate(
-        new_xend = dist^((diff) - 1),
-        y = y * new_xend,
-        yend = yend * new_xend
-      ) |> select(-new_xend) |>
-      ungroup()
-    
-    sL <- t(mx[statup$x])+(t(mx[statup$x])*tipL)
-    rownames(sL) <- NULL
-    colnames(sL) <- 'yendL'
-    
-    sR <- t(mx[statup$xend])+(t(mx[statup$xend])*tipL)
-    rownames(sR) <- NULL
-    colnames(sR) <- 'yendR'
-    
-    statup <- cbind(statup,sL,sR)
-    
-    
-    for (i in 1:nrow(statup)){
-      for (j in 1: nrow(statup)){
-        if (statup[i,1]>statup[j,1]&&statup[i,1]<statup[j,2]){
-          if(statup[i,3]==statup[j,3] && statup[i,5]==statup[j,5]){
-            statup[i,3] <- statup[i,3]*dist
-            statup[i,4] <- statup[i,4]*dist
-          }
-        }
-        if (statup[i,2]>statup[j,1]&&statup[i,2]<statup[j,2]){
-          if(statup[i,4]==statup[j,4]&& statup[i,5]==statup[j,5]){
-            statup[i,3] <- statup[i,3]*dist
-            statup[i,4] <- statup[i,4]*dist
-          }
-        }
-      }
-    }
-    #Labels
-    if (input$pvalVpos=='top'){
-      yT <- statup$y+statup$y*0.03 |> as.numeric()
-    } else {
-      yT <- statup$y-statup$y*0.03 |> as.numeric()
-    }
-    if (input$pvalHpos=='left'){
-      if (isTRUE(input$flipPlot)){
-        xT <- as.numeric(right)-0.05
-      } else{
-        xT <- as.numeric(left)+0.05
-      }
-      
-    } else if (input$pvalHpos=='right'){
-      if (isTRUE(input$flipPlot)){
-        xT <- as.numeric(left)+0.05
-      } else {
-        xT <- as.numeric(right)-0.05
-      }
-      
-    } else {
-      xT <- apply(data.frame(as.numeric(left),as.numeric(right)), MARGIN=1,FUN=mean) |> as.numeric()
-    }
     
     # P value processing
     star4 <- paste0(rep('*', 4), collapse = "")
@@ -4908,9 +4864,14 @@ server <- shinyServer(function(input, output, session) {
             }
           }
         }
+        if(t_val=='ns' || isTRUE(str_detect(t_val,'P')) || isTRUE(str_detect(t_val, 'p'))){
+          pVjust <- seq(from = 0, to = 0.75, length.out = 100)
+        } else {
+          pVjust <-  seq(from = 0.5, to = 1, length.out = 100)
+        }
         results_list[[i]] <- data.frame(text = paste0('<b>',t_val,'</b>'),
                                         size = ifelse(t_val=='ns' || isTRUE(str_detect(t_val,'P')) || isTRUE(str_detect(t_val, 'p')),input$pvalSize/5, input$pvalSize/2.5),
-                                        vjust = ifelse(t_val=='ns' || isTRUE(str_detect(t_val,'P')) || isTRUE(str_detect(t_val, 'p')), 0.5, 0.75),stringsAsFactors = FALSE)
+                                        vjust = pVjust[input$pvalTVpos],stringsAsFactors = FALSE)
         
       }
     }
@@ -4919,7 +4880,83 @@ server <- shinyServer(function(input, output, session) {
     text <- do.call(rbind, results_list)
     
     colnames(text) <- c('text','size','vjust')
-    statup <- cbind(statup,xT,yT,text)
+    
+    statup <- cbind(statup,text)
+    
+    #Spreading a sequence between x and xend rowwise
+    statup <- statup |> arrange(diff) |> rowwise() |> 
+      mutate(seqq = list(seq(x, xend))) |>  ungroup() |> arrange(diff)
+    
+    #creating a large layers
+    max_layers <- 30                              
+    last_end <- rep(-Inf, max_layers) 
+    
+    # track last end time per layer
+    statup$layer <- NA_integer_
+    
+    #assigning the y and yend to different layers
+    for (i in seq_len(nrow(statup))) {
+      for (l in seq_len(max_layers)) {
+        if (last_end[l] <= statup$x[i]){
+          statup$layer[i] <- l
+          last_end[l] <- statup$xend[i]
+          break
+        }
+      }
+    }
+    statup <- statup |> arrange(layer)
+    
+    step_size  <- input$distWidth*log(ncol(data()))*10
+    # Converting layers to y-coordinates
+    statup <- statup |> 
+      mutate(y    = base_y + (layer - 1) * step_size,
+             yend = y)
+    
+    statup <- statup[,-c(9,10)] #removing unnecessary columns
+    
+    #Adding bracket end columns
+    sL <- t(mx[statup$x])+(t(mx[statup$x])*tipL)
+    rownames(sL) <- NULL
+    colnames(sL) <- 'yendL'
+    
+    sR <- t(mx[statup$xend])+(t(mx[statup$xend])*tipL)
+    rownames(sR) <- NULL
+    colnames(sR) <- 'yendR'
+    
+    statup <- cbind(statup,sL,sR)
+    
+    #Labels
+    if (input$pvalVpos=='top'){
+      statup$yT <- statup$y+statup$y*0.03 |> as.numeric()
+    } else {
+      statup$yT <- statup$y-statup$y*0.03 |> as.numeric()
+    }
+    if (input$pvalHpos=='left'){
+      if (isTRUE(input$flipPlot)){
+        statup$xT <- as.numeric(statup$xend)-0.05
+      } else{
+        statup$xT <- as.numeric(statup$x)+0.05
+      }
+      
+    } else if (input$pvalHpos=='right'){
+      if (isTRUE(input$flipPlot)){
+        statup$xT <- as.numeric(statup$x)+0.05
+      } else {
+        statup$xT <- as.numeric(statup$xend)-0.05
+      }
+      
+    } else {
+      statup$xT <- apply(data.frame(as.numeric(statup$x),as.numeric(statup$xend)),
+                         MARGIN=1,FUN=mean) |> as.numeric()
+    }
+    
+    # Rearranging rows based on original groups
+    colnames(groups) <- c('x','xend')
+    groups$x <- as.numeric(groups$x)
+    groups$xend <- as.numeric(groups$xend)
+    statup <- statup |> left_join(groups, by = c('x','xend')) 
+    
+    #bracket vertical length 
     endP <- function(y,diff,list){
       for(i in 1:length(list)){
         if (i-1!=0){
@@ -4947,12 +4984,12 @@ server <- shinyServer(function(input, output, session) {
       for (j in 1: nrow(statup)){
         if (statup[i,1]>statup[j,1]&&statup[i,1]<statup[j,2]){
           if(statup[i,3]>statup[j,3] && statup[i,5]==statup[j,5]){
-            statup[i,6] <- statup[j,3]+statup[j,3]*tipL
+            statup[i,9] <- statup[j,3]+statup[j,3]*tipL
           }
         }
         if (statup[i,2]>statup[j,1]&&statup[i,2]<statup[j,2]){
           if(statup[i,3]>statup[j,3]&& statup[i,5]==statup[j,5]){
-            statup[i,7] <- statup[j,4]+statup[j,4]*tipL
+            statup[i,10] <- statup[j,4]+statup[j,4]*tipL
           }
         }
       }
@@ -4994,7 +5031,7 @@ server <- shinyServer(function(input, output, session) {
         return(30) # Default margin
       } else {
         layers <- length(unique(df$y))+1
-        return((input$topMargin + layers * 25))
+        return((input$topMargin + layers * 10))
       }
     }else{
       return(30)
@@ -5507,6 +5544,7 @@ server <- shinyServer(function(input, output, session) {
         "Significance Report Type",
         "P Value Style",
         "P Value Text Size",
+        "P Value Text Vposition",
         "P Value Horizontal Pos",
         "P Value Vertical Pos",
         "P Value Area Margin",
@@ -5514,6 +5552,7 @@ server <- shinyServer(function(input, output, session) {
         "Inter-bracket Distance",
         "Tip Length",
         "Gap Distance (Bracket)",
+        "Line Width (Bracket)",
         
         # --- Export/Size ---
         "Plot Width",
@@ -5706,6 +5745,7 @@ server <- shinyServer(function(input, output, session) {
         "askPvalType",
         "askPvalStyle",
         "pvalSize",
+        "pvalTVpos",
         "pvalHpos",
         "pvalVpos",
         "topMargin",
@@ -5713,6 +5753,7 @@ server <- shinyServer(function(input, output, session) {
         "distWidth",
         "tipLength",
         "gapWidth",
+        "bracWidth",
         
         # --- Export/Size ---
         "width",
@@ -5905,6 +5946,7 @@ server <- shinyServer(function(input, output, session) {
         input$askPvalType,
         input$askPvalStyle,
         input$pvalSize,
+        input$pvalTVpos,
         input$pvalHpos,
         input$pvalVpos,
         input$topMargin,
@@ -5912,6 +5954,7 @@ server <- shinyServer(function(input, output, session) {
         input$distWidth,
         input$tipLength,
         input$gapWidth,
+        input$bracWidth,
         
         # --- Export/Size ---
         input$width,
