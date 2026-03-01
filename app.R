@@ -744,14 +744,40 @@ ui <-page_navbar(
                                       value = 50, tooltips=TRUE,
                                       step=1, height="10px"))
                               ),
-                              div(style = "margin:10px;",switchInput(
+                              prettySwitch(
                                 "dpview",
-                                "Datapoints Count",
-                                # choices = c('Remove' = 0, 'Add' =5),
-                                onLabel = 'Add', offLabel = 'Remove',
-                                onStatus = 'success', offStatus = 'danger', size = 'small')
+                                label = "Add Descriptive Information",
+                                value = FALSE, status = 'success',
+                                fill = TRUE),
+                              conditionalPanel(
+                                condition ="input.dpview",
+                                selectInput(
+                                  'dpviewInfo',
+                                  label =  "Info Type",
+                                  choices = c(
+                                    "Mean" = 'mean',
+                                    "Median" = 'median',
+                                    "Sample Size" = 'count',
+                                    "Std. Dev." = 'sd',
+                                    "Std. Err. of Mean" = 'sem'
+                                  ),
+                                  selected = 'count'
+                                ),
+                                div(id='sliderstyle',
+                                    noUiSliderInput(
+                                      'dpviewSize',
+                                      label = 'Text Size',
+                                      min = 3, max = 12,
+                                      value = 5, tooltips=TRUE,
+                                      step=1, height="10px")),
+                                div(id='sliderstyle',
+                                    noUiSliderInput(
+                                      'dpviewPos',
+                                      label = 'Text Vertical Position',
+                                      min = 1, max = 100,
+                                      value = 38, tooltips=TRUE,
+                                      step=1, height="10px"))
                               )
-                              
                             ),
                             accordion_panel(
                               title = 'Customize Plot Title',
@@ -2032,22 +2058,38 @@ server <- shinyServer(function(input, output, session) {
   
   #Datapoint count processing
   addDataPointLabel <- reactive({
-    tempdata <- data()
-    newdf <- data.frame()
-    for (i in 1:ncol(tempdata)) {
-      df <- data.frame(length(na.omit(tempdata[, i])))
-      newdf <- rbind(newdf, df)
-    }
-    text <- newdf
-    minval <- min(na.omit(tempdata))
-    if (is.na(input$minY)) {
-      Ycord <- as.data.frame(rep(minval - (minval / 1.5), ncol(tempdata)))
-    } else {
-      Ycord <- input$minY
-    }
     
-    Xcord <- data.frame(1:ncol(tempdata))
-    finaldf <- cbind(text, Xcord, Ycord)
+    if (!isTruthy(input$runAnalysisFinal) && isTRUE(input$dpview)){
+      req(descStat())
+      showNotification('Please run statistical analysis first.', type = 'warning')
+    }
+    temp <- descStat()
+    newdf <- data.frame()
+    if (isFALSE(input$dataGroup)){
+      if(isFALSE(input$dpview)){
+        text <- rep("",ncol(data()))
+      } else {
+        if (input$dpviewInfo == 'mean'){
+          text <- temp$Mean
+        } else if (input$dpviewInfo == 'median'){
+          text <- temp$Median
+        } else if (input$dpviewInfo == 'count'){
+          text <- temp$N
+        } else if (input$dpviewInfo == 'sd'){
+          text <- temp$`Std. Dev.`
+        } else if (input$dpviewInfo == 'sem'){
+          text <- temp$`Std. Err.`
+        }
+      }
+    }  
+    
+    minval <- min(na.omit(data()))
+    textPosSeq <- seq(-yaxisMax(),yaxisMax(), length.out=100)
+    
+    Ycord <- as.data.frame(rep(minval)+textPosSeq[input$dpviewPos], ncol(data()))
+    Xcord <- data.frame(1:ncol(data()))
+    
+    finaldf <- cbind(formatC(text,format = 'f', digits = 2), Xcord, Ycord)
     colnames(finaldf) <- c('text', 'x', 'y')
     as.data.frame(finaldf)
   })
@@ -2897,8 +2939,7 @@ server <- shinyServer(function(input, output, session) {
                    width = unit(input$bWidthTitle/100, "npc"), box.colour = 'black', box.size = unit(input$lineTitle/83.33, 'pt'), 
                    box.padding = unit(input$padTitle/20,'pt'),position = 'identity',
                    box.margin = unit(0,'pt'), halign=(as.numeric(titlePlot())))+
-      Ycontax() + #scale_y_continuous logic
-      coord_cartesian(ylim = c(yaxisMin(), yaxisMax()), clip = 'off')  +
+      Ycontax() +
       theme(
         # plot.title = element_textbox_simple(size = input$plotFont, color = 'black',
         #                                     halign = as.numeric(input$titlePos)),
@@ -2937,7 +2978,9 @@ server <- shinyServer(function(input, output, session) {
         panel.grid.minor.y = minGridInpY(),
         panel.background = element_rect(fill=input$plotColor),
         plot.margin = margin(t = plotTopM(), r = plotRightM(), l = 10, b = 10, unit = "pt"),
-        panel.border = plotBorder())
+        panel.border = plotBorder())+
+      geom_text(addDataPointLabel(), mapping = aes (x = x, y = y, label = text), size = input$dpviewSize)+ #scale_y_continuous logic
+      coord_cartesian(ylim = c(ifelse(is.na(input$minY), 0,yaxisMin()), yaxisMax()), clip = 'off')  
     
     # For adding connecting line for repeated measured data
     if (isTRUE(input$askConnectLine) && c(isTRUE(input$askPaired) || 
@@ -5451,7 +5494,10 @@ server <- shinyServer(function(input, output, session) {
         "Legend Title Size",
         "Legend Key Size",
         "Legend Border Size",
-        "Datapoints Count View",
+        "Descriptive Info View",
+        "Descriptive Info Type",
+        "Descriptive Info Size",
+        "Descriptive Info Position",
         
         # --- Plot Title ---
         "Plot Title",
@@ -5653,6 +5699,9 @@ server <- shinyServer(function(input, output, session) {
         "legSize",
         "legBorderSize",
         "dpview",
+        "dpviewInfo",
+        "dpviewSize",
+        "dpviewPos",
         
         # --- Plot Title ---
         "plotTitle",
@@ -5854,6 +5903,9 @@ server <- shinyServer(function(input, output, session) {
         input$legSize,
         input$legBorderSize,
         input$dpview,
+        input$dpviewInfo,
+        input$dpviewSize,
+        input$dpviewPos,
         
         # --- Plot Title ---
         input$plotTitle,
