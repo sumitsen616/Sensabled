@@ -170,7 +170,7 @@ TabToVec <- function(df){
   colnames(finDF) <- c('Comparisons', 'T Statistic', 'Adjusted P Value')
   return(finDF)
 }
-
+set.seed(123)
 #######################################
 ####### The UI Code Starts Here #######
 #######################################
@@ -2063,10 +2063,11 @@ server <- shinyServer(function(input, output, session) {
       req(descStat())
       showNotification('Please run statistical analysis first.', type = 'warning')
     }
+    
     temp <- descStat()
     newdf <- data.frame()
     if (isFALSE(input$dataGroup)){
-      if(isFALSE(input$dpview)){
+      if(isFALSE(input$dpview) || !isTruthy(input$runAnalysisFinal)){
         text <- rep("",ncol(data()))
       } else {
         if (input$dpviewInfo == 'mean'){
@@ -2627,7 +2628,14 @@ server <- shinyServer(function(input, output, session) {
     }
     return(df)
   })
-  
+  ## Temporary geom_text condition
+  descText <- reactive({
+    if(isTRUE(input$dataGroup)){
+      geom_text(aes(x= 1, y =0, label=""))
+    }else {
+      geom_text(addDataPointLabel(), mapping = aes (x = x, y = y, label = text), size = input$dpviewSize) 
+    }
+  })
   plotinput <- reactive({
     x <- orderdata()
     
@@ -2977,9 +2985,10 @@ server <- shinyServer(function(input, output, session) {
         panel.grid.major.y  = majGridInpY(),
         panel.grid.minor.y = minGridInpY(),
         panel.background = element_rect(fill=input$plotColor),
-        plot.margin = margin(t = plotTopM(), r = plotRightM(), l = 10, b = 10, unit = "pt"),
+        plot.margin = margin(t = plotTopM(), r = plotRightM(), l = 10, b = 30, unit = "pt"),
         panel.border = plotBorder())+
-      geom_text(addDataPointLabel(), mapping = aes (x = x, y = y, label = text), size = input$dpviewSize)+ #scale_y_continuous logic
+      descText()+ #Geom_text for desc info view
+      #scale_y_continuous logic
       coord_cartesian(ylim = c(ifelse(is.na(input$minY), 0,yaxisMin()), yaxisMax()), clip = 'off')  
     
     # For adding connecting line for repeated measured data
@@ -4266,7 +4275,7 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    Sys.sleep(3)
+    Sys.sleep(runif(min = 2,max = 4,n=1))
     hidePageSpinner()
     removeModal()
     
