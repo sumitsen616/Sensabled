@@ -1436,7 +1436,9 @@ server <- shinyServer(function(input, output, session) {
       df <- openxlsx::read.xlsx(file_Path()$datapath, sheet = input$sheetlist, colNames = TRUE)
       
     }
-    colnames(df)
+    namecol <- colnames(df)
+    namecol <- gsub('-','.',namecol)
+    return(namecol)
   })
   
   #Processing Two Upload Buttons
@@ -1586,8 +1588,12 @@ server <- shinyServer(function(input, output, session) {
       val <- input[[paste0("newcolname_", i)]]
       if (is.null(val) || trimws(val) == "") old_names[i] else trimws(val)
     })
+    if(isTRUE(has_element(str_detect(new_names,'-'),TRUE))){
+      showNotification('Hyphen is not allowed in the column names.', type = 'error')
+    } else {
+      current_colnames(new_names)
+    }
     
-    current_colnames(new_names)
     
     # Preserve selection by matching old names
     selected_new <- new_names[old_names %in% (input$selectedCols %||% old_names)]
@@ -4770,6 +4776,7 @@ server <- shinyServer(function(input, output, session) {
     sepV <- ifelse(isTRUE(input$dataGroup),' - ', '-')
     groups <- as.data.frame(str_split(input$grplist,sepV))
     groups <- as.data.frame(t(groups))
+  
     rownames(groups) <- NULL
     colnames(groups) <- c('left', 'right')
     
@@ -4844,7 +4851,7 @@ server <- shinyServer(function(input, output, session) {
       mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
     }
     
-    print(mx)
+
     row.names(mx)<-NULL
     mx <- data.frame(mx)
     colnames(mx) <- colnames(df)
@@ -4932,7 +4939,7 @@ server <- shinyServer(function(input, output, session) {
     text <- do.call(rbind, results_list)
     
     colnames(text) <- c('text','size','vjust')
-    
+
     statup <- cbind(statup,text)
     
     #Spreading a sequence between x and xend rowwise
@@ -4958,7 +4965,7 @@ server <- shinyServer(function(input, output, session) {
     }
     statup <- statup |> arrange(layer)
     
-    step_size  <- input$distWidth*log(ncol(data()))*10
+    step_size  <- input$distWidth*log(ncol(data()))*5
     # Converting layers to y-coordinates
     statup <- statup |> 
       mutate(y    = base_y + (layer - 1) * step_size,
@@ -5056,7 +5063,7 @@ server <- shinyServer(function(input, output, session) {
         }
       }
     }
-    
+
     if(input$askTipType == 'long'){
       return(statup)
     } else if (input$askTipType == 'short'){
@@ -5065,13 +5072,14 @@ server <- shinyServer(function(input, output, session) {
       return(statup)
     } else{
       statup <- statup |> mutate(yendL=y) |> mutate(yendR=yend)
+      
       return(statup)
     }
   })
-  # output$test <- renderTable({
-  #   req(input$grplist)
-  #   statBrackets()
-  # })
+  output$test <- renderTable({
+    req(input$grplist)
+    statBrackets()
+  })
   plotTopM <- reactive({
     if(isFALSE(input$flipPlot)){
       if (!isTruthy(input$runAnalysisFinal)) {
