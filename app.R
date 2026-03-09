@@ -5076,10 +5076,10 @@ server <- shinyServer(function(input, output, session) {
       return(statup)
     }
   })
-  output$test <- renderTable({
-    req(input$grplist)
-    statBrackets()
-  })
+  # output$test <- renderTable({
+  #   req(input$grplist)
+  #   statBrackets()
+  # })
   plotTopM <- reactive({
     if(isFALSE(input$flipPlot)){
       if (!isTruthy(input$runAnalysisFinal)) {
