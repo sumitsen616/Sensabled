@@ -3747,7 +3747,7 @@ server <- shinyServer(function(input, output, session) {
       colname <- colnames(data())
     }
     
-    widedata <- data() |> select(all_of(colname))
+    widedata <- data() |> dplyr::select(all_of(colname))
     
     ## ANOVA Test for parametric data
     if(input$paratestType == 'para'){
@@ -3886,7 +3886,7 @@ server <- shinyServer(function(input, output, session) {
       }else{
         colname <- colnames(data())
       }
-      widedata <- data() |>  select(all_of(colname))
+      widedata <- data() |>  dplyr::select(all_of(colname))
       longdata <- widedata |>  pivot_longer(cols=everything(), 
                                             names_to = 'para',
                                             values_to = 'val') 
@@ -4034,7 +4034,7 @@ server <- shinyServer(function(input, output, session) {
   
   phTestG <- reactive({
     req(data())
-    widedata <- data() |>  select(all_of(input$statCols))
+    widedata <- data() |>  dplyr::select(all_of(input$statCols))
     
     if(isTRUE(input$askPairedssT)){
       widedata$ID <- row.names(widedata)
@@ -4275,7 +4275,7 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    Sys.sleep(runif(min = 2,max = 4,n=1))
+    Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
     hidePageSpinner()
     removeModal()
     
@@ -4300,7 +4300,7 @@ server <- shinyServer(function(input, output, session) {
   output$normQQPlot <- renderPlot({
     req(data())
     if (input$ttestType == 'tSt'){
-      df <- data() |> select(input$statTwoCol)
+      df <- data() |> dplyr::select(input$statTwoCol)
     } else {
       df <- data()
     }
@@ -4864,7 +4864,7 @@ server <- shinyServer(function(input, output, session) {
     
     #To order the lowest x on left side always
     statup <- statup |> mutate(x_min=pmin(x,xend),x_max=pmax(x,xend)) |>
-      select(-x,-xend) |> rename(x = x_min, xend = x_max) |> select(x, xend,everything())
+      dplyr::select(-x,-xend) |> rename(x = x_min, xend = x_max) |> dplyr::select(x, xend,everything())
     
     #difference between x and xend
     statup$diff <- statup$xend-statup$x
