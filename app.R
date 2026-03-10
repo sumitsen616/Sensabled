@@ -3563,7 +3563,14 @@ server <- shinyServer(function(input, output, session) {
     ))
     
   })
-  
+   validStatCols <- reactive({
+    req(data())
+     if (length(intersect(input$statCols,colnames(data())))<1){
+      return(colnames(data()))
+    } else {
+      return(input$statCols)
+    }
+  })
   #Submit Analysis Button processing
   vars <-  reactiveValues(count = 0)
   
@@ -3745,7 +3752,7 @@ server <- shinyServer(function(input, output, session) {
       if(input$compList == 'controlC'){
         colname <- c(input$askControl,input$statContCols)
       } else if (input$compList == 'groupC') {
-        colname <- (input$statCols)
+        colname <- (validStatCols())
       }
     } else if (isFALSE(input$askComp) && input$ttestType == 'tSt'){
       colname <- (input$statTwoCol)
@@ -3888,7 +3895,7 @@ server <- shinyServer(function(input, output, session) {
       if(input$compList == 'controlC'){
         colname <- c(input$askControl,input$statContCols)
       } else if (input$compList == 'groupC') {
-        colname <- (input$statCols)
+        colname <- (validStatCols())
       }else{
         colname <- colnames(data())
       }
@@ -3970,7 +3977,7 @@ server <- shinyServer(function(input, output, session) {
                              phDf$p, phDf$p.adj, astrN)
           colnames(phDf) <- c('Comparisons', 'Mean Rank Difference', 'Z Statistic',
                               'Raw P Value', 'Adjusted P Value', 'Significance')
-          phDf <- phDf |> filter(grepl(input$askControl, Comparisons))
+          phDf <- phDf |> dplyr::filter(grepl(input$askControl, Comparisons))
           phDf$`Raw P Value` <- formatC(phDf$`Raw P Value`, format = 'g', 
                                         digits = 3)
           phDf$`Adjusted P Value` <- formatC(phDf$`Adjusted P Value`, format = 'g', 
@@ -4005,7 +4012,7 @@ server <- shinyServer(function(input, output, session) {
           colnames(phDf) <- c('Comparisons', 'T Statistics', 
                               'Adjusted P Value', 'Significance')
           if (input$compList=='controlC'){
-            phDf <- phDf |> filter(grepl(input$askControl,Comparisons))
+            phDf <- phDf |> dplyr::filter(grepl(input$askControl,Comparisons))
             return(phDf)
           }else{
             return(phDf)
@@ -4040,7 +4047,7 @@ server <- shinyServer(function(input, output, session) {
   
   phTestG <- reactive({
     req(data())
-    widedata <- data() |>  dplyr::select(all_of(input$statCols))
+    widedata <- data() |>  dplyr::select(all_of(validStatCols()))
     
     if(isTRUE(input$askPairedssT)){
       widedata$ID <- row.names(widedata)
@@ -4225,6 +4232,130 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
+  ### Effect Size Calculation Logic ###
+  
+  effSize <- reactive({
+    req(data())
+    if (input$ttestType == 'tSt') {
+      # Effect size calculation for two sample t-Test
+      if (isTRUE(input$askComp)){
+        colname <- (input$statTwoCol)
+      } else{
+        colname <- colnames(data())
+      }
+      widedata <- data() |> dplyr::select(all_of(colname))
+      longdata <- widedata |> pivot_longer(names_to = 'variable', values_to = 'value',
+                                           cols = everything())
+      if(as.numeric(levTest()$`P Value`)>0.05){
+        varEql <- TRUE
+      } else {
+        varEql <- FALSE
+      }
+      effDf <- cohens_d(data = longdata,
+                        formula = value ~ variable,
+                        paired = ifelse(isTRUE(input$askPairedssT), TRUE, FALSE),
+                        var.equal = varEql)
+      
+      effDf <- data.frame("Cohen's d" = effDf$`effsize`,
+                          "Sample Magnitude" = effDf$`magnitude`, check.names = F)
+    } else {
+      
+      #Effect size calculation for several sample test
+      if (isTRUE(input$askPairedssT)){
+        widedata <- data() |> mutate(ID = rownames(data()))
+        longdata <- widedata |> pivot_longer(cols = -ID,
+                                             names_to = 'variable',
+                                             values_to = 'value')
+      } else {
+        longdata <- orderdata()
+      }
+      if (input$paratestType == 'nonpara'){
+        #Effect size for nonparametric tests
+        if (isTRUE(input$askPairedssT)){
+          # Effect size from Friedman's statistcs
+          if(isFALSE(input$dataGroup)){
+            effDf <- friedman_effsize(data = longdata, 
+                                      formula = value ~ variable | ID)
+            effDf <- data.frame("Kendall's W" = effDf$`effsize`,
+                                "Sample Magnitude" = effDf$`magnitude`, check.names = F)
+          } else{
+            effDfV <- longdata |> friedman_effsize(value ~ variable | ID)
+            effDfG <- longdata |> friedman_effsize(value ~ groups | ID)
+            longdata_VG <- longdata %>%
+              mutate(combined_group = paste(variable, groups, sep = ":"))
+            effDfVG <- longdata_VG |> friedman_effsize(value ~ combined_group | ID)
+            effDf <- data.frame("Groups" = c(input$legTitle,'Groups',paste0(input$legTitle,' to Groups')) ,
+                                "eta2 [H]" = c(effDfV$`effsize`,
+                                               effDfG$`effsize`,
+                                               effDfVG$`effsize`),
+                                "Sample Magnitude" = c(effDfV$`magnitude`,
+                                                       effDfG$`magnitude`,
+                                                       effDfVG$`magnitude`),
+                                check.names = F)
+          }
+          
+          
+        } else {
+          #Effect size from Kruskal Wallis's Statistics
+          
+          if (isFALSE(input$dataGroup)){
+            effDf <- longdata |> 
+              kruskal_effsize(value ~ variable)
+            effDf <- data.frame("eta2 [H]" = effDf$`effsize`,
+                                "Sample Magnitude" = effDf$`magnitude`, check.names = F)
+          } else {
+            effDfV <- longdata |> kruskal_effsize(value ~ variable)
+            effDfG <- longdata |> kruskal_effsize(value ~ groups)
+            longdata_VG <- longdata %>%
+              mutate(combined_group = paste(variable, groups, sep = ":"))
+            effDfVG <- longdata_VG |> kruskal_effsize(value ~ combined_group)
+            effDf <- data.frame("Groups" = c(input$legTitle,'Groups',paste0(input$legTitle,' to Groups')) ,
+                                "eta2 [H]" = c(effDfV$`effsize`,
+                                               effDfG$`effsize`,
+                                               effDfVG$`effsize`),
+                                "Sample Magnitude" = c(effDfV$`magnitude`,
+                                                       effDfG$`magnitude`,
+                                                       effDfVG$`magnitude`),
+                                check.names = F)
+          }
+          
+        }
+      } else {
+        #Effect size for parametric tests
+        mag <- function(df){#setting effect size magnitude
+          temp <- data.frame()
+          for (i in 1:length(df)){
+            if (df[i]<=0.01) {
+              magn <- 'small'
+            }else if (df[i]>0.01 && df[i]<=0.06){
+              magn <- 'moderate'
+            } else {
+              magn <- 'large'
+            }
+            temp <- rbind(temp,magn)
+          }
+          return(temp)
+        }
+        if(isTRUE(input$dataGroup)){
+          res.aov <- aov(data = longdata, value ~ variable*groups)
+          etaDf <- partial_eta_squared(res.aov)
+          magDf <- mag(etaDf)
+          effDf <- data.frame("Groups" = c(input$legTitle,'Groups',paste0(input$legTitle,' to Groups')),
+                              "Partial Eta2" = etaDf,
+                              "Sample Magnitude" = unlist(magDf), check.names = F)
+          rownames(effDf) <- NULL
+        }else {
+          res.aov <- aov(data = longdata, value ~ variable)
+          etaDf <- eta_squared(res.aov) 
+          magDf <- mag(etaDf)
+          effDf <- data.frame("Eta2" = etaDf,
+                              "Sample Magnitude" = unlist(magDf), check.names = F)
+          rownames(effDf) <- NULL
+        }
+      }
+    }
+    return(effDf)
+  })  
   
   #### Significance Test report display ####
   
@@ -4255,7 +4386,7 @@ server <- shinyServer(function(input, output, session) {
             return()
           }
         } else if (input$compList == "groupC") {
-          if (is.null(input$statCols) || length(input$statCols) < 3) {
+          if (is.null(validStatCols()) || length(validStatCols()) < 3) {
             show_alert(
               title = "Warning",
               text = "For pairwise comparisons, select at least 3 groups.",
@@ -4296,7 +4427,7 @@ server <- shinyServer(function(input, output, session) {
     tableNorm$`Shapiro-Wilk Statistics` <- formatC(tableNorm$`Shapiro-Wilk Statistics`,
                                                    format = 'g', digits = 3)
     if (input$ttestType == 'tSt'){
-      tableNorm <- tableNorm |> filter(Condition %in% input$statTwoCol)
+      tableNorm <- tableNorm |> dplyr::filter(Condition %in% input$statTwoCol)
     }else {
       tableNorm <- tableNorm
     }
@@ -4557,7 +4688,7 @@ server <- shinyServer(function(input, output, session) {
   output$descStatTab <- renderTable({
     df <- descStat()
     if (input$ttestType == 'tSt'){
-      df <- df |> filter(Condition %in% input$statTwoCol)
+      df <- df |> dplyr::filter(Condition %in% input$statTwoCol)
     }else {
       df <- df
     }
@@ -4585,6 +4716,10 @@ server <- shinyServer(function(input, output, session) {
     
   }, striped = T, width = '100%', align = 'l') |> bindEvent(input$runAnalysisFinal)
   
+  output$effSizeTab <- renderTable({
+    effSize()
+  }, striped = T, width = '100%', align = 'l') |> bindEvent(input$runAnalysisFinal)
+  
   output$StatAccordion <- renderUI({
     
     accordion( multiple = T, class = 'statAcc', open = T,
@@ -4593,6 +4728,10 @@ server <- shinyServer(function(input, output, session) {
                accordion_panel(
                  title = "Statistical Significance Test",
                  uiOutput('compSigReport')
+               ),
+               accordion_panel(
+                 title = "Sample Effect Size",
+                 tableOutput('effSizeTab')
                ),
                accordion_panel(
                  title = "Normality Test",
@@ -4612,6 +4751,7 @@ server <- shinyServer(function(input, output, session) {
   })|> bindEvent(input$runAnalysisFinal)
   
   observeEvent(input$runAnalysisFinal,{
+    req(data(), nrow(data()) > 0)
     if (input$ttestType=='sSt'){
       if(isTRUE(input$dataGroup)){
         grps <- do.call(rbind,phTestG())
@@ -5350,6 +5490,22 @@ server <- shinyServer(function(input, output, session) {
       row <- row+nrow(data3_2)+2
     }
     
+    #Effect Size report
+    data5_1 <- "Sample Effect Size report"
+    data5_2 <- data.frame(effSize(), check.names = F)
+    
+    writeData(wb, sheet = sheetName, x = data5_1, startRow = row, startCol = 2)
+    addStyle(wb, sheet = sheetName,
+             style = csH1, rows = row, cols = 2,
+             gridExpand = T)
+    mergeCells(wb, sheet = sheetName, rows = row, cols = 1:ncol(data5_2)+1)
+    row <- row+1
+    writeData(wb, sheet = sheetName, x = data5_2, startRow = row, startCol = 2,
+              colNames = T, headerStyle = csH2)
+    addStyle(wb, sheet = sheetName,
+             style = csB, rows = (row+1):(row+nrow(data5_2)+1), cols = 1:ncol(data5_2)+1,
+             gridExpand = T)
+    row <- row+nrow(data5_2)+2
     
     #Normality test report
     
