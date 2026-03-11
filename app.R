@@ -5105,7 +5105,7 @@ server <- shinyServer(function(input, output, session) {
     }
     statup <- statup |> arrange(layer)
     
-    step_size  <- input$distWidth*log(ncol(data()))*5
+    step_size  <- input$distWidth*log(ncol(data()))/5
     # Converting layers to y-coordinates
     statup <- statup |> 
       mutate(y    = base_y + (layer - 1) * step_size,
