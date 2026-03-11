@@ -3043,7 +3043,7 @@ server <- shinyServer(function(input, output, session) {
                                            hjust =  pvalHalign(),
                                            angle = ifelse(isTRUE(input$flipPlot), 270, 0)),
                       label.padding = unit(c(1),"pt"),
-                      fill = ifelse(isTRUE(input$flipPlot),input$plotColor, 'white'),
+                      # fill = ifelse(isTRUE(input$flipPlot),input$plotColor, 'white'),
                       label.colour= NA, size = segAdd()$size, vjust = segAdd()$vjust)+
         
         geom_segment(segAdd(),
@@ -5105,7 +5105,9 @@ server <- shinyServer(function(input, output, session) {
     }
     statup <- statup |> arrange(layer)
     
-    step_size  <- input$distWidth*log(ncol(data()))/5
+    factorD <- apply(na.omit(data()), MARGIN=2, FUN=median) |> max() |> as.numeric()
+    step_size  <- (input$distWidth/100)*factorD
+    
     # Converting layers to y-coordinates
     statup <- statup |> 
       mutate(y    = base_y + (layer - 1) * step_size,
