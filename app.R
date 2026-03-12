@@ -3087,10 +3087,11 @@ server <- shinyServer(function(input, output, session) {
   ### Graph Output Processing ###
   output$graphFinal <- renderPlot({
     #If no comparison is selected for statBracket()
-    validate(
+    if (isTruthy(input$runAnalysisFinal)){
+      validate(
       need(length(input$grplist) >= 1,
            "Please select at least 1 option to proceed.")
-    )
+    )}
     plotinput()
   })
   
