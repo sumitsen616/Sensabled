@@ -3086,6 +3086,11 @@ server <- shinyServer(function(input, output, session) {
   
   ### Graph Output Processing ###
   output$graphFinal <- renderPlot({
+    #If no comparison is selected for statBracket()
+    validate(
+      need(length(input$grplist) >= 1,
+           "Please select at least 1 option to proceed.")
+    )
     plotinput()
   })
   
@@ -5300,7 +5305,8 @@ server <- shinyServer(function(input, output, session) {
   
   StatReport <- reactive({
     wb <- openxlsx::createWorkbook()
-    sheetName <- paste("Stat Report_", input$sheetlist, collapse = '')
+    #Use sheet name (first 15 characters) with the stat report file name
+    sheetName <- paste("Stat Report_", substr(input$sheetlist,1,15), collapse = '')
     openxlsx::addWorksheet(wb, sheetName)
     
     csH1 <- createStyle(textDecoration = "bold",
