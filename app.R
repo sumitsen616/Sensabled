@@ -96,7 +96,7 @@ starHicon <- c(
   "<i class='fa-solid fa-align-right'></i>"='right'
 )
 
-#Creating a function to assign asterisk to P value significance intToUtf8(0x2731)
+#Creating a function to assign asterisk to P value significance 
 asterisk <- (function(x){
   astr <- data.frame()
   for (i in 1:length(x)){
@@ -889,7 +889,8 @@ ui <-page_navbar(
                                 numericInputIcon(
                                   'minY',
                                   "Min",
-                                  value = NA, min = NULL, max = NULL),
+                                  value = NA, min = NULL, max = NULL,
+                                ),
                                 numericInputIcon(
                                   'maxY',
                                   'Max',
@@ -1463,7 +1464,9 @@ server <- shinyServer(function(input, output, session) {
         #Selecting columns to plot
         uiOutput("colnames"),
         actionButton('chngColBtn', 'Update Column Header', icon = icon('heading'), 
-                     class = "btn-primary")
+                     class = "btn-primary"),
+        p('Add <br> in the Column Headers for line break in Major X-Axis Texts',
+          style = "color: grey; font-size:13px;")
       )
     })
   })
@@ -1588,12 +1591,12 @@ server <- shinyServer(function(input, output, session) {
       val <- input[[paste0("newcolname_", i)]]
       if (is.null(val) || trimws(val) == "") old_names[i] else trimws(val)
     })
+    
     if(isTRUE(has_element(str_detect(new_names,'-'),TRUE))){
       showNotification('Hyphen is not allowed in the column names.', type = 'error')
     } else {
       current_colnames(new_names)
     }
-    
     
     # Preserve selection by matching old names
     selected_new <- new_names[old_names %in% (input$selectedCols %||% old_names)]
@@ -1620,6 +1623,7 @@ server <- shinyServer(function(input, output, session) {
   
   # Arranging Input Raw Data for plotting
   orderdata <- reactive({
+    req(data())
     if (input$dataGroup == T){
       if(isTRUE(input$grpSwitch)){
         colsOrder <- c("variable", "groups")
@@ -1638,6 +1642,7 @@ server <- shinyServer(function(input, output, session) {
                                names_to = "variable",
                                values_to = "value") |>
         arrange(variable)}
+    return(order_data)
   })
   
   ### Graph Axis Processing ###
@@ -2161,7 +2166,14 @@ server <- shinyServer(function(input, output, session) {
   dpPalFillTheme <- reactiveValues(palette = list())
   
   colLevelG <- reactive({
-    temp <- str_split_fixed(colnames(data()), ':', 2)
+    checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+    
+    if (isFALSE(checkColon)){
+      temp <- str_split_fixed(colnames(data()), ':', 2)
+    } else {
+      showNotification('Column header missing ':'.', type = 'error')
+    }
+    
     row.names(temp) <- NULL
     if(isTRUE(input$grpSwitch)){
       colnames(temp) <- c('Conditions','Groups')
@@ -2588,8 +2600,15 @@ server <- shinyServer(function(input, output, session) {
   
   ## Processing Connecting lines for grouped plots
   lineData <- reactive({
+    req(data())
     if (isTRUE(input$dataGroup)){
-      temp <- str_split_fixed(colnames(data()), ':', 2)
+      checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+      
+      if (isFALSE(checkColon)){
+        temp <- str_split_fixed(colnames(data()), ':', 2)
+      } else {
+        showNotification('Column header missing ':'.', type = 'error')
+      }
       row.names(temp) <- NULL
       tempDf <- as.data.frame(apply(data(),MARGIN=2, FUN=median, na.rm=TRUE)) |>
         t() |> as.data.frame()
@@ -2646,7 +2665,12 @@ server <- shinyServer(function(input, output, session) {
     x <- orderdata()
     
     if (input$dataGroup == T) {
-      temp <- str_split_fixed(colnames(data()), ':', 2)
+      checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+      if (isFALSE(checkColon)){
+        temp <- str_split_fixed(colnames(data()), ':', 2)
+      } else {
+        showNotification('Column header missing ':'.', type = 'error')
+      }
       row.names(temp) <- NULL
       if(isTRUE(input$grpSwitch)){
         colnames(temp) <- c('Conditions','Groups')
@@ -3044,6 +3068,7 @@ server <- shinyServer(function(input, output, session) {
                                            angle = ifelse(isTRUE(input$flipPlot), 270, 0)),
                       label.padding = unit(c(1),"pt"),
                       # fill = ifelse(isTRUE(input$flipPlot),input$plotColor, 'white'),
+                      fill = '#FFFFFF00',
                       label.colour= NA, size = segAdd()$size, vjust = segAdd()$vjust)+
         
         geom_segment(segAdd(),
@@ -3086,12 +3111,11 @@ server <- shinyServer(function(input, output, session) {
   
   ### Graph Output Processing ###
   output$graphFinal <- renderPlot({
-    #If no comparison is selected for statBracket()
     if (isTruthy(input$runAnalysisFinal)){
       validate(
-      need(length(input$grplist) >= 1,
-           "Please select at least 1 option to proceed.")
-    )}
+        need(length(input$grplist) >= 1,
+             "Please select at least 1 option to proceed.")
+      )}
     plotinput()
   })
   
@@ -3126,16 +3150,16 @@ server <- shinyServer(function(input, output, session) {
           style = "display: flex; flex-direction: column; gap: 10px; width: 32%;",
           div(style="display: inline-flex; flex-direction:row !important; gap:10px;
               justify-content:space-between; align-items:center;",
-              numericInputIcon('width', label = "Plot Width", 
-                               min = 100, max = 800, value = 500, width = "100%"),
+              numericInput('width', label = "Plot Width", 
+                           min = 100, max = 800, value = 500, width = "100%", , updateOn = 'blur'),
               div(prettyToggle('lockRatio', label_on = NULL, label_off = NULL, 
                                icon_on = icon('link'), icon_off = icon('link-slash'), 
                                status_on = 'primary', status_off = 'warning',
                                fill = F, plain = F, bigger = T, thick = F, 
                                shape='round', inline = T, width = '0px'),
                   style="width:10px; height:0; margin-right:10px;"),
-              numericInputIcon('height', label = "Plot Height", 
-                               min = 100, max = 800, value = 400, width = "100%")
+              numericInput('height', label = "Plot Height", 
+                           min = 100, max = 800, value = 400, width = "100%", , updateOn = 'blur')
           ),
           actionButton('resetSize','Reset Size', icon = icon('rotate-left'))
         ),
@@ -3163,6 +3187,7 @@ server <- shinyServer(function(input, output, session) {
   
   # Conditional content for Graph panel
   output$graph_main_content <- renderUI({
+    req(data())
     if (!isTruthy(input$submitFile) && !isTruthy(input$pasteBtn)) {
       # No data uploaded or empty data
       div(
@@ -3178,8 +3203,8 @@ server <- shinyServer(function(input, output, session) {
       )
     } else if (input$dataGroup == T) {
       col_names <- colnames(data())  
-      
-      if (!any(grepl(":", col_names, fixed = TRUE))) {
+      checkColon <- has_element(str_detect(col_names,':'),FALSE)
+      if (isTRUE(checkColon)) {
         div(
           style = "display: flex; justify-content: center; align-items: center;
                 height: 60vh; flex-direction: column; text-align: center; color: #856404;
@@ -3200,6 +3225,7 @@ server <- shinyServer(function(input, output, session) {
         plotContent()
       } 
     } else {
+      # Data is available
       plotContent()
     }
   })
@@ -3333,8 +3359,8 @@ server <- shinyServer(function(input, output, session) {
   
   output$testInput <- renderUI({
     req(data())
+    
     tagList(
-      
       radioGroupButtons(
         "ttestType",
         "Select Test Type",
@@ -3389,6 +3415,7 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   })
+  
   
   ## PostHoc Selection Modal ##
   observeEvent(input$runAnalysis, {
@@ -3567,21 +3594,28 @@ server <- shinyServer(function(input, output, session) {
         actionButton("runAnalysisFinal", "Run Analysis", class = "btn-primary")
       )
     ))
-    
   })
-   validStatCols <- reactive({
+  
+  validStatCols <- reactive({
     req(data())
-     if (length(intersect(input$statCols,colnames(data())))<1){
+    # if (length(intersect(input$statCols,colnames(data())))!=length(colnames(data()))){
+    if (length(intersect(input$statCols,colnames(data())))<1){
       return(colnames(data()))
     } else {
       return(input$statCols)
     }
   })
+  
   #Submit Analysis Button processing
   vars <-  reactiveValues(count = 0)
   
   output$submitAnalysis <- renderUI({
-    req(data())
+    req(data()) 
+    col_names <- colnames(data())  
+    if(isTRUE(input$dataGroup)){
+      checkColon <- has_element(str_detect(col_names,':'),FALSE)
+      validate(need(isFALSE(checkColon), "")) 
+    }
     actionButton('runAnalysis', submitLabel()[[1]], icon = icon(submitLabel()[[2]]))
   })
   
@@ -3594,6 +3628,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   submitLabel <- reactive({
+    
     if(!is.null(input$runAnalysis)){
       if(vars$count >=2){
         label <- "Update Analysis"
@@ -3897,6 +3932,8 @@ server <- shinyServer(function(input, output, session) {
   ### Post Hoc Pairwise Test Processing ###
   phTest <- reactive({
     req(data())
+    
+    
     if (isTRUE(input$askComp) && input$ttestType == 'sSt'){
       if(input$compList == 'controlC'){
         colname <- c(input$askControl,input$statContCols)
@@ -3905,6 +3942,7 @@ server <- shinyServer(function(input, output, session) {
       }else{
         colname <- colnames(data())
       }
+      
       widedata <- data() |>  dplyr::select(all_of(colname))
       longdata <- widedata |>  pivot_longer(cols=everything(), 
                                             names_to = 'para',
@@ -4053,6 +4091,8 @@ server <- shinyServer(function(input, output, session) {
   
   phTestG <- reactive({
     req(data())
+    checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+    validate(need(isFALSE(checkColon), ""))
     widedata <- data() |>  dplyr::select(all_of(validStatCols()))
     
     if(isTRUE(input$askPairedssT)){
@@ -4361,7 +4401,8 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     return(effDf)
-  })  
+  }) 
+  
   
   #### Significance Test report display ####
   
@@ -4418,7 +4459,7 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
+    # Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
     hidePageSpinner()
     removeModal()
     
@@ -4756,141 +4797,156 @@ server <- shinyServer(function(input, output, session) {
     sigRepContent()
   })|> bindEvent(input$runAnalysisFinal)
   
-  observeEvent(input$runAnalysisFinal,{
+  observe({
+    req(input$runAnalysisFinal)
     req(data(), nrow(data()) > 0)
     if (input$ttestType=='sSt'){
       if(isTRUE(input$dataGroup)){
-        grps <- do.call(rbind,phTestG())
+        p <- do.call(rbind,phTestG())
+        pattern <- paste(unique(orderdata()$variable),collapse = '|')
+        p <- p |> rowwise() |> 
+          dplyr::filter(str_detect(Comparison, pattern)) 
+        grps <- p
+        
       }else{
         grps <- phTest()
       }
     }else{
       grps <- tsTest()
     }
+    
     output$statGroups <- renderUI({
-      if(isFALSE(input$dataGroup)){ # Temporary condition; will fix when group annotation is coded
-        accordion_panel(
-          title= "Customize Plot Annotations",
-          
-          tagList(
-            pickerInput('grplist',
-                        'Select Groups',
-                        choices = grps[,1],
-                        multiple = T,
-                        selected = grps[1,1]),
-            actionButton('addBrackets','Add Brackets to Plot', width='100%',
-                         icon = icon('bars-staggered'), class = 'btn-primary'),
-            br(),
-            div(style = "border:1px solid; border-radius:10px; padding:10px;",
-                radioGroupButtons(
-                  'askTipType',
-                  'Bracket Type',
-                  choices = c('Line'='line',
-                              'Short Bracket'='short',
-                              'Long Bracket'='long'),
-                  selected = 'short',
-                  size = 'sm'
-                ),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'firstBrack',
-                      label = 'Vertical Positioning',
-                      min = 1, max = 100,
-                      value = 50, tooltips=TRUE,
-                      step=1, height="10px")),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'distWidth',
-                      label = 'Inter-bracket Distance',
-                      min = 0, max = 100,
-                      value = 5, tooltips=TRUE,
-                      step=1, height="10px")),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'topMargin',
-                      label = 'Space Around Brackets',
-                      min = 0, max = 100,
-                      value = 25, tooltips=TRUE,
-                      step=1, height="10px")),
-                conditionalPanel(
-                  condition = "input.askTipType=='short'",
-                  div(id='sliderstyle',
-                      noUiSliderInput(
-                        'tipLength',
-                        label = 'Tip Length',
-                        min = 10, max = 100,
-                        value = 40, tooltips=TRUE,
-                        step=1, height="10px"))),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'gapWidth',
-                      label = 'Gap Distance',
-                      min = 10, max = 100,
-                      value = 30, tooltips=TRUE,
-                      step=1, height="10px")),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'bracWidth',
-                      label = 'Line Width',
-                      min = 1, max = 100,
-                      value = 65, tooltips=TRUE,
-                      step=1, height="10px"))),
-            br(),
-            div(style = "border:1px solid; border-radius:10px; padding:10px;",
-                radioGroupButtons(
-                  'askPvalType',
-                  'Significance Report',
-                  choices = c('Raw P Value'='raw',
-                              'Asterisks'='star'),
-                  selected = 'star',
-                  size = 'sm'
-                ),
-                radioGroupButtons(
-                  'askPvalStyle',
-                  'Style',
-                  choices = c('Default'='default',
-                              'APA'='apa',
-                              'NEJM'= 'nejm'),
-                  selected = 'default',
-                  size = 'sm'
-                ),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'pvalSize',
-                      label = 'Text Size',
-                      min = 15, max = 45, value = 25,
-                      tooltips = TRUE, step = 1, height = "10px"
-                    )),
-                div(id='sliderstyle',
-                    noUiSliderInput(
-                      'pvalTVpos',
-                      label = 'Text Verical Position',
-                      min = 1, max = 100, value = 50,
-                      tooltips = TRUE, step = 1, height = "10px"
-                    )),
-                div(style='display:inline-flex; width:100%; flex-direction:row; align-items:flex-start; justify-content:space-between;',
-                    radioGroupButtons(
-                      'pvalHpos',
-                      label='',
-                      choices = starHicon,
-                      selected = 'center',
-                      size = 'sm'
-                    ),br(),
-                    radioGroupButtons(
-                      'pvalVpos',
-                      label='',
-                      choices = starVicon,
-                      selected = 'top',
-                      size = 'sm'
-                    )
-                )),
-            br()
-          )
-        )
-      }  
       
+      accordion_panel(
+        title= "Customize Plot Annotations",
+        
+        tagList(
+          pickerInput('grplist',
+                      'Select Groups',
+                      choices = grps[,1],
+                      multiple = T,
+                      selected = grps[1,1]),
+          actionButton('addBrackets','Add Brackets to Plot', width='100%',
+                       icon = icon('bars-staggered'), class = 'btn-primary'),
+          br(),
+          div(style = "border:1px solid; border-radius:10px; padding:10px;",
+              radioGroupButtons(
+                'askTipType',
+                'Bracket Type',
+                choices = c('Line'='line',
+                            'Short Bracket'='short',
+                            'Long Bracket'='long'),
+                selected = 'short',
+                size = 'sm'
+              ),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'firstBrack',
+                    label = 'Vertical Positioning',
+                    min = 1, max = 100,
+                    value = 50, tooltips=TRUE,
+                    step=1, height="10px")),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'distWidth',
+                    label = 'Inter-bracket Distance',
+                    min = 0, max = 100,
+                    value = 15, tooltips=TRUE,
+                    step=1, height="10px")),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'topMargin',
+                    label = 'Space Around Brackets',
+                    min = 0, max = 100,
+                    value = 25, tooltips=TRUE,
+                    step=1, height="10px")),
+              conditionalPanel(
+                condition = "input.askTipType=='short'",
+                div(id='sliderstyle',
+                    noUiSliderInput(
+                      'tipLength',
+                      label = 'Tip Length',
+                      min = 10, max = 100,
+                      value = 40, tooltips=TRUE,
+                      step=1, height="10px"))),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'gapWidth',
+                    label = 'Gap Distance',
+                    min = 10, max = 100,
+                    value = 30, tooltips=TRUE,
+                    step=1, height="10px")),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'bracWidth',
+                    label = 'Line Width',
+                    min = 1, max = 100,
+                    value = 65, tooltips=TRUE,
+                    step=1, height="10px"))),
+          br(),
+          div(style = "border:1px solid; border-radius:10px; padding:10px;",
+              radioGroupButtons(
+                'askPvalType',
+                'Significance Report',
+                choices = c('Raw P Value'='raw',
+                            'Asterisks'='star',
+                            'Both' = 'both'),
+                selected = 'star',
+                size = 'sm'
+              ),
+              radioGroupButtons(
+                'askPvalStyle',
+                'Style',
+                choices = c('Default'='default',
+                            'APA'='apa',
+                            'NEJM'= 'nejm'),
+                selected = 'default',
+                size = 'sm'
+              ),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'pvalSize',
+                    label = 'Text Size',
+                    min = 15, max = 45, value = 25,
+                    tooltips = TRUE, step = 1, height = "10px"
+                  )),
+              div(id='sliderstyle',
+                  noUiSliderInput(
+                    'pvalTVpos',
+                    label = 'Text Verical Position',
+                    min = 1, max = 100,
+                    value = 50,
+                    tooltips = TRUE, step = 1, height = "10px"
+                  )),
+              div(style='display:inline-flex; width:100%; flex-direction:row; align-items:flex-start; justify-content:space-between;',
+                  radioGroupButtons(
+                    'pvalHpos',
+                    label='',
+                    choices = starHicon,
+                    selected = 'center',
+                    size = 'sm'
+                  ),br(),
+                  radioGroupButtons(
+                    'pvalVpos',
+                    label='',
+                    choices = starVicon,
+                    selected = 'top',
+                    size = 'sm'
+                  )
+              )),
+          br()
+        )
+      )
+    })
+    observe({
+      req(input$askPvalType == 'both')
+      updateNoUiSliderInput(session, 'pvalTVpos', value = 100 )
     })
     output$statDnld <- renderUI({
+      if(isTRUE(input$dataGroup)){
+        checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+        validate(need(isFALSE(checkColon), ""))
+      }
       tagList(
         downloadButton(
           'statReport',
@@ -4903,7 +4959,7 @@ server <- shinyServer(function(input, output, session) {
       )
       
     })
-  })
+  }) 
   
   ### Significance brackets processing ###
   pvalHalign <- reactive({
@@ -4918,21 +4974,93 @@ server <- shinyServer(function(input, output, session) {
   
   ## Offset: dodgeWidth*((var-in-grp-0.5)/totGrp - 0.5)
   statBrackets <- reactive({
+    req(input$grplist)
+    req(data())
     
     sepV <- ifelse(isTRUE(input$dataGroup),' - ', '-')
     groups <- as.data.frame(str_split(input$grplist,sepV))
     groups <- as.data.frame(t(groups))
-  
     rownames(groups) <- NULL
-    colnames(groups) <- c('left', 'right')
     
     if (isTRUE(input$reverseX)){
       lv <- rev(current_colnames())
     } else {
       lv <- current_colnames()
     }
-    left <- groups$left |> factor(levels = lv ) 
-    right <- groups$right |> factor(levels = lv) 
+    
+    if(isTRUE(input$dataGroup)){
+      checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+      
+      if (isFALSE(checkColon)){
+        temp <- str_split_fixed(colnames(data()), ':', 2)
+      } else {
+        showNotification('Column header missing ':'.', type = 'error')
+      }
+      
+      row.names(temp) <- NULL
+      if(isTRUE(input$grpSwitch)){
+        colnames(temp) <- c('Conditions','Groups')
+        colFact <- unique(temp[,1])
+        fillFact <- unique(temp[,2])
+      } else { 
+        colnames(temp) <- c('Groups','Conditions')
+        fillFact <- unique(temp[,1])
+        colFact <- unique(temp[,2])
+      }
+      x_axis_col <- gsub('[.]', ' ', colFact)
+      x_axis <- c(factor(orderdata()$variable, levels = colFact, labels = x_axis_col))
+      x <- input$innerDistVio/100
+      listp <- do.call(rbind,phTestG())
+      listid <- match(input$grplist,listp[,1])
+      
+      p <- str_split_fixed(listp[,1],' - ',2)|> as.data.frame()
+      
+      p <- p  |> mutate(pval = as.numeric(listp[,c(ncol(listp)-1)]), 
+                        text = listp[,c(ncol(listp))], id = seq_along(1:nrow(p)))
+      p <- p[listid,] # Filtering only the user-selected the comparisons 
+      
+      n <- length(fillFact)
+      dodge_x <- function(x_base, n, x){
+        start <- x_base - (x / 2)
+        end   <- x_base + (x / 2)
+        slotW <- x / n
+        
+        seq(from = start + (slotW / 2), 
+            to = end - (slotW / 2), 
+            length.out = n)
+      }
+      s <- dodge_x(x_base = 1, n = n, x = x)
+      cc <- setNames(s,fillFact)
+      cp <- setNames(as.numeric(unique(x_axis)),unique(x_axis))
+      ccp <- c(cc,cp)
+      ccpL <- outer(cp - 1, cc, `+`) |> as.data.frame() |> 
+        t() |> as.vector() # to map 'mx' (below)
+      ccpL <- c(ccpL,cp)
+      left <- data.frame()
+      right <- data.frame()
+      for (i in 1:nrow(p)){
+        if(isFALSE(str_detect(p[i,1],',')) && isFALSE(str_detect(p[i,2],','))){
+          temp <- ccp[p[i,1]] |> unname() |> as.numeric() 
+          left <- rbind(left,temp)
+          temp <- ccp[p[i,2]] |> unname() |> as.numeric() 
+          right <- rbind(right,temp) 
+        } else {
+          nL <- str_split(p[i,1],',')|> unlist() 
+          nR <- str_split(p[i,2],',')|> unlist() 
+          temp <- ccp[nL[2]]-1+ccp[nL[1]]
+          left <- rbind(left,temp)
+          temp <- ccp[nR[2]]-1+ccp[nR[1]]
+          right <- rbind(right,temp)
+        }
+      }
+      pnn <- data.frame(left, right, p[,3], p[,4])
+      colnames(pnn) <- c('x','xend','pval','text')
+      rownames(pnn) <- NULL
+    }else{
+      colnames(groups) <- c('left', 'right')
+      left <- groups$left |> factor(levels = lv ) 
+      right <- groups$right |> factor(levels = lv)
+    }
     
     tipL <- 0.02
     gap <- input$gapWidth/1000
@@ -4997,23 +5125,43 @@ server <- shinyServer(function(input, output, session) {
       mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
     }
     
-
     row.names(mx)<-NULL
-    mx <- data.frame(mx)
-    colnames(mx) <- colnames(df)
+    mx <- data.frame(mx) #Maximum point/ tip based on shape
+    
+    mx <- setNames(mx,colnames(data()))
+    if(isTRUE(input$dataGroup)){
+      longmx <- as.data.frame(mx) |> pivot_longer(names_to =c('group','variable'),
+                                                  names_sep = ':', cols = everything(), values_to = 'value')
+      longmx <- longmx |> pivot_longer(cols = c(group, variable), names_to = "type",
+                                       values_to = "label") |> select(label, value)
+      longmx_avg <- longmx |> dplyr::filter(label %in% colFact) |> group_by(label) |>
+        summarize(avg_val = mean(value))
+      mx <- setNames(c(mx,longmx_avg$avg_val),ccpL)
+      
+    }  
+    print(mx)
     if (isTRUE(input$reverseX)){
       mx <- rev(mx)
     }else{
       mx <- mx
     }
-    
-    first <- (1+(input$firstBrack-50.5)/500)
+    ### Y-coordinates calculation
+    first <- (1+(input$firstBrack-50.5)/500) #Adjusting the first layer position
     base_y <- yaxisMax()*first
+    
     #Basic data frame to handle the bracket coordinates
-    statup <- data.frame(x = as.numeric(left),
-                         xend = as.numeric(right),
-                         y = (base_y+(base_y*first)),
-                         yend = (base_y+(base_y*first)))
+    if(isTRUE(input$dataGroup)){
+      statup <- data.frame(x = as.numeric(unlist(pnn$x)),
+                           xend = as.numeric((unlist(pnn$xend))),
+                           y = (base_y+(base_y*first)),
+                           yend = (base_y+(base_y*first)))
+    } else{
+      statup <- data.frame(x = as.numeric(unlist(left)),
+                           xend = as.numeric((unlist(right))),
+                           y = (base_y+(base_y*first)),
+                           yend = (base_y+(base_y*first)))
+    }
+    
     
     #To order the lowest x on left side always
     statup <- statup |> mutate(x_min=pmin(x,xend),x_max=pmax(x,xend)) |>
@@ -5026,57 +5174,90 @@ server <- shinyServer(function(input, output, session) {
     star4 <- paste0(rep('*', 4), collapse = "")
     star3 <- paste0(rep('*', 3), collapse = "")
     
-    
+    if(isTRUE(input$dataGroup)){
+      pnn_text <- pnn$`text`
+      pnn_p <- pnn$`pval`
+    }
     results_list <- list()
     
     for (i in 1:length(input$grplist)) {
       current_tab <- if (input$ttestType == 'tSt') tsTest() else phTest()
-      n <- match(input$grplist[i], current_tab[, 1])
+      # current_tab <- if(isTRUE(input$dataGroup)) listp else current_tab
+      
+      n <- ifelse(isTRUE(input$dataGroup), nrow(pnn),match(input$grplist[i], current_tab[, 1]))
       
       if (!is.na(n)) {
+        ## For only asterisk display
         t_val <- ""
-        
-        # P value asterisk
-        if (input$askPvalType == 'star') {
+        if(isTRUE(input$dataGroup)){
+          t_val <- pnn_text[[i]]
+          
+        }else {
           t_val <- as.character(current_tab[n, ncol(current_tab)])
-          
-          # For APA and NEJM styles, cap at 3 stars
-          if (input$askPvalStyle != 'default') {
-            if (t_val == star4) {
-              t_val <- star3
-            }
-          }
-          
-        } else {# Raw P value
-          p_raw <- as.numeric(current_tab[n, (ncol(current_tab) - 1)])
-          
-          # Zero before point (APA has none, NEJM/Default has)
-          s_prefix <- if (input$askPvalStyle == 'apa') "" else "0"
-          ns_p <- if (p_raw>=1) p_raw else gsub('0.','.',p_raw)
-          
-          if (input$askPvalStyle == 'default') {
-            t_val <- paste0('*P* = ', p_raw)
-          } else {
-            # APA and NEJM
-            if (p_raw <= 0.001) {
-              t_val <- paste0("*p* < ", s_prefix, ".001")
-            } else if (p_raw <= 0.01) {
-              t_val <- paste0("*p* < ", s_prefix, ".01")
-            } else if (p_raw <= 0.05) {
-              t_val <- paste0("*p* < ", s_prefix, ".05")
-            } else {
-              t_val <- paste0("*p* = ", s_prefix, ns_p)
-            }
+        }
+        
+        # For APA and NEJM styles, cap at 3 stars
+        if (input$askPvalStyle != 'default') {
+          if (t_val == star4) {
+            t_val <- star3
           }
         }
-        if(t_val=='ns' || isTRUE(str_detect(t_val,'P')) || isTRUE(str_detect(t_val, 'p'))){
+        
+        ## For raw p value display
+        if(isTRUE(input$dataGroup)){
+          p_raw <- as.numeric(pnn_p[[i]])
+        } else{
+          p_raw <- as.numeric(current_tab[n, (ncol(current_tab) - 1)])
+        }
+        
+        # Zero before point (APA has none, NEJM/Default has)
+        s_prefix <- if (input$askPvalStyle == 'apa') "" else "0"
+        ns_p <- if (p_raw>=1) p_raw else gsub('0.','.',p_raw)
+        
+        if (input$askPvalStyle == 'default') {
+          raw_val <- paste0('P = ', p_raw)
+        } else {
+          # APA and NEJM
+          if (p_raw <= 0.001) {
+            raw_val <- paste0("p < ", s_prefix, ".001")
+          } else if (p_raw <= 0.01) {
+            raw_val <- paste0("p < ", s_prefix, ".01")
+          } else if (p_raw <= 0.05) {
+            raw_val <- paste0("p < ", s_prefix, ".05")
+          } else {
+            s_prefix <- if(p_raw == 1) "" else s_prefix
+            raw_val <- paste0("p = ", s_prefix, ns_p)
+          }
+        }
+        
+        if (input$askPvalType == 'star') {
+          # Asterisks
+          p_val <- t_val
+        } else if (input$askPvalType == 'raw'){
+          # Raw P value
+          p_val <- raw_val
+        } else {
+          # Both combined
+          if(input$pvalVpos=='top'){
+            p_val <- paste(raw_val,'<br>',t_val, sep = '')
+          } else {
+            p_val <- paste(t_val,'<br>',raw_val, sep = '')
+          }
+          
+        }
+        if (input$askPvalType == 'star' || input$askPvalType == 'both' ){
+          p_val <- gsub("*",intToUtf8(0x2731), p_val, fixed = TRUE)
+        }
+        
+        if(p_val=='ns' || isTRUE(str_detect(p_val,'P')) || isTRUE(str_detect(p_val, 'p'))){
           pVjust <- seq(from = 0, to = 0.75, length.out = 100)
         } else {
           pVjust <-  seq(from = 0.5, to = 1, length.out = 100)
         }
-        results_list[[i]] <- data.frame(text = paste0('<b>',t_val,'</b>'),
-                                        size = ifelse(t_val=='ns' || isTRUE(str_detect(t_val,'P')) || isTRUE(str_detect(t_val, 'p')),input$pvalSize/5, input$pvalSize/2.5),
-                                        vjust = pVjust[input$pvalTVpos],stringsAsFactors = FALSE)
+        results_list[[i]] <- data.frame(text = paste0('<b>',p_val,'</b>'),
+                                        size = input$pvalSize/5,
+                                        vjust = pVjust[input$pvalTVpos],
+                                        stringsAsFactors = FALSE)
         
       }
     }
@@ -5085,7 +5266,7 @@ server <- shinyServer(function(input, output, session) {
     text <- do.call(rbind, results_list)
     
     colnames(text) <- c('text','size','vjust')
-
+    
     statup <- cbind(statup,text)
     
     #Spreading a sequence between x and xend rowwise
@@ -5111,6 +5292,7 @@ server <- shinyServer(function(input, output, session) {
     }
     statup <- statup |> arrange(layer)
     
+    #Adjusting the gaps between brackets
     factorD <- apply(na.omit(data()), MARGIN=2, FUN=median) |> max() |> as.numeric()
     step_size  <- (input$distWidth/100)*factorD
     
@@ -5122,11 +5304,27 @@ server <- shinyServer(function(input, output, session) {
     statup <- statup[,-c(9,10)] #removing unnecessary columns
     
     #Adding bracket end columns
-    sL <- t(mx[statup$x])+(t(mx[statup$x])*tipL)
+    if (isTRUE(input$dataGroup)){
+      sL <- data.frame()
+      for (i in 1:length(statup$x)){
+        temp <- mx[[as.character(statup$x[i])]]+(mx[[as.character(statup$x[i])]])*tipL
+        sL <- rbind(sL,temp)
+      }
+    } else {
+      sL <- t(mx[statup$x])+(t(mx[statup$x])*tipL)
+    }
     rownames(sL) <- NULL
     colnames(sL) <- 'yendL'
     
-    sR <- t(mx[statup$xend])+(t(mx[statup$xend])*tipL)
+    if (isTRUE(input$dataGroup)){
+      sR <- data.frame()
+      for (i in 1:length(statup$x)){
+        temp <- mx[[as.character(statup$xend[i])]]+(mx[[as.character(statup$xend[i])]])*tipL
+        sR <- rbind(sR,temp)
+      }
+    } else {
+      sR <- t(mx[statup$xend])+(t(mx[statup$xend])*tipL)
+    }
     rownames(sR) <- NULL
     colnames(sR) <- 'yendR'
     
@@ -5173,7 +5371,6 @@ server <- shinyServer(function(input, output, session) {
             list[i] <- y[i-1]+y[i-1]*tipL
           }
         } 
-        
       }
       return(list)
     }
@@ -5211,7 +5408,7 @@ server <- shinyServer(function(input, output, session) {
         }
       }
     }
-
+    
     if(input$askTipType == 'long'){
       return(statup)
     } else if (input$askTipType == 'short'){
@@ -5220,10 +5417,10 @@ server <- shinyServer(function(input, output, session) {
       return(statup)
     } else{
       statup <- statup |> mutate(yendL=y) |> mutate(yendR=yend)
-      
       return(statup)
     }
   })
+  
   # output$test <- renderTable({
   #   req(input$grplist)
   #   statBrackets()
@@ -5297,6 +5494,29 @@ server <- shinyServer(function(input, output, session) {
           "Please go to the ", strong("File Upload"), " tab,",
           "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or Upload Pasted Data to begin.")
       )
+    }else if (input$dataGroup == T) {
+      col_names <- colnames(data())  
+      checkColon <- has_element(str_detect(col_names,':'),FALSE)
+      
+      if (isTRUE(checkColon)) {
+        div(
+          style = "display: flex; justify-content: center; align-items: center;
+                height: 60vh; flex-direction: column; text-align: center; color: #856404;
+                background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px;
+                padding: 30px; margin: 20px; z-index:100;",
+          icon("exclamation-triangle", style = "font-size: 60px; margin-bottom: 20px; color: #f39c12;"),
+          h3(style = "color: #d35400; margin: 0 0 10px 0;", "Incompatible Data Format"),
+          p(style = "font-size: 18px; max-width: 600px;",
+            "For ", strong("Grouped Data"), " mode, column headers must follow the format: ",
+            strong("Group:Condition"), "(e.g., G1:A, G1:B, G1:C, G2:A, G2:B, G2:C)."),
+          br(),
+          p(style = "font-size: 14px; max-width: 600px;",
+            "See example data for reference", br(),
+            "Current headers: ", strong(paste(col_names, collapse = ", ")))
+        )
+      }else {
+        uiOutput('StatAccordion')
+      }
     }  else {
       uiOutput('StatAccordion')
     }
