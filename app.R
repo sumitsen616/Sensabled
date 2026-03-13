@@ -20,8 +20,8 @@ library(dplyr)
 library(DT)
 library(stringr)
 library(tidyverse)
-library(remotes)
-library(magrittr)
+# library(remotes)
+# library(magrittr)
 library(ggplot2)
 library(ggbeeswarm)
 library(ggnewscale)
@@ -1309,7 +1309,74 @@ ui <-page_navbar(
               )
             )
   ),
-  nav_panel(title = "About", p("To Be Updated Soon."))
+  nav_panel(title = "About", 
+            div(
+              h3("About SEN’sable Plotting"),
+              p(strong("SEN’sable Plotting"), "is a lightweight, open-source Shiny app for
+              visualizing and statistically analyzing discrete or categorical
+              data—designed as a free, user-friendly alternative to paid software
+              like GraphPad Prism."),
+              p("Built with biologists, ecologists, students, and early-career researchers
+              in mind, it offers an intuitive, no-code interface to create", strong("publication-ready
+              plots and statistical reports"), "without any knowledge of R code."),
+              h4("Why this app?"),
+              p("R is a powerful language for statistics and visualization,
+              backed by base functions and peer-reviewed packages. However,
+              its learning curve can be a barrier. SEN’sable Plotting removes that
+              barrier by providing a point-and-click experience while leveraging R's
+              robust capabilities under the hood."),
+              h5("Core Packages"),
+              HTML(
+                "<ul><li><b>Framework:</b> Shiny (with shinyBS, shinyjs, shinywidgets, shinycssloaders)</li>
+              <li><b>Data handling:</b> openxlsx, DT, tidyverse (dplyr, tidyr, stringr, scales), broom</li>
+              <li><b>Plotting:</b> ggplot2 + extensions (ggbeeswarm, ggdist, ggnewscale, ggtext, qqplotr)</li>
+              <li><b>Themes & UI:</b> colorspace, colourpicker, bslib, bsplus, waiter, patchwork, extrafont, fontawesome</li>
+              <li><b>Statistics:</b> rstatix, DescTools, lme4, emmeans, PMCMRplus, car, ARTool (plus base stats)</li>
+              <li><b>Other:</b> svglite, rJava</li></ul>
+              All packages are open-source and freely available—full
+              session info and dependencies are in the repo for reproducibility.
+              "),
+              br(),
+              br(),
+              h4("Quick Usage Guide"),
+              HTML(
+                "<ol><li><b>Upload data</b> (File Upload tab): Import Excel (multi-sheet supported)
+              or paste directly → select sheet and upload.</li>
+              <li><b>Choose plot type</b> (Plot Type dropdown): Single (Box-jitter,
+              Violin, Raincloud, Jitter, Bar) or grouped (Box-jitter and Violin) plots. Enable 'Grouped Data' if needed.</li>
+              <li><b>Customize & view</b> (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels.
+              Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).</li>
+              <li><b>Run statistics</b> (Statistics tab): Auto-detect test type
+              (two-sample/multi-sample, parametric/non-parametric) or choose manually.
+              Enable post-hoc comparisons if required → submit and generate report.</li>
+              <li><b>Reusable Settings:</b> Save selected settings for later use or
+              import a setting (Excel) file to reuse previous settings to reproduce plots.</li>
+              <li><b>Post-hoc details:</b> Select comparison type (control vs. rest or pairwise) and columns → run analysis.</li>
+              <li><b>Download & annotate:</b> Export stat report (Excel). 
+              Add customizable annotations (p-values, brackets, asterisks) directly
+              to plots via the Graph tab.</li>
+              </ol>
+              <b>Important Disclaimer</b>
+              Statistical results are automated for convenience,
+              but users should always verify test assumptions, selections, and 
+              outputs using additional tools or expert consultation. This app
+              is not a substitute for professional statistical advice.
+              "),
+              br(),br(),
+              h5("Get Involved"),
+              p("SEN’sable Plotting is licensed under the", strong("MIT License"),
+                "(permissive open-source)."),
+              HTML('<ul><li>Source code: <a href="https://github.com/sumitsen616/Sensabled">
+            https://github.com/sumitsen616/Sensabled</a></li>
+                 <li>Report bugs, request features, or contribute:
+                 <a href="https://github.com/sumitsen616/Sensabled/issues">https://github.com/sumitsen616/Sensabled/issues</a></li></ul>
+                 Feedback is very welcome. I actively maintain this tool and
+                 appreciate your input to make it better!
+                 '),
+              br(),
+              p("© Sumit Sen (2026) ", style = "width: 100%; text-align:center; padding:10px;")
+            ),
+            style = " width:75%; padding:50px; margin:0 auto;"))
 )
 
 ###########################
