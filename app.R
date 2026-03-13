@@ -1,6 +1,6 @@
 ### Source Code for SEN'sabale Plotting App ###
-### Author: Sumit Sen ###
-### TIFR, Mumbai ###
+### MIT License - see LICENSE file for details
+### Copyright (c) 2026 Sumit Sen
 
 ##Loading Necessary Packages##
 # options(shiny.trace = TRUE)
@@ -4816,11 +4816,16 @@ server <- shinyServer(function(input, output, session) {
     }
     
     output$statGroups <- renderUI({
-      
+      # if(isTruthy(input$reuseset)){
+      #   text <- "Click the 'Upload' settings button again to reuse previous annotation settings."
+      # } else {
+      #   text <- ""
+      # }
       accordion_panel(
         title= "Customize Plot Annotations",
         
         tagList(
+          # p(text, style = "font-size: 12px; color:#666;"),
           pickerInput('grplist',
                       'Select Groups',
                       choices = grps[,1],
@@ -5008,6 +5013,7 @@ server <- shinyServer(function(input, output, session) {
         colFact <- unique(temp[,2])
       }
       x_axis_col <- gsub('[.]', ' ', colFact)
+      print(head(x_axis_col))
       x_axis <- c(factor(orderdata()$variable, levels = colFact, labels = x_axis_col))
       x <- input$innerDistVio/100
       listp <- do.call(rbind,phTestG())
