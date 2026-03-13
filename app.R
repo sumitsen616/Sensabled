@@ -1376,7 +1376,7 @@ ui <-page_navbar(
               br(),
               p("© Sumit Sen (2026) ", style = "width: 100%; text-align:center; padding:10px;")
             ),
-            style = " width:75%; padding:50px; margin:0 auto;"))
+            style = " width:75%; padding:50px; margin:0 auto;")
 )
 
 ###########################
