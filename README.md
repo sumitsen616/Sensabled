@@ -22,9 +22,9 @@ All packages are open-source and freely available—full session info and depend
 2. **Choose plot type** (Plot Type dropdown): Single (Box-jitter, Violin, Raincloud, Jitter, Bar) or grouped (Box-jitter and Violin) plots. Enable 'Grouped Data' if needed.
 3. **Customize & view** (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels. Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).
 4. **Run statistics** (Statistics tab): Auto-detect test type (two-sample/multi-sample, parametric/non-parametric) or choose manually. Enable post-hoc comparisons if required → submit and generate report.
-5. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
+5. **Download & annotate:** Export stat report (Excel). Add customizable annotations (p-values, brackets, asterisks) directly to plots via the Graph tab.
 6. **Post-hoc details:** Select comparison type (control vs. rest or pairwise) and columns → run analysis.
-7. **Download & annotate:** Export stat report (Excel). Add customizable annotations (p-values, brackets, asterisks) directly to plots via the Graph tab.
+7. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
 **Important Disclaimer**
 Statistical results are automated for convenience, but users should always verify test assumptions, selections, and outputs using additional tools or expert consultation. This app is not a substitute for professional statistical advice.
 
