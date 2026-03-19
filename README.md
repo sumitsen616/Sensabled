@@ -24,7 +24,12 @@ All packages are open-source and freely available—full session info and depend
 4. **Run statistics** (Statistics tab): Auto-detect test type (two-sample/multi-sample, parametric/non-parametric) or choose manually. Enable post-hoc comparisons if required → submit and generate report.
 5. **Download & annotate:** Export stat report (Excel). Add customizable annotations (p-values, brackets, asterisks) directly to plots via the Graph tab.
 6. **Post-hoc details:** Select comparison type (control vs. rest or pairwise) and columns → run analysis.
+<<<<<<< Updated upstream
 7. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
+=======
+7. **Download & annotate:** Export stat report (Excel). Add customizable annotations (p-values, brackets, asterisks) directly to plots via the Graph tab.
+<br><br>
+>>>>>>> Stashed changes
 **Important Disclaimer**
 Statistical results are automated for convenience, but users should always verify test assumptions, selections, and outputs using additional tools or expert consultation. This app is not a substitute for professional statistical advice.
 
