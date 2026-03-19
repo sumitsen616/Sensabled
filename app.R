@@ -19,6 +19,8 @@ library(dplyr)
 library(DT)
 library(stringr)
 library(tidyverse)
+# library(remotes)
+# library(magrittr)
 library(ggplot2)
 library(ggbeeswarm)
 library(ggnewscale)
@@ -1386,7 +1388,7 @@ ui <-page_navbar(
               <li><b>Themes & UI:</b> colorspace, colourpicker, bslib, bsplus, waiter, patchwork, extrafont, fontawesome</li>
               <li><b>Statistics:</b> rstatix, DescTools, lme4, emmeans, PMCMRplus, car, ARTool (plus base stats)</li>
               <li><b>Other:</b> svglite, rJava</li></ul>
-              All packages are open-source and freely available—full
+              All packages are open-source and freely available. Full
               session info and dependencies are in the repo for reproducibility.
               "),
               br(),
@@ -1409,7 +1411,7 @@ ui <-page_navbar(
               <li><b>Reusable Settings:</b> Save selected settings for later use or
               import a setting (Excel) file to reuse previous settings to reproduce plots.</li>
               </ol>
-              <b>Important Disclaimer</b>
+              <b>⚠Important Disclaimer⚠</b><br>
               Statistical results are automated for convenience,
               but users should always verify test assumptions, selections, and 
               outputs using additional tools or expert consultation. This app
@@ -2329,7 +2331,7 @@ server <- shinyServer(function(input, output, session) {
     finaldf <- cbind(formatC(text,format = 'f', digits = as.numeric(input$dpviewDecmP)),
                      Xcord, Ycord)
     colnames(finaldf) <- c('text', 'x', 'y')
-    finaldf$cond <- colnames(data())
+    finaldf$cond <- gsub("[.]",' ',colnames(data()))
     
     if(isTRUE(input$dataGroup)){
       req(dfGmap())
@@ -2341,7 +2343,6 @@ server <- shinyServer(function(input, output, session) {
       for(i in 1:nrow(tempDf)){
         finaldf$x[i] <- ccp[tempDf[i,2]]-1+ccp[tempDf[i,1]]
       }
-      
       return(finaldf)
     }else{
       return(finaldf)
@@ -3326,14 +3327,12 @@ server <- shinyServer(function(input, output, session) {
     } else {
       pF <-  pS +
         geom_segment(segAdd(),
-                     mapping =aes(x = x+0.01, xend = x+0.01, y = y,yend = yendL),
-                     linewidth = input$bracWidth/67,
-                     linejoin = 'mitre')+ 
+                     mapping =aes(x = x, xend = x, y = y,yend = yendL),
+                     linewidth = input$bracWidth/67)+ 
         
         geom_segment(segAdd(),
-                     mapping =aes(x = xend-0.01, xend = xend-0.01, y = yend, yend = yendR),
-                     linewidth = input$bracWidth/67,
-                     linejoin = 'mitre') +
+                     mapping =aes(x = xend, xend = xend, y = yend, yend = yendR),
+                     linewidth = input$bracWidth/67) +
         
         geom_richtext(segAdd(),mapping=aes(x=as.numeric(xT), y=as.numeric(yT),
                                            label=text, family = fontfamily(),
@@ -3468,7 +3467,7 @@ server <- shinyServer(function(input, output, session) {
   
   # Conditional content for Graph panel
   output$graph_main_content <- renderUI({
-    req(data())
+    
     if (!isTruthy(input$submitFile) && !isTruthy(input$pasteBtn)) {
       # No data uploaded or empty data
       div(
@@ -5377,8 +5376,7 @@ server <- shinyServer(function(input, output, session) {
       cc <- dfGmap()[[1]]
       cp <- dfGmap()[[2]]
       ccp <- c(cc,cp)
-      print(head(p))
-      print(ccp)
+      
       ccpL <- outer(cp - 1, cc, `+`) |> as.data.frame() |> 
         t() |> as.vector() # to map 'mx' (below)
       ccpL <- c(ccpL,cp)
@@ -5404,7 +5402,7 @@ server <- shinyServer(function(input, output, session) {
       
       colnames(pnn) <- c('x','xend','pval','text')
       rownames(pnn) <- NULL
-      print(pnn)
+      
     }else{
       colnames(groups) <- c('left', 'right')
       left <- groups$left |> factor(levels = lv ) 
