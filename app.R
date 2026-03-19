@@ -6,7 +6,6 @@
 # options(shiny.trace = TRUE)
 options(encoding = "UTF-8")
 library(shiny)
-library(shinythemes)
 library(shinyjs)
 library(shinyBS)
 library(shinycssloaders)
@@ -20,8 +19,6 @@ library(dplyr)
 library(DT)
 library(stringr)
 library(tidyverse)
-# library(remotes)
-# library(magrittr)
 library(ggplot2)
 library(ggbeeswarm)
 library(ggnewscale)
@@ -39,7 +36,6 @@ library(colourpicker)
 library(bsplus)
 library(bslib)
 library(DescTools)
-library(rclipboard)
 library(lme4)
 library(emmeans)
 library(PMCMRplus)
@@ -51,7 +47,7 @@ library(ARTool)
 library(xlsx)
 
 ## Loading screen theme setting
-# waiter_set_theme(html = spin_2(), color = '#fcfcfc')
+waiter_on_busy(html = spin_2(), color = '#333e48')
 
 ##CSS Custom Styles
 css <- "
@@ -187,6 +183,56 @@ ui <-page_navbar(
     style= "display:inline-flex; flex-direction:row; width:230px;
     height:100%; position:relative; top:-23px"
   ),
+  #JavaScript "Engine" to add markdown at active text input area 
+  #Generated using Gemini and Grok AI
+  tags$script(HTML("
+  var lastFocusedId = null;
+  
+  // Track which newcolname_ input is focused
+  $(document).on('focus', 'input[id^=\"newcolname_\"], #axtitle, #aytitle, #plotTitle', function() {
+    lastFocusedId = this.id;
+    Shiny.setInputValue('active_input', this.id);
+  });
+
+  // NEW: Custom message handler that WRAPS selected text
+  Shiny.addCustomMessageHandler('wrapText', function(data) {
+    var el = document.getElementById(data.id);
+    if (!el) return;
+
+    var start = el.selectionStart;
+    var end   = el.selectionEnd;
+    var text  = el.value;
+
+    var open  = data.open;
+    var close = data.close || '';        // <br> has no closing tag
+
+    var before   = text.substring(0, start);
+    var selected = text.substring(start, end);
+    var after    = text.substring(end);
+
+    var newValue;
+    var newCursorPos;
+
+    if (start === end) {
+      // Nothing selected → insert tags and place cursor BETWEEN them
+      newValue     = before + open + close + after;
+      newCursorPos = start + open.length;
+    } else {
+      // Text is selected → wrap it
+      newValue     = before + open + selected + close + after;
+      newCursorPos = end + open.length + close.length;
+    }
+
+    el.value = newValue;
+    el.focus();
+    el.setSelectionRange(newCursorPos, newCursorPos);
+
+    // Tell Shiny the value changed
+    $(el).trigger('input');
+    $(el).trigger('change');
+  });
+  
+")),
   theme = bs_theme("zephyr", version= 5),
   header = tagList(
     shinyjs::useShinyjs(),
@@ -772,6 +818,13 @@ ui <-page_navbar(
                                       step=1, height="10px")),
                                 div(id='sliderstyle',
                                     noUiSliderInput(
+                                      'dpviewDecmP',
+                                      label = 'Decimal Point Length',
+                                      min = 0, max = 5,
+                                      value = 2, tooltips=TRUE,
+                                      step=1, height="10px")),
+                                div(id='sliderstyle',
+                                    noUiSliderInput(
                                       'dpviewPos',
                                       label = 'Text Vertical Position',
                                       min = 1, max = 100,
@@ -1309,16 +1362,16 @@ ui <-page_navbar(
               )
             )
   ),
-  nav_panel(title = "About", 
+  nav_panel(title = "About",
             div(
               h3("About SEN’sable Plotting"),
               p(strong("SEN’sable Plotting"), "is a lightweight, open-source Shiny app for
               visualizing and statistically analyzing discrete or categorical
-              data—designed as a free, user-friendly alternative to paid software
+              data—designed as a free, user-friendly alternative to paid softwares
               like GraphPad Prism."),
               p("Built with biologists, ecologists, students, and early-career researchers
               in mind, it offers an intuitive, no-code interface to create", strong("publication-ready
-              plots and statistical reports"), "without any knowledge of R code."),
+              plots and statistical reports"), "without any knowledge of R coding."),
               h4("Why this app?"),
               p("R is a powerful language for statistics and visualization,
               backed by base functions and peer-reviewed packages. However,
@@ -1349,12 +1402,12 @@ ui <-page_navbar(
               <li><b>Run statistics</b> (Statistics tab): Auto-detect test type
               (two-sample/multi-sample, parametric/non-parametric) or choose manually.
               Enable post-hoc comparisons if required → submit and generate report.</li>
-              <li><b>Reusable Settings:</b> Save selected settings for later use or
-              import a setting (Excel) file to reuse previous settings to reproduce plots.</li>
               <li><b>Post-hoc details:</b> Select comparison type (control vs. rest or pairwise) and columns → run analysis.</li>
               <li><b>Download & annotate:</b> Export stat report (Excel). 
               Add customizable annotations (p-values, brackets, asterisks) directly
               to plots via the Graph tab.</li>
+              <li><b>Reusable Settings:</b> Save selected settings for later use or
+              import a setting (Excel) file to reuse previous settings to reproduce plots.</li>
               </ol>
               <b>Important Disclaimer</b>
               Statistical results are automated for convenience,
@@ -1485,7 +1538,7 @@ server <- shinyServer(function(input, output, session) {
                              stringsAsFactors = FALSE)
     pastedData <- as.data.frame(pastedData)
     
-    if (!is.null(pastedData) && nrow(pastedData)>0 && isTRUE(is.data.frame(pastedData))){
+    if (nrow(pastedData)>0 && isTRUE(is.data.frame(pastedData))){
       showNotification('Data Pasted Successfully', type = 'message')
       pasteDf$df <- pastedData
     } else {
@@ -1532,8 +1585,8 @@ server <- shinyServer(function(input, output, session) {
         uiOutput("colnames"),
         actionButton('chngColBtn', 'Update Column Header', icon = icon('heading'), 
                      class = "btn-primary"),
-        p('Add <br> in the Column Headers for line break in Major X-Axis Texts',
-          style = "color: grey; font-size:13px;")
+        p("⚠Click to Customize Major X-Axis Texts with Markdown⚠",
+          style = "color: grey; font-size:13px; width:100%; text-align:center;")
       )
     })
   })
@@ -1567,17 +1620,11 @@ server <- shinyServer(function(input, output, session) {
     #Read from uploaded XLSX file
     if (!is.null(file_Path()) && !is.null(input$sheetlist) && isTruthy(input$submitFile)) {
       
-      df_full <- tryCatch(
-        openxlsx::read.xlsx(
-          file_Path()$datapath,
-          sheet = input$sheetlist,
-          colNames = TRUE,
-          skipEmptyRows = TRUE
-        ),
-        error = function(e) {
-          showNotification("Failed to read uploaded file.", type = "error")
-          NULL
-        }
+      df_full <- openxlsx::read.xlsx(
+        file_Path()$datapath,
+        sheet = input$sheetlist,
+        colNames = TRUE,
+        skipEmptyRows = TRUE
       )
     }
     
@@ -1587,7 +1634,7 @@ server <- shinyServer(function(input, output, session) {
     }
     #Check whether correct datatable loaded
     if (is.null(df_full) || !is.data.frame(df_full) || nrow(df_full) == 0 ||
-        isTRUE(has_element(sapply(df_full,is.numeric),FALSE))) {
+        isTRUE(has_element(sapply(df_full,is.numeric),FALSE)) || ncol(df_full)<2) {
       req(input$submitFile>0)
       showNotification("No valid data loaded.", type = "warning")
       return(NULL)
@@ -1627,8 +1674,29 @@ server <- shinyServer(function(input, output, session) {
   
   #Column Rename Modal
   observeEvent(input$chngColBtn, {
+    choice_labels <- c(
+      "<b>B</b>", 
+      "<i>i</i>", 
+      "x&#178", 
+      "x&#8322",
+      "&#8629;"
+    )
+    choice_values <- c(
+      "**", 
+      "*", 
+      "<sup>", 
+      "<sub>",
+      "<br>"
+    )
+    combNames <- setNames(choice_values, choice_labels)
     showModal(modalDialog(
       title = "Update Column Headers",
+      radioGroupButtons(
+        'mdHead',label=NULL,
+        choices = combNames, selected = character(0),
+        justified=  F, individual = T, size = 'sm', width = "500px"
+      ),
+      actionButton('addmdHead', label = c('Add Markdown')),
       uiOutput('newColOut'),
       easyClose = TRUE,
       footer = tagList(
@@ -1648,6 +1716,38 @@ server <- shinyServer(function(input, output, session) {
         value = current_colnames()[i]
       )
     })
+  })
+  # Markdown update
+  # Generated using Gemini and Grok AI
+  # Define what each button should do (open + close tags)
+  markdown_wrappers <- reactive({
+    list(
+      "**"    = list(open = "**",   close = "**"),      # Bold
+      "*"     = list(open = "*",    close = "*"),       # Italic
+      "<sup>" = list(open = "<sup>",close = "</sup>"),  # Superscript
+      "<sub>" = list(open = "<sub>",close = "</sub>"),  # Subscript
+      "<br>"  = list(open = "<br>", close = "")         # Line break (just insert)
+    )
+  })
+  observeEvent(input$addmdHead, {
+    
+    # Safety checks
+    req(input$active_input, input$mdHead)
+    
+    # Get the wrapper safely
+    wrapper <- markdown_wrappers()[[input$mdHead]]
+    
+    if (is.null(wrapper)) {
+      showNotification("Unknown markdown tag selected", type = "warning")
+      return()
+    }
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = wrapper$open,
+      close = wrapper$close
+    ))
   })
   
   # Save renamed columns
@@ -1768,18 +1868,43 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   })
+  
+  
   observeEvent(input$addsymbolTit, {
-    updateTextInput(session,
-                    "plotTitle",
-                    value = paste(input$plotTitle, input$symbolsTit, sep = ''))
+    req(input$active_input, input$symbolsTit)
+    
+    symbol <- input$symbolsTit
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = symbol,
+      close = ""
+    ))
   })
   observeEvent(input$addsymbolY, {
-    updateTextInput(session,
-                    "aytitle",
-                    value = paste(input$aytitle, input$symbolsY, sep = ''))
+    req(input$active_input, input$symbolsY)
+    
+    symbol <- input$symbolsY
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = symbol,
+      close = ""
+    ))
   })
   observeEvent(input$addsymbolX, {
-    updateTextInput(session, "axtitle", value = paste(input$axtitle, input$symbolsX))
+    req(input$active_input, input$symbolsX)
+    
+    symbol <- input$symbolsX
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = symbol,
+      close = ""
+    ))
   })
   
   #Processing markdown
@@ -1789,14 +1914,13 @@ server <- shinyServer(function(input, output, session) {
         "<b>B</b>", 
         "<i>i</i>", 
         "x&#178", 
-        "x&#8322"
+        "x&#8322",
+        "&#8629;"
       )
       choice_values <- c(
-        "**replace this**", 
-        "*replace this*", 
-        "<sup>replace this</sup>", 
-        "<sub>replace this</sub>"
-      )
+        "**", "*", "<sup>", 
+        "<sub>", "<br>")
+      
       combNames <- setNames(choice_values, choice_labels)
       tagList(
         radioGroupButtons(
@@ -1809,23 +1933,37 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   observeEvent(input$addmdTit, {
-    updateTextInput(session,
-                    "plotTitle",
-                    value = paste(input$plotTitle, input$mdTit, sep = ''))
+    # Safety checks
+    req(input$active_input, input$mdTit)
+    
+    # Get the wrapper safely
+    wrapper <- markdown_wrappers()[[input$mdTit]]
+    
+    if (is.null(wrapper)) {
+      showNotification("Unknown markdown tag selected", type = "warning")
+      return()
+    }
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = wrapper$open,
+      close = wrapper$close
+    ))
   })
+  
   output$showMarkdownY <- renderUI({
     if (isTRUE(input$markdownY)) {
       choice_labels <- c(
         "<b>B</b>", 
         "<i>i</i>", 
         "x&#178", 
-        "x&#8322"
+        "x&#8322",
+        "&#8629;"
       )
       choice_values <- c(
-        "**replace this**", 
-        "*replace this*", 
-        "<sup>replace this</sup>", 
-        "<sub>replace this</sub>"
+        "**", "*", "<sup>", 
+        "<sub>", "<br>"
       )
       combNames <- setNames(choice_values, choice_labels)
       tagList(
@@ -1839,9 +1977,20 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   observeEvent(input$addmdY, {
-    updateTextInput(session,
-                    "aytitle",
-                    value = paste(input$aytitle, input$mdy, sep = ''))
+    req(input$active_input, input$mdy)
+    wrapper <- markdown_wrappers()[[input$mdy]]
+    
+    if (is.null(wrapper)) {
+      showNotification("Unknown markdown tag selected", type = "warning")
+      return()
+    }
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = wrapper$open,
+      close = wrapper$close
+    ))
   })
   output$showMarkdownX <- renderUI({
     if (isTRUE(input$markdownX)) {
@@ -1849,13 +1998,12 @@ server <- shinyServer(function(input, output, session) {
         "<b>B</b>", 
         "<i>i</i>", 
         "x&#178", 
-        "x&#8322"
+        "x&#8322",
+        "&#8629;"
       )
       choice_values <- c(
-        "**replace this**", 
-        "*replace this*", 
-        "<sup>replace this</sup>", 
-        "<sub>replace this</sub>"
+        "**", "*", "<sup>", 
+        "<sub>", "<br>"
       )
       combNames <- setNames(choice_values, choice_labels)
       tagList(
@@ -1869,9 +2017,21 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   observeEvent(input$addmdX, {
-    updateTextInput(session,
-                    "axtitle",
-                    value = paste(input$axtitle, input$mdx, sep = ''))
+    req(input$active_input, input$mdx)
+    
+    wrapper <- markdown_wrappers()[[input$mdx]]
+    
+    if (is.null(wrapper)) {
+      showNotification("Unknown markdown tag selected", type = "warning")
+      return()
+    }
+    
+    # Send to JavaScript (wraps selected text!)
+    session$sendCustomMessage("wrapText", list(
+      id    = input$active_input,
+      open  = wrapper$open,
+      close = wrapper$close
+    ))
   })
   #X-Axis rotation processing
   xcolPosH <- reactive({
@@ -2144,33 +2304,49 @@ server <- shinyServer(function(input, output, session) {
     
     temp <- descStat()
     newdf <- data.frame()
-    if (isFALSE(input$dataGroup)){
-      if(isFALSE(input$dpview) || !isTruthy(input$runAnalysisFinal)){
-        text <- rep("",ncol(data()))
-      } else {
-        if (input$dpviewInfo == 'mean'){
-          text <- temp$Mean
-        } else if (input$dpviewInfo == 'median'){
-          text <- temp$Median
-        } else if (input$dpviewInfo == 'count'){
-          text <- temp$N
-        } else if (input$dpviewInfo == 'sd'){
-          text <- temp$`Std. Dev.`
-        } else if (input$dpviewInfo == 'sem'){
-          text <- temp$`Std. Err.`
-        }
+    if(isFALSE(input$dpview) || !isTruthy(input$runAnalysisFinal)){
+      text <- rep("",ncol(data()))
+    } else {
+      if (input$dpviewInfo == 'mean'){
+        text <- temp$Mean
+      } else if (input$dpviewInfo == 'median'){
+        text <- temp$Median
+      } else if (input$dpviewInfo == 'count'){
+        text <- temp$N
+      } else if (input$dpviewInfo == 'sd'){
+        text <- temp$`Std. Dev.`
+      } else if (input$dpviewInfo == 'sem'){
+        text <- temp$`Std. Err.`
       }
-    }  
+    }
     
     minval <- min(na.omit(data()))
     textPosSeq <- seq(-yaxisMax(),yaxisMax(), length.out=100)
     
     Ycord <- as.data.frame(rep(minval)+textPosSeq[input$dpviewPos], ncol(data()))
-    Xcord <- data.frame(1:ncol(data()))
+    Xcord <- if (isTRUE(input$reverseX)) data.frame(ncol(data()):1) else data.frame(1:ncol(data()))
     
-    finaldf <- cbind(formatC(text,format = 'f', digits = 2), Xcord, Ycord)
+    finaldf <- cbind(formatC(text,format = 'f', digits = as.numeric(input$dpviewDecmP)),
+                     Xcord, Ycord)
     colnames(finaldf) <- c('text', 'x', 'y')
-    as.data.frame(finaldf)
+    finaldf$cond <- colnames(data())
+    
+    if(isTRUE(input$dataGroup)){
+      req(dfGmap())
+      
+      ccp <- c(dfGmap()[[1]],dfGmap()[[2]])
+      tempDf <- str_split_fixed(finaldf$cond,':',2)|> as.data.frame()
+      rownames(tempDf) <- NULL
+      
+      for(i in 1:nrow(tempDf)){
+        finaldf$x[i] <- ccp[tempDf[i,2]]-1+ccp[tempDf[i,1]]
+      }
+      
+      return(finaldf)
+    }else{
+      return(finaldf)
+    }
+    
   })
   
   ### Plot Theme processing ###
@@ -2178,10 +2354,10 @@ server <- shinyServer(function(input, output, session) {
   addTheme <- reactive({
     if (input$dataGroup == T && input$choosethemeII == 'paletteG'){
       usertheme <- lapply(seq_along(colorCount()), function(i) {
-        input[[paste("colors", i, sep = '_')]]
+        input[[paste("colorsG", i, sep = '_')]]
       })
       usertheme <- unlist(usertheme)
-      palThemeG(usertheme)
+      # palThemeG$palette <- usertheme
     } else if (input$dataGroup == T && input$choosethemeII == 'defaultG') {
       usertheme <- colorRampPalette(c("#EEE1EF", "#554994"))(length(colorCount()))
     } else {
@@ -2229,6 +2405,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   palTheme <- reactiveValues(palette = list())
+  palThemeG <- reactiveValues(palette = list())
   dpPalTheme <- reactiveValues(palette = list())
   dpPalFillTheme <- reactiveValues(palette = list())
   
@@ -2266,6 +2443,10 @@ server <- shinyServer(function(input, output, session) {
     div(lapply(seq_along(colorCount()), function(i) {
       id <- paste("colors", i, sep = '_')
       initial_val <- isolate(palTheme$palette[[id]])
+      if(isTRUE(input$dataGroup)){
+        id <- paste("colorsG", i, sep = '_')
+        initial_val <- isolate(palThemeG$palette[[id]])
+      }
       if (is.null(initial_val)) initial_val <- "#CCCCCC"
       
       div(colorPickr(
@@ -2274,7 +2455,7 @@ server <- shinyServer(function(input, output, session) {
         selected = initial_val,
         pickr_width = '20%'
       ), style = "width:100px")
-    }), style = "display:inline-flex; flex-wrap:wrap !important; gap:8px;")
+    }), style = "display:inline-flex; flex-wrap:wrap !important; gap:25px;")
   })
   
   output$coltabsOut <- renderUI({
@@ -2287,11 +2468,27 @@ server <- shinyServer(function(input, output, session) {
     req(colorCount())
     
     ids <- paste("colors", seq_along(colorCount()), sep = '_')
+    if(isTRUE(input$dataGroup)){
+      ids <- paste("colorsG", seq_along(colorCount()), sep = '_')
+    }
     
     if (input$choosetheme == 'palette') {
       cols <- lapply(ids, function(x) {
         if (!is.null(palTheme$palette[[x]])) {
           return(palTheme$palette[[x]])
+        } 
+        else if (!is.null(input[[x]])) {
+          return(input[[x]])
+        } 
+        else {
+          return('#CCCCCC')
+        }
+      })
+      return(as.character(unlist(cols)))
+    } else if (input$choosethemeII == 'paletteG') {
+      cols <- lapply(ids, function(x) {
+        if (!is.null(palThemeG$palette[[x]])) {
+          return(palThemeG$palette[[x]])
         } 
         else if (!is.null(input[[x]])) {
           return(input[[x]])
@@ -2307,15 +2504,27 @@ server <- shinyServer(function(input, output, session) {
   })
   observe({
     ## To observe any changes in new palette color inputs and update accordingly
-    req(input$choosetheme == 'palette')
-    ids <- paste("colors", seq_along(colorCount()), sep = '_')
+    if(isTRUE(input$dataGroup)){
+      req(input$choosethemeII == 'paletteG')
+      ids <- paste("colorsG", seq_along(colorCount()), sep = '_')
+    }else{
+      req(input$choosetheme == 'palette')
+      ids <- paste("colors", seq_along(colorCount()), sep = '_')
+    }
+    
     
     for (id in ids) {
       curr_input <- input[[id]]
       if (isTruthy(input$reuseset)){
         palTheme$palette[[id]] <- palTheme$palette[[id]]
+        if (isTRUE(input$dataGroup)){
+          palThemeG$palette[[id]] <- palThemeG$palette[[id]]
+        }
       } else {
         palTheme$palette[[id]] <- curr_input
+        if (isTRUE(input$dataGroup)){
+          palThemeG$palette[[id]] <- curr_input
+        }
       }
     }
   })
@@ -2722,11 +2931,8 @@ server <- shinyServer(function(input, output, session) {
   })
   ## Temporary geom_text condition
   descText <- reactive({
-    if(isTRUE(input$dataGroup)){
-      geom_text(aes(x= 1, y =0, label=""))
-    }else {
-      geom_text(addDataPointLabel(), mapping = aes (x = x, y = y, label = text), size = input$dpviewSize) 
-    }
+    geom_text(addDataPointLabel(), mapping = aes (x = x, y = y, label = text), size = input$dpviewSize) 
+    
   })
   plotinput <- reactive({
     x <- orderdata()
@@ -3176,13 +3382,21 @@ server <- shinyServer(function(input, output, session) {
   })
   
   
+  
+  
   ### Graph Output Processing ###
   output$graphFinal <- renderPlot({
     if (isTruthy(input$runAnalysisFinal)){
       validate(
         need(length(input$grplist) >= 1,
              "Please select at least 1 option to proceed.")
-      )}
+      )
+      validate(
+        need(isTRUE(stored_status()),
+             "Data has changed. Please rerun the statistical analysis.")
+      )
+      
+    }
     plotinput()
   })
   
@@ -4161,6 +4375,7 @@ server <- shinyServer(function(input, output, session) {
     checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
     validate(need(isFALSE(checkColon), ""))
     widedata <- data() |>  dplyr::select(all_of(validStatCols()))
+    colnames(widedata) <- gsub(' ','.', colnames(widedata))
     
     if(isTRUE(input$askPairedssT)){
       widedata$ID <- row.names(widedata)
@@ -4178,6 +4393,7 @@ server <- shinyServer(function(input, output, session) {
     longdata$groups <- factor(longdata$groups)
     
     if(input$paratestType == 'nonpara'){
+      #For Nonparametric post-hoc test
       if(isTRUE(input$askPairedssT)){
         model <- art(data=na.omit(longdata), 
                      formula= val ~ para*groups + (1|ID))
@@ -4209,12 +4425,16 @@ server <- shinyServer(function(input, output, session) {
       phDfA <- phDf_format(phDfA)
       phDfB <- phDf_format(phDfB)
       phDfAB <- phDf_format(phDfAB)
+      phDfA$`Comparison` <- gsub(" - ","-",phDfA$`Comparison`)
+      phDfB$`Comparison` <- gsub(" - ","-",phDfB$`Comparison`)
+      phDfAB$`Comparison` <- gsub(" - ","-",phDfAB$`Comparison`)
       
       phList <- list(phDfA, phDfB, phDfAB)
       names(phList) <- c("Groups", input$legTitle,
                          paste("Groups:", input$legTitle, collapse = '') )
       
     } else {
+      # For Parametric post-hoc test
       if(isTRUE(input$askPairedssT)){
         model <- lme4::lmer(data=na.omit(longdata), 
                             formula = val ~ para*groups + (1|ID))
@@ -4247,7 +4467,11 @@ server <- shinyServer(function(input, output, session) {
       phDfA <- phDf_format(phDfA)
       phDfB <- phDf_format(phDfB)
       phDfAB <- phDf_format(phDfAB)
+      phDfA$`Comparison` <- gsub(" - ","-",phDfA$`Comparison`)
+      phDfB$`Comparison` <- gsub(" - ","-",phDfB$`Comparison`)
+      phDfAB$`Comparison` <- gsub(" - ","-",phDfAB$`Comparison`)
       
+      phDfAB$`Comparison` <- gsub(" ",",",phDfAB$`Comparison`)
       phList <- list(phDfA, phDfB, phDfAB)
     }
     return(phList)
@@ -4526,7 +4750,7 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    # Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
+    Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
     hidePageSpinner()
     removeModal()
     
@@ -4881,23 +5105,23 @@ server <- shinyServer(function(input, output, session) {
     }else{
       grps <- tsTest()
     }
-    
+    first <- as.character(grps[1, 1, drop = TRUE])
     output$statGroups <- renderUI({
-      # if(isTruthy(input$reuseset)){
-      #   text <- "Click the 'Upload' settings button again to reuse previous annotation settings."
-      # } else {
-      #   text <- ""
-      # }
       accordion_panel(
         title= "Customize Plot Annotations",
         
         tagList(
-          # p(text, style = "font-size: 12px; color:#666;"),
-          pickerInput('grplist',
-                      'Select Groups',
-                      choices = grps[,1],
-                      multiple = T,
-                      selected = grps[1,1]),
+          virtualSelectInput('grplist',
+                             label = 'Select Groups',
+                             choices = grps[,1],
+                             multiple = T,
+                             selected = first,
+                             showDropboxAsPopup = TRUE,
+                             popupDropboxBreakpoint = "3000px", 
+                             width = "100%",
+                             dropboxWrapper = "body",
+                             autoSelectFirstOption = TRUE,
+                             showSelectedOptionsFirst = TRUE),
           actionButton('addBrackets','Add Brackets to Plot', width='100%',
                        icon = icon('bars-staggered'), class = 'btn-primary'),
           br(),
@@ -5014,6 +5238,7 @@ server <- shinyServer(function(input, output, session) {
       req(input$askPvalType == 'both')
       updateNoUiSliderInput(session, 'pvalTVpos', value = 100 )
     })
+    
     output$statDnld <- renderUI({
       if(isTRUE(input$dataGroup)){
         checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
@@ -5026,12 +5251,20 @@ server <- shinyServer(function(input, output, session) {
           icon= icon('file-arrow-down'),
           class = "btn-primary"
         ),
-        p("Add significance annotations to the plot from 'Graph' tab.",
-          style="color:#999;")
+        p("⚠Add Significance Brackets and P Value to Your Plot from 'Graph' Tab⚠",
+          style="color:#999; width:100; text-align:center")
       )
       
     })
   }) 
+  observeEvent(input$grplist, {
+    if (length(input$grplist) < 1) {
+      shinyjs::disable("addBrackets")
+    } else {
+      shinyjs::enable("addBrackets")
+    }
+  }, ignoreNULL = FALSE)
+  
   
   ### Significance brackets processing ###
   pvalHalign <- reactive({
@@ -5044,13 +5277,80 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  ## Offset: dodgeWidth*((var-in-grp-0.5)/totGrp - 0.5)
+  ### Processing statistics bracket and p value text positioning ###
+  
+  ## groupedData mapping
+  
+  dfGmap <- reactive({
+    req(isTRUE(input$dataGroup))
+    checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+    
+    if (isFALSE(checkColon)){
+      temp <- str_split_fixed(colnames(data()), ':', 2)
+    } else {
+      showNotification("Column header missing ':'.", type = 'error')
+    }
+    
+    row.names(temp) <- NULL
+    if(isTRUE(input$grpSwitch)){
+      colnames(temp) <- c('Conditions','Groups')
+      colFact <- unique(temp[,1])
+      fillFact <- unique(temp[,2])
+    } else { 
+      colnames(temp) <- c('Groups','Conditions')
+      fillFact <- unique(temp[,1])
+      colFact <- unique(temp[,2])
+    }
+    if(isTRUE(input$reverseX)){
+      fillFact <- rev(fillFact)
+      colFact <- rev(colFact)
+    }
+    x_axis_col <- gsub('[.]', ' ', colFact)
+    
+    x_axis <- c(factor(orderdata()$variable, levels = colFact,
+                       labels = x_axis_col))
+    x <- input$innerDistVio/100
+    
+    
+    n <- length(fillFact)
+    dodge_x <- function(x_base, n, x){
+      start <- x_base - (x / 2)
+      end   <- x_base + (x / 2)
+      slotW <- x / n
+      
+      seq(from = start + (slotW / 2), 
+          to = end - (slotW / 2), 
+          length.out = n)
+    }
+    s <- dodge_x(x_base = 1, n = n, x = x)
+    
+    cc <- setNames(s,gsub('[.]',' ',fillFact))
+    cp <- setNames(as.numeric(unique(x_axis)),gsub('[.]',' ',unique(x_axis)))
+    ccp <- list(cc,cp, colFact, fillFact)
+    
+    return(ccp)
+  })
+  
+  ## Storing column names for validation
+  stored_status <- reactiveVal(FALSE)
+  observeEvent(data(),{
+    stored_status(FALSE)
+  })
+  observeEvent(input$dataGroup,{
+    stored_status(FALSE)
+  })
+  observe({
+    req(input$runAnalysisFinal)
+    stored_status(TRUE)
+  })
+  
   statBrackets <- reactive({
     req(input$grplist)
     req(data())
     
-    sepV <- ifelse(isTRUE(input$dataGroup),' - ', '-')
-    groups <- as.data.frame(str_split(input$grplist,sepV))
+    req(isTRUE(stored_status()))
+    
+    groups <- as.data.frame(str_split(input$grplist,'-'))
     groups <- as.data.frame(t(groups))
     rownames(groups) <- NULL
     
@@ -5061,51 +5361,24 @@ server <- shinyServer(function(input, output, session) {
     }
     
     if(isTRUE(input$dataGroup)){
-      checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
+      colFact <- dfGmap()[[3]]
+      fillFact <- dfGmap()[[4]]
       
-      if (isFALSE(checkColon)){
-        temp <- str_split_fixed(colnames(data()), ':', 2)
-      } else {
-        showNotification('Column header missing ':'.', type = 'error')
-      }
-      
-      row.names(temp) <- NULL
-      if(isTRUE(input$grpSwitch)){
-        colnames(temp) <- c('Conditions','Groups')
-        colFact <- unique(temp[,1])
-        fillFact <- unique(temp[,2])
-      } else { 
-        colnames(temp) <- c('Groups','Conditions')
-        fillFact <- unique(temp[,1])
-        colFact <- unique(temp[,2])
-      }
-      x_axis_col <- gsub('[.]', ' ', colFact)
-      print(head(x_axis_col))
-      x_axis <- c(factor(orderdata()$variable, levels = colFact, labels = x_axis_col))
-      x <- input$innerDistVio/100
       listp <- do.call(rbind,phTestG())
       listid <- match(input$grplist,listp[,1])
       
-      p <- str_split_fixed(listp[,1],' - ',2)|> as.data.frame()
+      p <- str_split_fixed(listp[,1],'-',2)|> as.data.frame()
       
       p <- p  |> mutate(pval = as.numeric(listp[,c(ncol(listp)-1)]), 
                         text = listp[,c(ncol(listp))], id = seq_along(1:nrow(p)))
       p <- p[listid,] # Filtering only the user-selected the comparisons 
+      p <- p |> mutate(V1 = gsub('[.]', ' ', V1), V2 = gsub('[.]', ' ', V2))
       
-      n <- length(fillFact)
-      dodge_x <- function(x_base, n, x){
-        start <- x_base - (x / 2)
-        end   <- x_base + (x / 2)
-        slotW <- x / n
-        
-        seq(from = start + (slotW / 2), 
-            to = end - (slotW / 2), 
-            length.out = n)
-      }
-      s <- dodge_x(x_base = 1, n = n, x = x)
-      cc <- setNames(s,fillFact)
-      cp <- setNames(as.numeric(unique(x_axis)),unique(x_axis))
+      cc <- dfGmap()[[1]]
+      cp <- dfGmap()[[2]]
       ccp <- c(cc,cp)
+      print(head(p))
+      print(ccp)
       ccpL <- outer(cp - 1, cc, `+`) |> as.data.frame() |> 
         t() |> as.vector() # to map 'mx' (below)
       ccpL <- c(ccpL,cp)
@@ -5126,9 +5399,12 @@ server <- shinyServer(function(input, output, session) {
           right <- rbind(right,temp)
         }
       }
+      
       pnn <- data.frame(left, right, p[,3], p[,4])
+      
       colnames(pnn) <- c('x','xend','pval','text')
       rownames(pnn) <- NULL
+      print(pnn)
     }else{
       colnames(groups) <- c('left', 'right')
       left <- groups$left |> factor(levels = lv ) 
@@ -5212,7 +5488,7 @@ server <- shinyServer(function(input, output, session) {
       mx <- setNames(c(mx,longmx_avg$avg_val),ccpL)
       
     }  
-    print(mx)
+    
     if (isTRUE(input$reverseX)){
       mx <- rev(mx)
     }else{
@@ -5292,14 +5568,14 @@ server <- shinyServer(function(input, output, session) {
         } else {
           # APA and NEJM
           if (p_raw <= 0.001) {
-            raw_val <- paste0("p < ", s_prefix, ".001")
+            raw_val <- paste0("<i>p</i> < ", s_prefix, ".001")
           } else if (p_raw <= 0.01) {
-            raw_val <- paste0("p < ", s_prefix, ".01")
+            raw_val <- paste0("<i>p</i> < ", s_prefix, ".01")
           } else if (p_raw <= 0.05) {
-            raw_val <- paste0("p < ", s_prefix, ".05")
+            raw_val <- paste0("<i>p</i> < ", s_prefix, ".05")
           } else {
             s_prefix <- if(p_raw == 1) "" else s_prefix
-            raw_val <- paste0("p = ", s_prefix, ns_p)
+            raw_val <- paste0("<i>p</i> = ", s_prefix, ns_p)
           }
         }
         
@@ -5490,6 +5766,7 @@ server <- shinyServer(function(input, output, session) {
       return(statup)
     } else{
       statup <- statup |> mutate(yendL=y) |> mutate(yendR=yend)
+      
       return(statup)
     }
   })
@@ -5972,6 +6249,7 @@ server <- shinyServer(function(input, output, session) {
         "Descriptive Info View",
         "Descriptive Info Type",
         "Descriptive Info Size",
+        "Descriptive Info Decimal Point",
         "Descriptive Info Position",
         
         # --- Plot Title ---
@@ -6176,6 +6454,7 @@ server <- shinyServer(function(input, output, session) {
         "dpview",
         "dpviewInfo",
         "dpviewSize",
+        "dpviewDecmP",
         "dpviewPos",
         
         # --- Plot Title ---
@@ -6380,6 +6659,7 @@ server <- shinyServer(function(input, output, session) {
         input$dpview,
         input$dpviewInfo,
         input$dpviewSize,
+        input$dpviewDecmP,
         input$dpviewPos,
         
         # --- Plot Title ---
@@ -6545,6 +6825,19 @@ server <- shinyServer(function(input, output, session) {
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    # Grouped Palette themes
+    palSID <- paste("colorsG", seq_along(colorCount()),sep = '_')
+    palSVal <- sapply(palSID, function(id){
+      val <- input[[id]]
+      if (is.null(val)) return('#CCCCCC')
+      return(flattenID(val))
+    })
+    palShape <- data.frame(
+      Parameter = c(rep("Shape Palette Grouped",length(colorCount()))),
+      inputID = palSID,
+      Data = as.character(palSVal) , stringsAsFactors = F
+    )
+    settings_df <- rbind(settings_df,palShape)
     # Data point Palette color themes
     palSID <- paste("colorsdp", seq_along(colorCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
@@ -6657,6 +6950,9 @@ server <- shinyServer(function(input, output, session) {
           if (grepl("col|grad|fill|bg", id, ignore.case = TRUE)) {
             if (grepl("^colors_", id)) {
               palTheme$palette[[id]] <- value
+              if(isTRUE(inout$dataGroup)){
+                palThemeG$palette[[id]] <- value
+              }
             }
             if (grepl("^colorsdp_", id)) {
               dpPalTheme$palette[[id]] <- value

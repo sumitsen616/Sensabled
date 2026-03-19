@@ -4737,36 +4737,6 @@
         "Built": "R 4.5.0; ; 2025-05-07 02:10:32 UTC; windows"
       }
     },
-    "remotes": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "remotes",
-        "Title": "R Package Installation from Remote Repositories, Including\n'GitHub'",
-        "Version": "2.5.0",
-        "Authors@R": "c(\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Winston\", \"Chang\", role = \"aut\"),\n    person(\"Martin\", \"Morgan\", role = \"aut\"),\n    person(\"Dan\", \"Tenenbaum\", role = \"aut\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"Ascent Digital Services\", role = \"cph\")\n  )",
-        "Description": "Download and install R packages stored in 'GitHub', 'GitLab',\n    'Bitbucket', 'Bioconductor', or plain 'subversion' or 'git'\n    repositories.  This package provides the 'install_*' functions in\n    'devtools'. Indeed most of the code was copied over from 'devtools'.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://remotes.r-lib.org, https://github.com/r-lib/remotes#readme",
-        "BugReports": "https://github.com/r-lib/remotes/issues",
-        "Depends": "R (>= 3.0.0)",
-        "Imports": "methods, stats, tools, utils",
-        "Suggests": "brew, callr, codetools, covr, curl, git2r (>= 0.23.0), knitr,\nmockery, pingr, pkgbuild (>= 1.0.1), rmarkdown, rprojroot,\ntestthat (>= 3.0.0), webfakes, withr",
-        "VignetteBuilder": "knitr",
-        "Config/Needs/website": "tidyverse/tidytemplate",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.2.3",
-        "SystemRequirements": "Subversion for install_svn, git for install_git",
-        "NeedsCompilation": "no",
-        "Packaged": "2024-03-17 12:41:55 UTC; gaborcsardi",
-        "Author": "Gábor Csárdi [aut, cre],\n  Jim Hester [aut],\n  Hadley Wickham [aut],\n  Winston Chang [aut],\n  Martin Morgan [aut],\n  Dan Tenenbaum [aut],\n  Posit Software, PBC [cph, fnd],\n  Ascent Digital Services [cph]",
-        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-        "Repository": "CRAN",
-        "Date/Publication": "2024-03-17 13:20:02 UTC",
-        "Built": "R 4.5.0; ; 2025-05-07 00:34:25 UTC; windows"
-      }
-    },
     "reprex": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -6193,10 +6163,16 @@
       "checksum": "05bdb783ee6514c8c072e47680af8ff7"
     },
     "app.R": {
-      "checksum": "62b31879480332f5c772dbe839ca0f32"
+      "checksum": "140c56fe59c13419c43c811d9e4483ea"
+    },
+    "LICENCE.md": {
+      "checksum": "4b7a00d7eacbfe74c763ca25f988ccbf"
     },
     "README.md": {
-      "checksum": "1036f9090023f4b633fbe7663da2bee5"
+      "checksum": "6bfdfc6dd13c6b48f2ccf66aca0f2cac"
+    },
+    "www/app_logo.png": {
+      "checksum": "de33d2ee6e64517df89d81a96f46f274"
     }
   },
   "users": null
