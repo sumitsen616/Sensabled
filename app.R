@@ -5350,6 +5350,9 @@ server <- shinyServer(function(input, output, session) {
     req(isTRUE(stored_status()))
     
     groups <- as.data.frame(str_split(input$grplist,'-'))
+    if(input$ttestType == 'tSt'){
+      groups <- as.data.frame(str_split(input$grplist,' vs '))
+    }
     groups <- as.data.frame(t(groups))
     rownames(groups) <- NULL
     
@@ -5408,7 +5411,6 @@ server <- shinyServer(function(input, output, session) {
       left <- groups$left |> factor(levels = lv ) 
       right <- groups$right |> factor(levels = lv)
     }
-    
     tipL <- 0.02
     gap <- input$gapWidth/1000
     
@@ -5508,7 +5510,6 @@ server <- shinyServer(function(input, output, session) {
                            y = (base_y+(base_y*first)),
                            yend = (base_y+(base_y*first)))
     }
-    
     
     #To order the lowest x on left side always
     statup <- statup |> mutate(x_min=pmin(x,xend),x_max=pmax(x,xend)) |>
