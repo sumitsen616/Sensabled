@@ -34,9 +34,11 @@ Statistical results are automated for convenience, but users should always verif
 SEN’sable Plotting is licensed under the **MIT License** (permissive open-source).
 
 <ul>
-<li><b>Source code:</b> <a href="https://github.com/sumitsen616/Sensabled">
+<li>Source code: <a href="https://github.com/sumitsen616/Sensabled" target="_blank">
             https://github.com/sumitsen616/Sensabled</a></li>
-<li><b>Report bugs, request features, or contribute:</b> <a href="https://github.com/sumitsen616/Sensabled/issues">https://github.com/sumitsen616/Sensabled/issues</a></li>
+                 <li>Report bugs, request features, or contribute:
+                 <a href="https://github.com/sumitsen616/Sensabled/issues" target="_blank">https://github.com/sumitsen616/Sensabled/issues</a></li>
+                 <li><a href="https://github.com/sumitsen616/Sensabled/tags" target="_blank">Release Notes</a></li>
 </ul>
 
 Feedback is very welcome. I actively maintain this tool and appreciate your input to make it better!<br>
