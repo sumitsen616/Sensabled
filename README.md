@@ -1,4 +1,4 @@
-# SEN'sable Plotting v1.0.0-beta
+# SEN'sable Plotting v1.0.0
 **SEN’sable Plotting** is a lightweight, open-source Shiny app for visualizing and statistically analyzing discrete or categorical data—designed as a free, user-friendly alternative to paid software like GraphPad Prism.
 
 Built with biologists, ecologists, students, and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
