@@ -3,17 +3,19 @@
 
 Built with biologists, ecologists, students, and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
 
+<a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">Click to Access the App</a>
+
 **Why this app?**
 R is a powerful language for statistics and visualization, backed by base functions and peer-reviewed packages. However, its learning curve can be a barrier. SEN’sable Plotting removes that barrier by providing a point-and-click experience while leveraging R's robust capabilities under the hood.
 
 **Core Packages**
 <ul>
-<li><b>Framework:</b> Shiny (with shinyBS, shinyjs, shinywidgets, shinycssloaders)</li>
-<li><b>Data handling:</b> openxlsx, DT, tidyverse (dplyr, tidyr, stringr, scales), broom</li>
-<li><b>Plotting:</b> ggplot2 + extensions (ggbeeswarm, ggdist, ggnewscale, ggtext, qqplotr)</li>
-<li><b>Themes & UI:</b> colorspace, colourpicker, bslib, bsplus, waiter, patchwork, extrafont, fontawesome</li>
-<li><b>Statistics:</b> rstatix, DescTools, lme4, emmeans, PMCMRplus, car, ARTool (plus base stats)</li>
-<li><b>Other:</b> svglite, rJava</li>
+<li><b>Framework:</b> Shiny (with <code>shinyBS</code>, <code>shinyjs</code>, <code>shinywidgets</code>, <code>shinycssloaders</code>)</li>
+<li><b>Data handling:</b> <code>openxlsx</code>, <code>DT</code>, <code>tidyverse</code> (<code>dplyr</code>, <code>tidyr</code>, <code>stringr</code>, <code>scales</code>), <code>broom</code></li>
+<li><b>Plotting:</b> <code>ggplot2</code> + extensions (<code>ggbeeswarm</code>, <code>ggdist</code>, <code>ggnewscale</code>, <code>ggtext</code>, <code>qqplotr</code>)</li>
+<li><b>Themes & UI:</b> <code>colorspace</code>, <code>colourpicker</code>, <code>bslib</code>, <code>bsplus</code>, <code>waiter</code>, <code>patchwork</code>, <code>extrafont</code>, <code>fontawesome</code></li>
+<li><b>Statistics:</b> <code>rstatix</code>, <code>DescTools</code>, <code>lme4</code>, <code>emmeans</code>, <code>PMCMRplus</code>, <code>car</code>, <code>ARTool</code> (plus base stats)</li>
+<li><b>Other:</b> <code>svglite</code>, <code>rJava</code></li>
   </ul>
 All packages are open-source and freely available—full session info and dependencies are in the repo for reproducibility.
 
