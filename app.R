@@ -3820,13 +3820,13 @@ server <- shinyServer(function(input, output, session) {
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = ggplot2::mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = mean, fun.min = mean, fun.max = mean,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80))),
       
       "mean_sem" = list(
-        stat_summary(fun.data = ggplot2::mean_se, geom = "errorbar",
+        stat_summary(fun.data = mean_se, geom = "errorbar",
                      color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = mean, fun.min = mean, fun.max = mean,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80))),
@@ -3834,7 +3834,7 @@ server <- shinyServer(function(input, output, session) {
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = ggplot2::median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = median, fun.min = median, fun.max = median,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)))                                       
@@ -3861,17 +3861,17 @@ server <- shinyServer(function(input, output, session) {
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = ggplot2::mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150)),
       
       "mean_sem" = list(
-        stat_summary(fun.data = ggplot2::mean_se, geom = "errorbar",
+        stat_summary(fun.data = mean_se, geom = "errorbar",
                      color = statColor, linewidth = (statLine/50), width = statWidth/150)),
       "median_only" = stat_summary(
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = ggplot2::median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150))                                       
     )
   })
