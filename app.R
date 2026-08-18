@@ -4,41 +4,43 @@
 
 ##Loading Necessary Packages##
 # options(shiny.trace = TRUE)
-options(encoding = "UTF-8")
+# Suppress non-fatal warnings during startup
+options(warn = -1) 
+suppressPackageStartupMessages({
+  #Shiny app builder
 library(shiny)
-library(shinyjs)
 library(shinyBS)
 library(shinycssloaders)
 library(waiter)
 library(shinyWidgets)
-library(rJava)
+  #Data management
 library(openxlsx)
-library(datasets)
 library(tidyr)
-library(dplyr)
 library(DT)
 library(stringr)
 library(tidyverse)
+library(dplyr)
+  #Copy to clipboard
 library(rclipboard)
 library(readr)
-# library(remotes)
-# library(magrittr)
+  #For plot generation
 library(ggplot2)
 library(ggbeeswarm)
 library(ggnewscale)
 library(ggdist)
 library(ggtext)
-library(ggbreak)
 library(patchwork)
 library(qqplotr)
-library(scales)
+  #For Font styles
 library(extrafont)
 library(fontawesome)
+  #Save as SVG
 library(svglite)
+  #Plot and app theme
 library(colorspace)
 library(colourpicker)
-library(bsplus)
 library(bslib)
+  #For Stats
 library(DescTools)
 library(lme4)
 library(emmeans)
@@ -48,14 +50,11 @@ library(stats)
 library(car)
 library(rstatix)
 library(ARTool)
-library(xlsx)
-
-## Loading screen theme setting
-# waiter_on_busy(html = spin_2(), color = '#333e48')
-
+})
+options(encoding = "UTF-8")
 ##CSS Custom Styles
 css <- "
-  body, html { margin:0; padding:0; }
+  body, html { margin:0; padding:0;}
   #DTtip {position:fixed; bottom:50px; left:400px;}
   .noUi-tooltip { padding:1px!important; }
   .noUi-horizontal .noUi-handle { width: 34px!important; height: 12px!important; right: -17px!important; top: -1px!important; }
@@ -90,13 +89,27 @@ css <- "
   #savesetting{text-align: center; font-weight: 500; border-radius: 5px; border: 1px solid #e6e6e6;}
   .groupBtn .pretty input{width:250px; height:35px;}
   .groupBtn{display:flex; align-item: center; justify-content:center; flex-direction:row;}
-  .popover{animation: popDance 0.8s ease-out infinite;font-weight:600!important;}
-  @keyframes popDance {
+  .popover{animation: popFlash 0.8s ease-out infinite;font-weight:600!important;}
+  @keyframes popFlash {
         0%, 100% { box-shadow: 5px 5px 27px 0px rgba(53,88,230,0.14),
         -5px -5px 27px 0px rgba(53,88,230,0.14); }
         25%, 75% { box-shadow: 7px 7px 27px 0px rgba(53,88,230,0.24),
         -7px -7px 27px 0px rgba(53,88,230,0.24); }
   }
+  #demo-text{width: auto; height:50px; display:flex;flex-direction:row; justify-content:center; align-items:center; 
+  margin:auto; padding:10px; position:relative;z-index:999; font-weight:bold;}
+
+  #demo-text::after{content:''; position:absolute; display:block;background:white;
+  height:20px; width:50px; margin-top:10px;margin-left:150px; z-index:10; animation:1s short infinite ease-out;}
+  @keyframes short{
+  0%{transform:translateX(0px); transform-origin:left;}
+  25%{transform:translateX(10px);transform-origin:left;}
+  50%{transform:translateX(20px);transform-origin:left;}
+  75%{transform:translateX(30px);transform-origin:left;}
+  100%{transform:translateX(0px);transform-origin:left;}
+  }
+  #ellipse{font-size:15px; font-weight:bold}
+
 "
 # JavaScript callback to send new column sequence to R
 callback_js <- JS(
@@ -104,7 +117,21 @@ callback_js <- JS(
   "  Shiny.setInputValue('current_column_order', details);",
   "});"
 )
-
+#Preset theme background color
+bgColor <- c(
+  "background: linear-gradient(90deg, #EEE1EF 0%, #554994 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #B5D1AE 0%, #122740 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #9ADA81 0%, #33B061 50%, #054239 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #FDE4DE 0%, #F56093 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #FFAE01 0%, #C70E00 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #1BFFFF 0%, #2E3192 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #FDD700 0%, #8C3617 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #BAE1FF 0%, #FFB3BA 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #F4E867 0%, #DA4B82 50%, #387494 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #2066A8 0%, #EDEDED 50%, #AE282C 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #F5EADA 0%, #768267 50%, #304659 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
+  "background: linear-gradient(90deg, #C0C0C2 0%, #373737 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;"
+)
 # datapoint symbol iconlist
 iconlist <- c(
   "<i class='fa-solid fa-circle'></i>" = 21,        
@@ -118,7 +145,7 @@ iconlist <- c(
   "<i class='fa-solid fa-plus'></i>" = 3,          
   "<i class='fa-solid fa-xmark'></i>" = 4  
 )
-suggestIcon <- icon("circle-check", class = "text-warning")
+
 starVicon <- c(
   "<i class='fa-solid fa-arrows-up-to-line'></i>" = 'bottom',
   "<i class='fa-solid fa-arrows-down-to-line'></i>" = 'top'
@@ -163,12 +190,8 @@ mwz <- function(x, y) {
   
   all_vals <- c(x, y)
   ranks <- rank(all_vals, ties.method = "min")
-  
-  
   rank_x <- ranks[1:n_x]
   rank_y <- ranks[(n_x + 1):(n_x + n_y)]
-  
-  
   ranksum_x <- sum(rank_x)
   ranksum_y <- sum(rank_y)
   rankmean_x <- mean(rank_x)
@@ -197,13 +220,15 @@ mwz <- function(x, y) {
 TabToVec <- function(df){
   dataP <- na.omit(as.vector(df$p.value))
   dataS <- na.omit(as.vector(df$statistic))
-  colnam <- CombPairs(union(colnames(df$p.value),rownames(df$p.value)))
+  colnam <- DescTools::CombPairs(union(colnames(df$p.value),rownames(df$p.value)))
   
   finDF <- data.frame(paste(colnam$X1,'-',colnam$X2),dataS,dataP)
   colnames(finDF) <- c('Comparisons', 'T Statistic', 'Adjusted P Value')
   return(finDF)
 }
+
 set.seed(123)
+
 #######################################
 ####### The UI Code Starts Here #######
 #######################################
@@ -271,16 +296,29 @@ ui <-page_navbar(
   });
   
 ")),
+  #Enable tooltips dynamically for elements added later to the page
+  tags$head(
+    tags$script(HTML("
+    $(document).ready(function(){
+      $('body').tooltip({
+        selector: '[data-toggle=\"tooltip\"]'
+      });
+    });
+  "))
+  ),
+  #bslib theme for the app
   theme = bs_theme("zephyr", version= 5),
   header = tagList(
+    ## Calling functions required in the app
     shinyjs::useShinyjs(),
     shinyjs::inlineCSS(css),
     fontawesome::fa_html_dependency(),
-    useWaiter(),
-    rclipboardSetup()
+    waiter::useWaiter(),
+    rclipboard::rclipboardSetup()
   ),
-  inverse = TRUE,
+  navbar_options = navbar_options(theme = "dark"),
   
+  ### Main Panels ###
   nav_panel(title = "File Upload",
             card(
               card_header("Data View"),
@@ -290,19 +328,20 @@ ui <-page_navbar(
                   width = 350,
                   h4("Data Settings"),
                   div(style = "padding:10px; border:2px solid #C4C4C4; border-radius:10px;",
+                      ## Data Import Options
                       navset_underline(
                         id='sub_ui',
                         nav_panel(
                           title = "Upload",
-                          #Uploading the file
+                          # 1. Import via uploading excel file
                           div(style = "padding:10px;",
                               fileInput('file', 'Choose XLSX File', accept = c('.xlsx'))
                           )
                         ),
                         nav_panel(
                           title = "Paste",
+                          # 2. Import via pasting data table
                           div(style = "padding:10px;",
-                              #Copy-Upload Pasted Data
                               textAreaInput('pasted_Data', label = 'Paste data in the box',rows = 6,
                                             placeholder = "Col1 Col2 Col3 \n12 23 53\n24 45 60"),
                               conditionalPanel(
@@ -318,8 +357,8 @@ ui <-page_navbar(
                         ),
                         nav_panel(
                           title = "Demo Data",
+                          # 3. Using example dataset
                           div(style = "padding:10px;",
-                              #Example data button
                               div(
                                 radioGroupButtons('demoSheetList',
                                                   label = "Select Demo Datatype",
@@ -333,6 +372,7 @@ ui <-page_navbar(
                           )
                         ))
                   ),
+                  ## Additional options for data management as UI render
                   #Choosing the sheet from the xlsx file
                   uiOutput('sheetnames'),
                   #Data grouping selection
@@ -344,7 +384,9 @@ ui <-page_navbar(
                   #Button to open update column header modal
                   uiOutput('colupdateBttn')
                 ), 
+                ### Main Data Table Display ###
                 DTOutput('contents',fill = T),
+                #Renders tips for editing data table
                 uiOutput('DTtipOut')
               )
             )),
@@ -355,18 +397,16 @@ ui <-page_navbar(
                 sidebar = sidebar(
                   width=350,
                   h4("Graph Settings"),
-                  #Adding annotation on plot
                   tagList(
+                  #Renders options for adding annotation brackets on graph
                     uiOutput('grpselect'),
                     uiOutput('askAnnotation')
                   ),
                   accordion(multiple = F, class = 'genAcc', id = 'genAcc',
                             accordion_panel(
                               title = 'Customize Shapes',
-                              # uiOutput('shapeType')
                               
-                              ### Accordion Options for Box-Jitter Plot type ###
-                              
+                              ### Options for Box-Jitter Plot type ###
                               conditionalPanel(
                                 condition = "(input.askPlotTypeII == 'box' && input.dataGroup == false) || 
                                 (input.askPlotTypeIIG == 'box' && input.dataGroup == true) ",
@@ -377,7 +417,7 @@ ui <-page_navbar(
                                               "Box" = 'boxOnly'),
                                   size = 'sm', selected = 'boxpoint'
                                 ),
-                                #Choosing to add Outliers or not
+                                #Choosing to add outliers
                                 prettySwitch(
                                   "outlier",
                                   label = "Mark Outliers",
@@ -410,35 +450,38 @@ ui <-page_navbar(
                                 #Choosing the Jitter Options
                                 conditionalPanel(
                                   condition = "input.boxtype == 'boxpoint'",
-                                  # point scatter width
+                                  #Point scatter width for box plot
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'scatterBox',
                                         label = 'Point Scatter Width',
                                         min = 1, max = 100, value = 30,
                                         tooltips = TRUE, step = 1, height = '10px')),
-                                  # point size 
+                                  #Point size for box plot
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'pointsizeBox',
                                         label = 'Point Size',
                                         min = 1, max = 100, value = 30,
                                         tooltips = TRUE, step = 1, height = '10px')),
-                                  
+                                  #Choosing point shapes the same or different for box plot
                                   switchInput('pointDistBox',
                                               label="Shape Similarity", value=FALSE,
                                               onLabel = "Independent",
                                               offLabel = "Same",
                                               size = 'small'),
-                                  
+                                  #Renders point shapes for individual columns for box plot
                                   conditionalPanel(
                                     condition = "input.pointDistBox && !input.dataGroup",
+                                    #For ungrouped data
                                     uiOutput("pointInpUIBox")
                                   ),
                                   conditionalPanel(
                                     condition = "input.pointDistBox && input.dataGroup",
+                                    #For grouped data
                                     uiOutput("pointInpUIBoxG")
                                   ),
+                                  #Renders point shapes for all columns for box plot
                                   conditionalPanel(
                                     condition = "!input.pointDistBox",
                                     radioGroupButtons(
@@ -447,10 +490,12 @@ ui <-page_navbar(
                                       choices = iconlist,
                                       justified = T, size = 'sm', selected = 21)
                                   ),
+                                  #Point jitter pattern for box-plot
                                   pickerInput(
                                     'pointMethodBox', 'Jitter Pattern',
                                     choices = c('Random' = 'swarm','Square Grid' ='square',
                                                 'Hexgrid' = 'hex', 'Centrally Symmetric' = 'center')),
+                                  #Option to set distance between grouped-box shapes
                                   conditionalPanel(
                                     condition = "input.dataGroup == true",
                                     div(id='sliderstyle',
@@ -469,34 +514,36 @@ ui <-page_navbar(
                                 condition = "(input.askPlotTypeII == 'violin' && input.dataGroup == false ) ||
                                 (input.askPlotTypeIIG == 'violin' && input.dataGroup == true)",
                                 tagList(
-                                  #Choosing vio plot type
+                                  #Choosing violin shape with or without quantile box
                                   radioGroupButtons(
                                     "viotype", "Change plot subtype",
                                     choices = c("Violin-Box", "Violin"),
                                     selected = "Violin-Box", size = 'sm'
                                   ),
+                                  #Line-width for violin shapes
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'linewidthVio',
                                         label = 'Line Width',
                                         min = 0, max = 100, value = 40,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Options for violin shapes when quantile box is present
                                   conditionalPanel(
                                     condition = "input.viotype=='Violin-Box'",
+                                    #Box-width
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'boxWidthVio',
                                           label = 'Box Width',
                                           min = 10, max = 100, value = 30,
                                           tooltips = TRUE, step = 1, height = '10px')),
+                                    #Box-color type
                                     radioGroupButtons(
                                       'boxColVio',
                                       'Box Color',
-                                      choices = c(
-                                        "Shape","Custom"
-                                      ),
-                                      size = 'sm'
-                                    ),
+                                      choices = c("Shape","Custom"),
+                                      size = 'sm'),
+                                    #Custom box-color
                                     conditionalPanel(
                                       condition = "input.boxColVio == 'Custom' ",
                                       colorPickr('boxColCust',
@@ -505,14 +552,17 @@ ui <-page_navbar(
                                                  pickr_width = '20%')
                                     )
                                   ),
+                                  #Options for violin shapes when quantile box is not present
                                   conditionalPanel(
                                     condition = "input.viotype== 'Violin'",
+                                    #Choosing whether to add quantile lines
                                     prettySwitch(
                                       'askQuantLine', label = 'Add Quantile Lines',
                                       value = F, status = 'success', fill = T
                                     ),
                                     conditionalPanel(
                                       condition = "input.askQuantLine == true",
+                                      #Line-width of quantile lines
                                       div(id='sliderstyle',
                                           noUiSliderInput(
                                             'quantLineSize',
@@ -521,10 +571,12 @@ ui <-page_navbar(
                                             tooltips = TRUE, step = 1, height = '10px'))
                                     )
                                   ),
+                                  #Choosing whether to trim ends of violin shapes
                                   prettySwitch(
                                     'endTrim', label = 'Trim Ends', value = TRUE,
                                     status = 'success', fill = T
                                   ),
+                                  #Option to set distance between grouped-violin shapes
                                   conditionalPanel(
                                     condition = "input.dataGroup == true",
                                     div(id='sliderstyle',
@@ -539,6 +591,7 @@ ui <-page_navbar(
                               
                               ### Accordion Options for Jitter Plot type ###
                               
+                              #Jitter scatter-width
                               conditionalPanel(
                                 condition = "input.askPlotTypeII == 'jitter'",
                                 div(id='sliderstyle',
@@ -547,24 +600,25 @@ ui <-page_navbar(
                                       label = 'Point Scatter Width',
                                       min = 1, max = 100, value = 30,
                                       tooltips = TRUE, step = 1, height = '10px')),
-                                # point size 
+                                #Jitter point-size 
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'pointsize',
                                       label = 'Point Size',
                                       min = 1, max = 100, value = 30,
                                       tooltips = TRUE, step = 1, height = '10px')),
-                                
+                                #Choosing point shapes the same or different 
                                 switchInput('pointDist',
                                             label="Shape Similarity", value=FALSE,
                                             onLabel = "Independent",
                                             offLabel = "Same",
                                             size = 'small'),
-                                
+                                #Renders point shapes options for individual data column
                                 conditionalPanel(
                                   condition = "input.pointDist== true",
                                   uiOutput("pointInpUI")
                                 ),
+                                #Point shapes options for all data column
                                 conditionalPanel(
                                   condition = "input.pointDist== false",
                                   radioGroupButtons(
@@ -573,10 +627,12 @@ ui <-page_navbar(
                                     choices = iconlist,
                                     justified = T, size = 'sm', selected = 21)
                                 ),
+                                #Jitter pattern for jitter plot
                                 pickerInput(
                                   'pointMethod', 'Jitter Pattern',
                                   choices = c('Random' = 'swarm','Square Grid' ='square',
                                               'Hexgrid' = 'hex', 'Centrally Symmetric' = 'center')),
+                                #Choosing type of summary statistics to add on jitter plot
                                 pickerInput(
                                   'sum_typeJitter', 'Summary Statistics',
                                   choices = c(
@@ -586,24 +642,28 @@ ui <-page_navbar(
                                     "Median" = "median_only",
                                     "Median with 95% CI" = "median_ci"
                                   )),
+                                #Line-width for summary stat 
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'statLine',
                                       label = 'Stat Summ Line Width',
                                       min = 0, max = 100, value = 50,
                                       tooltips = TRUE, step = 1, height = '10px')),
+                                #Line-width for error bars of summary stat
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'statWidth',
                                       label = 'Stat Summ Bar Width',
                                       min = 0, max = 100, value = 50,
                                       tooltips = TRUE, step = 1, height = '10px')),
+                                #Choosing colors for summary stat lines
                                 colorPickr(
                                   'statColour',
                                   label = 'Stat Summ Line Colour',
                                   selected = '#000000',
                                   pickr_width = "20%"
                                 ),
+                                #Choosing layer position of summary stat over points
                                 radioGroupButtons(
                                   'askSummPos',
                                   label = 'Stat Summ Line Position',
@@ -618,50 +678,58 @@ ui <-page_navbar(
                               conditionalPanel(
                                 condition = "input.askPlotTypeII == 'viopoint'",
                                 tagList(
-                                  #Choosing box plot type
+                                  #Choosing L-R orientation of half-violin
                                   radioGroupButtons(
                                     "slabSide", "Half-Violin Orientation",
                                     choices = c("Left" = 'left', "Right" = 'right'),
                                     selected = "right", size = 'sm'
                                   ),
+                                  #Choosing gap distance between half violin and jitter points
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'slabDistance',
                                         label = 'Adjust Gap',
                                         min = 0, max = 100, value = 0,
                                         tooltips = TRUE, step = 10, height = '10px')),
+                                  #Line-width of half-violin shape
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'linewidthRain',
                                         label = 'Line Width',
                                         min = 0, max = 100, value = 40,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Choosing whether to trim ends of half violin 
                                   prettySwitch(
                                     'endTrimRain', label = 'Trim Ends', value = TRUE,
                                     fill = T, status = 'success'
                                   ),
-                                  # Scatter Plot controls for Raincloud Plot
+                                  ## Options for jitter points for raincloud plot
+                                  #Point scatter-width
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'scatterRain',
                                         label = 'Point Scatter Width',
                                         min = 1, max = 100, value = 30,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Point-size
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'pointsizeRain',
                                         label = 'Point Size',
                                         min = 1, max = 100, value = 30,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Choosing point shapes the same or different
                                   switchInput('pointDistRain',
                                               label="Shape Similarity", value=FALSE,
                                               onLabel = "Independent",
                                               offLabel = "Same",
                                               size = 'small'),
+                                  #Renders point shapes options for individual data column
                                   conditionalPanel(
                                     condition = "input.pointDistRain== true",
                                     uiOutput("pointInpUIRain")
                                   ),
+                                  #Point shapes options for all data column
                                   conditionalPanel(
                                     condition = "input.pointDistRain== false",
                                     radioGroupButtons(
@@ -670,6 +738,7 @@ ui <-page_navbar(
                                       choices = iconlist,
                                       justified = T, size = 'sm', selected = 21)
                                   ),
+                                  #Choosing type of summary statistics to add on raincloud plot
                                   pickerInput(
                                     'sum_typeRain', 'Summary Statistics',
                                     choices = c(
@@ -679,24 +748,28 @@ ui <-page_navbar(
                                       "Median" = "median_only",
                                       "Median with 95% CI" = "median_ci"
                                     )),
+                                  #Line-width for summary stat
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'statLineRain',
                                         label = 'Stat Summ Linewidth',
                                         min = 0, max = 100, value = 50,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Line-width for error bars of summary stat
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'statWidthRain',
                                         label = 'Stat Summ Bar Width',
                                         min = 0, max = 100, value = 50,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Choosing colors for summary stat lines
                                   colorPickr(
                                     'statColourRain',
                                     label = 'Stat Summ Line Colour',
                                     selected = '#000000',
                                     pickr_width = "20%"
                                   ),
+                                  #Choosing layer position of summary stat over points
                                   radioGroupButtons(
                                     'askSummPosRain',
                                     label = 'Stat Summ Line Position',
@@ -706,10 +779,13 @@ ui <-page_navbar(
                                   )
                                 )
                               ),
+                              
+                              ### Accordion Options for Bar Plot type ###
+                              
                               conditionalPanel(
                                 condition = "input.askPlotTypeII == 'bar'",
                                 tagList(
-                                  #Choosing bar-width
+                                  #Bar-width
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'barwidth',
@@ -717,18 +793,20 @@ ui <-page_navbar(
                                         min = 10, max = 100,
                                         value = 60, tooltips=TRUE,
                                         step=1, height="10px")),
-                                  #Choosing bar linewidth
+                                  #Bar line-width
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'linewidthBar',
                                         label = 'Line Width',
                                         min = 0, max = 100, value = 40,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Choosing mean or median to set bar-height
                                   radioGroupButtons(
                                     'barFunc', 'Bar Display',
                                     choices = c('Mean'= 'mean', 'Median' = 'median'),
                                     selected = 'mean', size = 'sm'
                                   ),
+                                  #Choosing options for mean summary stat
                                   conditionalPanel(
                                     condition = "input.barFunc == 'mean'",
                                     pickerInput(
@@ -739,6 +817,7 @@ ui <-page_navbar(
                                         "Mean with SEM" = "mean_sem"
                                       ), selected = 'mean_only')
                                   ),
+                                  #Choosing options for median summary stat
                                   conditionalPanel(
                                     condition = "input.barFunc == 'median'",
                                     pickerInput(
@@ -748,33 +827,39 @@ ui <-page_navbar(
                                         "Median with 95% CI" = "median_ci"
                                       ), selected = 'median_only')
                                   ),
+                                  #Line-width for summary stat
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'statLineBar',
                                         label = 'Stat Summ Linewidth',
                                         min = 0, max = 100, value = 50,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Line-width for error bars of summary stat
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'statWidthBar',
                                         label = 'Stat Summ Bar Width',
                                         min = 0, max = 100, value = 50,
                                         tooltips = TRUE, step = 1, height = '10px')),
+                                  #Choosing colors for summary stat lines
                                   colorPickr(
                                     'statColourBar',
                                     label = 'Stat Summ Line Colour',
                                     selected = '#000000',
                                     pickr_width = "20%"
                                   ),
+                                  #Choosing layer position of summary stat over bars
                                   radioGroupButtons(
                                     'askSide', 'Errorbar Direction',
                                     choices = c('Bothside', 'Outside'),
                                     size = 'sm', selected = 'Bothside'
                                   ),
+                                  #Choosing wheter to add jitter points over bars
                                   prettySwitch(
                                     'askJitter', 'Add Datapoints',
                                     status = 'success', value = F, fill = T
                                   ),
+                                  #Displays important notice if data points are added
                                   conditionalPanel(
                                     condition = "input.askJitter == true",
                                     p("Note: Datapoints are appened from Jitter Plot.
@@ -784,14 +869,19 @@ ui <-page_navbar(
                                   
                                 )
                               ),
+                              
+                              ### Options shown if paired data type is selected ###
+                              
                               conditionalPanel(
                                 condition = "input.askPaired == true || 
                                     input.askPairedssT == true",
+                                #Choosing whether to add connecting lines between shapes
                                 prettySwitch(
                                   'askConnectLine',
                                   'Add Connecting Line',
                                   value = T, fill = T, status = 'success'
                                 ),
+                                #Line-width of connecting line
                                 div(style = "padding:10px; border:1px solid; border-radius:5px;",
                                     div(id='sliderstyle',
                                         noUiSliderInput(
@@ -799,12 +889,14 @@ ui <-page_navbar(
                                           label = 'Line Width',
                                           min = 0, max = 100, value = 50,
                                           tooltips = TRUE, step = 1, height = '10px')),
+                                    #Color of connecting line
                                     colorPickr(
                                       'connectLineCol',
                                       label = 'Line Colour',
                                       selected = '#000000',
                                       pickr_width = "20%"
                                     ),
+                                    #Dash-type for connecting line
                                     pickerInput(
                                       'connectLineType',
                                       label = 'Line Type',
@@ -817,12 +909,17 @@ ui <-page_navbar(
                                 )
                               )
                             ),
+                            
+                            ### Accordion Options for Plot Area ###
+                            
                             accordion_panel(
                               title = 'Customize Plot Area',
+                              #Chossing to add plot grids
                               prettySwitch(
                                 "plotThemeGrid",
                                 label = "Add Grids",status = 'success', fill = T
                               ),
+                              #Grid options
                               conditionalPanel(
                                 condition = "input.plotThemeGrid==true ",
                                 tagList(
@@ -837,19 +934,23 @@ ui <-page_navbar(
                                                                 'White'= 'white',
                                                                 'Grey' = 'grey',
                                                                 'Light Grey' = '#efefef'), size = 'sm'))),
+                              #Choosing to add plot-border
                               prettySwitch(
                                 "plotThemeBorder",
                                 label = "Add Borders",status = 'success', fill = T
                               ),
+                              #Choosing to add plot-background
                               prettySwitch(
                                 "plotThemeBg",
                                 label = "Add Background Colour",status = 'success', fill = T
                               ),
+                              #Plot-background color
                               conditionalPanel(
                                 condition = "input.plotThemeBg== true",
                                 colorPickr('plotColor', label = 'Plot Background',
                                            selected = "#FFFFFF",
                                            pickr_width = '20%')),
+                              #Choosing legends position for grouped-data plot 
                               conditionalPanel(
                                 condition = "input.dataGroup == true",
                                 div(style = "border:1px solid; padding:10px; border-radius:10px; margin-bottom:10px;" ,
@@ -861,6 +962,7 @@ ui <-page_navbar(
                                                             "Bottom"="bottom",
                                                             "Inside" = 'inside'),
                                                 selected = "right"),
+                                    #XY coordinate when legend position is inside
                                     conditionalPanel(
                                       condition = "input.legPos == 'inside'",
                                       p("Click on the box to position the legend.",
@@ -868,6 +970,7 @@ ui <-page_navbar(
                                       plotOutput("legPosPlot", height = "150px",
                                                  click = 'plot_click')
                                     ),
+                                    #Legend text-size
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'legTextSize',
@@ -875,6 +978,7 @@ ui <-page_navbar(
                                           min = 5, max = 30,
                                           value = 12, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Legend title-size
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'legTitleSize',
@@ -882,6 +986,7 @@ ui <-page_navbar(
                                           min = 5, max = 35,
                                           value = 14, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Legend key-size
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'legSize',
@@ -889,6 +994,7 @@ ui <-page_navbar(
                                           min = 50, max = 100,
                                           value = 50, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Legend border line-width
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'legBorderSize',
@@ -897,6 +1003,7 @@ ui <-page_navbar(
                                           value = 50, tooltips=TRUE,
                                           step=1, height="10px")))
                               ),
+                              #Choosing to add descriptive stat info inside the plot
                               prettySwitch(
                                 "dpview",
                                 label = "Add Descriptive Information",
@@ -918,6 +1025,7 @@ ui <-page_navbar(
                                       ),
                                       selected = 'count'
                                     ),
+                                    #Desc stat info text-size
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'dpviewSize',
@@ -925,6 +1033,7 @@ ui <-page_navbar(
                                           min = 3, max = 12,
                                           value = 5, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Desc stat info text markdown style
                                     checkboxGroupButtons(
                                       'dpviewMD',
                                       label = NULL,
@@ -933,10 +1042,10 @@ ui <-page_navbar(
                                       choiceValues = c("bold","italics"),
                                       selected = character(0),
                                       individual = T,
-                                      # justified = T,
                                       width = '100px',
                                       size = 'normal'
                                     ),
+                                    #Desc stat info number decimal point limit
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'dpviewDecmP',
@@ -944,6 +1053,7 @@ ui <-page_navbar(
                                           min = 0, max = 5,
                                           value = 2, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Desc stat info position
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'dpviewPos',
@@ -954,22 +1064,32 @@ ui <-page_navbar(
                                 
                               )
                             ),
+                            
+                            ### Accordion Options for Plot Title ###
+                            
                             accordion_panel(
                               title = 'Customize Plot Title',
+                              #Edit Plot title
                               textInput('plotTitle', 'Plot Title',
                                         placeholder = 'Type plot title',
                                         value = NA),
+                              #Choosing to add special character in plot title text
                               checkboxInput('chksymbolTit', label =
                                               "Add Special Characters", value = F),
+                              #Renders special character options
                               uiOutput('showsymbolTit'),
+                              #Choosing to add markdown style to plot title text
                               checkboxInput('markdownTit', label='Add Markdown', value = F),
+                              #Renders markdown options
                               uiOutput('showMarkdownTit'),
+                              #Choosing title horizontal position
                               radioGroupButtons(
                                 'titlePos', 'Text Alignment',
                                 choices = starHicon,
                                 selected = 'center',
                                 size = 'sm'
                               ),
+                              #Choosing title vertical position
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'verAlign',
@@ -977,6 +1097,7 @@ ui <-page_navbar(
                                     min = 1, max = 100,
                                     value = 25, tooltips=TRUE,
                                     step=1, height="10px")),
+                              #Box-width of plot title
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'bWidthTitle',
@@ -984,6 +1105,7 @@ ui <-page_navbar(
                                     min = 50, max = 100,
                                     value = 100, tooltips=TRUE,
                                     step=1, height="10px")),
+                              #Box-padding for plot title
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'padTitle',
@@ -991,6 +1113,7 @@ ui <-page_navbar(
                                     min = 0, max = 100,
                                     value = 20, tooltips=TRUE,
                                     step=1, height="10px")),
+                              #Box line-width for plot title
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'lineTitle',
@@ -999,6 +1122,9 @@ ui <-page_navbar(
                                     value = 0, tooltips=TRUE,
                                     step=1, height="10px")),
                             ),
+                            
+                            ### Accordion Options for Plot Axes ###
+                            
                             accordion_panel(
                               title = 'Customize Axes',
                               #Y-Axis Title
@@ -1007,10 +1133,15 @@ ui <-page_navbar(
                                 label = "Y-Axis Title",
                                 placeholder = "Type axis title",
                                 value = c("Y-Axis")),
+                              #Choosing to add special character in Y-axis title
                               checkboxInput('chksymbolY', label =
                                               "Add Special Characters", value = F),
-                              checkboxInput('markdownY', label='Add Markdown', value = F),
+                              #Choosing to add markdown style in Y-axis title
+                              checkboxInput('markdownY', label = 
+                                              'Add Markdown', value = F),
+                              #Renders options for special characters (Y-axis)
                               uiOutput('showsymbolY'),
+                              #Renders options for markdown styles (Y-axis)
                               uiOutput('showMarkdownY'),
                               #X-Axis Title
                               textInput(
@@ -1018,12 +1149,16 @@ ui <-page_navbar(
                                 label = "X-Axis Title",
                                 placeholder = "Type axis title",
                                 value = NA),
+                              #Choosing to add special character in X-axis title
                               checkboxInput('chksymbolX', label =
                                               "Add Special Characters", value = F),
-                              checkboxInput('markdownX', label='Add Markdown', value = F),
+                              #Choosing to add markdown style in X-axis title
+                              checkboxInput('markdownX', label = 
+                                              'Add Markdown', value = F),
+                              #Renders options for special characters (X-axis)
                               uiOutput('showsymbolX'),
+                              #Renders options for markdown styles (X-axis)
                               uiOutput('showMarkdownX'),
-                              
                               #X-Axis rotation
                               div(id='sliderstyle',
                                   noUiSliderInput(
@@ -1032,13 +1167,14 @@ ui <-page_navbar(
                                     min = 0, max = 90,
                                     value = 0, tooltips=TRUE,
                                     step=5, height="10px")),
+                              #Choosing to reverse X-axis data columns
                               prettySwitch(
                                 'reverseX',
                                 'Reverse X-Axis',
                                 value=F, status = 'success',
                                 fill=T
                               ),
-                              #Choosing Y-Axis transformation
+                              #Choosing Y-Axis Log transformation
                               radioGroupButtons(
                                 "logscale",
                                 label = "Y-Axis Log Scale",
@@ -1047,6 +1183,7 @@ ui <-page_navbar(
                                   "Log<sub>10</sub>" = "log10",
                                   "Log&#8322" = "log2"
                                 ), size='sm'),
+                              #Choosing Y-axis numerical display type
                               radioGroupButtons(
                                 'labelY',
                                 label = "Y-Axis Number Display",
@@ -1060,16 +1197,18 @@ ui <-page_navbar(
                                 style="display:flex; flex-direction:row;
                                 justify-content:space-between; align-items: center;
                                 width:100%; gap:1em;",
-                                
+                                #Minimum Y axis
                                 numericInputIcon(
                                   'minY',
                                   "Min",
                                   value = NA, min = NULL, max = NULL,
                                 ),
+                                #Maximum Y axis
                                 numericInputIcon(
                                   'maxY',
                                   'Max',
                                   value = NA, min = NULL, max = NULL)),
+                              #Options for adding Y-axis break (To be added later)
                               # prettySwitch(
                               #   'addYBreak',
                               #   'Y-Axis Break', value = F,
@@ -1108,6 +1247,8 @@ ui <-page_navbar(
                               #           value = 50, tooltips=TRUE,
                               #           step=1, height="10px")))
                               # ),
+                              
+                              #Axes line-width
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'axisline',
@@ -1115,6 +1256,7 @@ ui <-page_navbar(
                                     min = 0, max = 100,
                                     value = 50, tooltips=TRUE,
                                     step=1, height="10px")),
+                              #Major tick length
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'ticklength',
@@ -1122,6 +1264,7 @@ ui <-page_navbar(
                                     min = 0, max = 100, value = 30,
                                     step = 1, tooltips = TRUE, height = "10px"
                                   )),
+                              #Major tick width
                               div(id='sliderstyle',
                                   noUiSliderInput(
                                     'tickwidth',
@@ -1129,15 +1272,19 @@ ui <-page_navbar(
                                     min = 0, max = 100, value = 50,
                                     step = 1, tooltips = TRUE, height = "10px"
                                   )),
+                              #Choosing to reverse Y-axis
                               prettySwitch(
                                 'flipPlot',
                                 'Flip Axes', value = F,
                                 status = "success", fill = T
                               )
                             ),
+                            
+                            ### Accordion Options for Universal Font Style ###
+                            
                             accordion_panel(
                               title = 'Customize Font',
-                              #Select type face
+                              #Choosing type face
                               pickerInput(
                                 'font', 'Select Font Family',
                                 choices = c(
@@ -1148,7 +1295,7 @@ ui <-page_navbar(
                                   'Segoe UI', 'Tahoma',
                                   'Times New Roman', 'Verdana'
                                 )),
-                              #Selecting font  size
+                              #Font-size for plot title
                               div(h4('Plot Title'),
                                   div(id='sliderstyle',
                                       noUiSliderInput(
@@ -1159,6 +1306,7 @@ ui <-page_navbar(
                                         step=1, height="10px"))
                               ),
                               div(h4('X-Axis'),
+                                  #Font-size for X-axis texts
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Xfontcol',
@@ -1166,6 +1314,7 @@ ui <-page_navbar(
                                         min = 5, max = 50,
                                         value = 18, tooltips=TRUE,
                                         step=1, height="10px")),
+                                  #Font-size for X-axis title
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Xfontsz',
@@ -1173,6 +1322,7 @@ ui <-page_navbar(
                                         min = 5, max = 50,
                                         value = 18, tooltips=TRUE,
                                         step=1, height="10px")),
+                                  #Choosing linebreak width for X-axis title
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Xlinebreak',
@@ -1181,6 +1331,7 @@ ui <-page_navbar(
                                         value = 75, tooltips=TRUE,
                                         step=1, height="10px"))),
                               div(h4('Y-Axis'),
+                                  #Font-size for Y-axis texts
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Yfontcol',
@@ -1188,6 +1339,7 @@ ui <-page_navbar(
                                         min = 5, max = 50,
                                         value = 18, tooltips=TRUE,
                                         step=1, height="10px")),
+                                  #Font-size for Y-axis title
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Yfontsz',
@@ -1195,6 +1347,7 @@ ui <-page_navbar(
                                         min = 5, max = 50,
                                         value = 18, tooltips=TRUE,
                                         step=1, height="10px")),
+                                  #Choosing linebreak width for Y-axis title
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'Ylinebreak',
@@ -1203,16 +1356,19 @@ ui <-page_navbar(
                                         value = 75, tooltips=TRUE,
                                         step=1, height="10px")))
                             ),
+                            
+                            ### Accordion Options for Shape Theme ###
+                            
                             accordion_panel(
                               title = 'Customize Theme',
-                              #Choosing theme generation
+                              #Choosing type of theme generation for ungrouped data
                               conditionalPanel(
                                 condition = "input.dataGroup == false &&
                                 input.askPlotTypeII != 'jitter'",
+                                #Type of theme options 
                                 pickerInput(
                                   "choosetheme",
                                   label = "Select Theme Generator",
-                                  
                                   choices = c(
                                     "Default" = "default",
                                     "Preset Shades" =
@@ -1222,26 +1378,31 @@ ui <-page_navbar(
                                     "Select Individual" =
                                       'palette'
                                   )
-                                ),conditionalPanel(
+                                ),
+                                #Preset themes
+                                conditionalPanel(
                                   condition = "input.choosetheme == 'preset'",
                                   pickerInput(
                                     "boxtheme",
                                     label = "Preset Themes",
                                     choices = c(
                                       'Purrrrple' = 'purples',
-                                      'Shred of Green' = 'greens',
-                                      'Shred of Green II' = 'greens2',
+                                      'The Teal Deal' = 'greens',
+                                      'Shred of Green' = 'greens2',
                                       'Cherry Blossom' = 'pinks',
-                                      'Center Of the Earth' = 'oranges',
+                                      'Center of the Earth' = 'oranges',
                                       'Cold-feet' = 'blues',
                                       '22K Gold' = 'golds',
                                       'Desaturated Rainbow' = 'rainbows',
                                       'Seasonal Sky' = 'season',
+                                      'Extreme Emotions' = 'heatmap',
                                       'Colourblind Friendly' = 'colorblind',
                                       'London Weather' = 'greys'
-                                    )
+                                    ),
+                                    choicesOpt = list(style = bgColor)
                                   )
                                 ),
+                                #Gradient theme generation
                                 conditionalPanel(
                                   condition = "input.choosetheme == 'gradient'",
                                   colorPickr(
@@ -1251,10 +1412,12 @@ ui <-page_navbar(
                                     'grad2', "Colour 2", selected = '#554994',
                                     pickr_width = '20%')
                                 ),
+                                #Renders color inputs for individual selection
                                 conditionalPanel(
                                   condition = "input.choosetheme == 'palette'",
                                   uiOutput('coltabsOut')
                                 ),
+                                #Choosing border shade for the shapes
                                 radioGroupButtons(
                                   "boxbordercol",
                                   label = "Border Colour",
@@ -1264,21 +1427,26 @@ ui <-page_navbar(
                                   ),
                                   selected = 'dark', size = 'sm'
                                 ),
+                                #Value for light or dark shade
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'shadevalue',
                                       label = 'Border Shade',
                                       min = 0, max = 100, value = 100,
                                       tooltips = TRUE, step = 1, height = '10px')),
+                                #Shape transparency
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'shapeAlpha',
                                       label = 'Shape Opacity',
                                       min = 0, max = 100, value = 100,
                                       tooltips = TRUE, step = 1, height = '10px'))
-                              ), conditionalPanel(
+                              ),
+                              #Choosing type of theme generation for grouped data
+                              conditionalPanel(
                                 condition = "input.dataGroup == true&&
                                 input.askPlotTypeIIG != 'jitter'",
+                                #Type of theme options (currently limited)
                                 pickerInput(
                                   "choosethemeII",
                                   label = "Select Theme Generator",
@@ -1288,6 +1456,7 @@ ui <-page_navbar(
                                       'paletteG'
                                   )
                                 ),
+                                #Choosing border shade for the shapes
                                 radioGroupButtons(
                                   "boxbordercolG",
                                   label = "Border Colour",
@@ -1297,12 +1466,14 @@ ui <-page_navbar(
                                   ),
                                   selected = 'dark', size = 'sm'
                                 ),
+                                #Value for light or dark shade
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'shadevalueG',
                                       label = 'Border Shade',
                                       min = 0, max = 100, value = 100,
                                       tooltips = TRUE, step = 1, height = '10px')),
+                                #Shape transparency
                                 div(id='sliderstyle',
                                     noUiSliderInput(
                                       'shapeAlphaG',
@@ -1310,24 +1481,26 @@ ui <-page_navbar(
                                       min = 0, max = 100, value = 100,
                                       tooltips = TRUE, step = 1, height = '10px'))
                               ),
+                              #Renders color inputs for individual selection
                               conditionalPanel(
                                 condition = "input.choosethemeII == 'paletteG'",
                                 uiOutput('coltabsOutG')
                               ),
-                              
+                              #Choosing grayscale pass for contrast check 
                               radioGroupButtons(
                                 "grayscale",
                                 label = "Display Contrast",
                                 choices = c('Original'="No", 'Grayscale'="Yes"),
                                 size = 'sm'),
                               
-                              #Choosing datapoint colors
+                              #Choosing data point colors for ungrouped data
                               conditionalPanel(
                                 condition = "input.dataGroup == false",
                                 conditionalPanel(
                                   condition = "input.askPlotTypeII == 'box' ||
                                 input.askPlotTypeII == 'viopoint' || 
                                   input.askPlotTypeII == 'jitter'",
+                                  #Point color transparency
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'pointAlpha',
@@ -1335,6 +1508,7 @@ ui <-page_navbar(
                                         min = 0, max = 100, value = 100,
                                         tooltips = TRUE, step = 1, height = '10px'))
                                 ),
+                                #Choosing point outline color theme for box and violin plot type
                                 conditionalPanel(
                                   condition = "input.askPlotTypeII == 'box' ||
                                 input.askPlotTypeII == 'viopoint'",
@@ -1353,6 +1527,7 @@ ui <-page_navbar(
                                     ),
                                     selected = "default"
                                   ),
+                                  #Choosing point fill color theme for box and violin plot type
                                   pickerInput(
                                     "dpfill",
                                     label = "Datapoint Fill Colour",
@@ -1370,6 +1545,7 @@ ui <-page_navbar(
                                   )),
                                 conditionalPanel(
                                   condition = "input.askPlotTypeII == 'jitter'",
+                                #Choosing point outline color theme type for jitter plot type
                                   pickerInput(
                                     "dpcolor",
                                     label = "Datapoint Outline Colour",
@@ -1381,6 +1557,7 @@ ui <-page_navbar(
                                     ),
                                     selected = "default"
                                   ),
+                                  #Choosing point fill color theme type for jitter plot type
                                   pickerInput(
                                     "dpfill",
                                     label = "Datapoint Fill Colour",
@@ -1399,6 +1576,8 @@ ui <-page_navbar(
                                     input.askPlotTypeII == 'viopoint' || input.askPlotTypeII == 'box'",
                                     p("Select Gradient for Datapoint Outline", 
                                       style="font-weight:500;"),
+                                    #Gradient theme generation for outline color for 
+                                    #all plot types with data points
                                     div(style="display:inline-flex; flex-direction:row; gap:5px;",
                                         colorPickr(
                                           'dpgrad1', "Colour 1", selected = '#EEE1EF',
@@ -1416,6 +1595,8 @@ ui <-page_navbar(
                                     input.askPlotTypeII == 'viopoint' || input.askPlotTypeII == 'box'",
                                     p("Select Gradient for Datapoints", 
                                       style="font-weight:500;"),
+                                    #Gradient theme generation for fill color for 
+                                    #all plot types with data points
                                     div(style="display:inline-flex; flex-direction: row;
                                     gap: 5px;",
                                         colorPickr(
@@ -1434,6 +1615,8 @@ ui <-page_navbar(
                                     input.askPlotTypeII == 'viopoint' || input.askPlotTypeII == 'box'",
                                     p("Select Colors for Datapoint Outline", 
                                       style="font-weight:500;"),
+                                    #Renders color inputs for outline color
+                                     #for all plot types with data points (includes grouped data)
                                     uiOutput('dpcoltabsOut')
                                   )
                                 ),
@@ -1444,13 +1627,17 @@ ui <-page_navbar(
                                     input.askPlotTypeII == 'viopoint' || input.askPlotTypeII == 'box'",
                                     p("Select Colors for Datapoints", 
                                       style="font-weight:500;"),
+                                    #Renders color inputs for fill color
+                                    #for all plot types with data points (includes grouped data)
                                     uiOutput('dpfilltabsOut')
                                   )
                                 )
                               ),
+                              #Choosing data point colors for grouped data
                               conditionalPanel(
                                 condition = "input.askPlotTypeIIG == 'box' &&
                                 input.dataGroup == true",
+                                #Choosing theme for data points' outline color
                                 pickerInput(
                                   "dpcolorG",
                                   label = "Datapoint Outline Colour",
@@ -1461,6 +1648,7 @@ ui <-page_navbar(
                                   ),
                                   selected = "default"
                                 ),
+                                #Choosing theme for data points' fill color
                                 pickerInput(
                                   "dpfillG",
                                   label = "Datapoint Fill Colour",
@@ -1473,15 +1661,22 @@ ui <-page_navbar(
                                 )
                               )
                             ),
+                            
+                            ### Accordion Options for Data Significance Annotation ###
+                            
                             accordion_panel(
                               title= "Customize Plot Annotations",
                               value = "annotePanel",
                               tagList(
+                                #Renders list of comparisons to put significance brackets against
                                 uiOutput('statGroups'),
+                                #Button to add or remove brackets
                                 actionButton('addBrackets','Add Brackets to Plot', width='100%',
                                              icon = icon('bars-staggered'), class = 'btn-primary'),
                                 br(),
+                                #Options to customize brackets
                                 div(style = "border:1px solid; border-radius:10px; padding:10px;",
+                                    #Bracket tip-length type
                                     radioGroupButtons(
                                       'askTipType',
                                       'Bracket Type',
@@ -1491,6 +1686,7 @@ ui <-page_navbar(
                                       selected = 'short',
                                       size = 'sm'
                                     ),
+                                    #Vertical position of the brackets
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'firstBrack',
@@ -1498,6 +1694,7 @@ ui <-page_navbar(
                                           min = 1, max = 100,
                                           value = 50, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Inter-bracket distances
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'distWidth',
@@ -1505,6 +1702,7 @@ ui <-page_navbar(
                                           min = 0, max = 100,
                                           value = 15, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Top-margin for brackets
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'topMargin',
@@ -1514,6 +1712,7 @@ ui <-page_navbar(
                                           step=1, height="10px")),
                                     conditionalPanel(
                                       condition = "input.askTipType=='short'",
+                                      #Tip-length if short tips selected
                                       div(id='sliderstyle',
                                           noUiSliderInput(
                                             'tipLength',
@@ -1521,6 +1720,7 @@ ui <-page_navbar(
                                             min = 10, max = 100,
                                             value = 40, tooltips=TRUE,
                                             step=1, height="10px"))),
+                                    #Gaps between brackets in one layer
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'gapWidth',
@@ -1528,6 +1728,7 @@ ui <-page_navbar(
                                           min = 10, max = 100,
                                           value = 30, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Line-width of brackets
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'bracWidth',
@@ -1535,6 +1736,7 @@ ui <-page_navbar(
                                           min = 1, max = 100,
                                           value = 65, tooltips=TRUE,
                                           step=1, height="10px")),
+                                    #Line-color of brackets
                                     colorPickr(
                                       'bracCol',
                                       label = 'Line Colour',
@@ -1542,7 +1744,9 @@ ui <-page_navbar(
                                       pickr_width = "20%"
                                     )),
                                 br(),
+                                #Options for P value and significance star texts
                                 div(style = "border:1px solid; border-radius:10px; padding:10px;",
+                                    #Significance display type
                                     radioGroupButtons(
                                       'askPvalType',
                                       'Significance Report',
@@ -1552,6 +1756,7 @@ ui <-page_navbar(
                                       selected = 'star',
                                       size = 'sm'
                                     ),
+                                    #Journal style for significance display
                                     radioGroupButtons(
                                       'askPvalStyle',
                                       'Style',
@@ -1561,6 +1766,7 @@ ui <-page_navbar(
                                       selected = 'default',
                                       size = 'sm'
                                     ),
+                                    #Significance text font size
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'pvalSize',
@@ -1568,6 +1774,7 @@ ui <-page_navbar(
                                           min = 15, max = 45, value = 25,
                                           tooltips = TRUE, step = 1, height = "10px"
                                         )),
+                                    #Significance text vertical position
                                     div(id='sliderstyle',
                                         noUiSliderInput(
                                           'pvalTVpos',
@@ -1577,6 +1784,7 @@ ui <-page_navbar(
                                           tooltips = TRUE, step = 1, height = "10px"
                                         )),
                                     div(style='display:inline-flex; width:100%; flex-direction:row; align-items:flex-start; justify-content:space-between;',
+                                        #Significance text horizontal position
                                         radioGroupButtons(
                                           'pvalHpos',
                                           label='',
@@ -1584,6 +1792,7 @@ ui <-page_navbar(
                                           selected = 'center',
                                           size = 'sm'
                                         ),br(),
+                                        #Significance text top/bottom position to the brackets
                                         radioGroupButtons(
                                           'pvalVpos',
                                           label='',
@@ -1592,6 +1801,7 @@ ui <-page_navbar(
                                           size = 'sm'
                                         )
                                     ),
+                                    #Significance text color
                                     colorPickr(
                                       'pvalCol',
                                       label = 'Text Colour',
@@ -1601,21 +1811,26 @@ ui <-page_navbar(
                                 br()
                               )
                             )),
-                  tableOutput('test')
                 ),
+                
+                ### Dropdown menu options in the Graph View Tab for general settings###
+                
                 dropdownButton(
                   conditionalPanel(
                     condition = "input.dataGroup == true",
+                    #Options to select data plot type for grouped data
                     pickerInput('askPlotTypeIIG',
                                 label = 'Plot Type',
                                 choices = c("Violin Plot" = 'violin',
                                             "Box-Jitter Plot" = 'box' ),
                                 selected = 'violin', width = '100%'),
+                    #Choosing to switch grouping parameter
                     prettySwitch('grpSwitch', 'Switch Groups', 
                                  status = 'success', value = F, fill = T,
                                  width = "100%")
                   ), conditionalPanel(
                     condition = "input.dataGroup == false",
+                    #Options to select data plot type for ungrouped data
                     pickerInput('askPlotTypeII',
                                 label = 'Plot Type',
                                 choices = c("Violin Plot" = 'violin',
@@ -1625,6 +1840,7 @@ ui <-page_navbar(
                                             "Bar Plot" = 'bar' ),
                                 selected = 'violin', width = '100%')
                   ),
+                  #Canvas color options
                   pickerInput('canvasTheme',
                               label = "Canvas Color",
                               choices = c("Light" = '#FFFFFF00',
@@ -1632,20 +1848,24 @@ ui <-page_navbar(
                                           "Dark"= '#535353'),
                               selected = '#FFFFFF00', width = "100%"),
                   div(
+                    #Edit Plot-width
                     numericInput('width', label = "Plot Width", 
                                  min = 100, max = 800, width = 150,
                                  value = 500, updateOn = 'blur'),
+                    #Button to lock plot aspect ratio (width/height)
                     div(prettyToggle('lockRatio', label_on = NULL, label_off = NULL, 
                                      icon_on = icon('link'), icon_off = icon('link-slash'), 
                                      status_on = 'primary', status_off = 'warning',
                                      fill = F, plain = F, bigger = T, thick = F, 
                                      shape='round', inline = T, width = '0px'),
                         style="width:10px; height:0; margin-right:10px;margin-top:38px;"),
+                    #Edit Plot-height
                     numericInput('height', label = "Plot Height", width = 150,
                                  min = 100, max = 800,
                                  value = 400, updateOn = 'blur'),
                     style = "display:inline-flex; flex-direction:row; gap: 5px; position:relative;"),
                   div(
+                    #Plot zoom-in button
                     actionButton(
                       inputId = "zoomIn",
                       label = "Zoom In",
@@ -1653,6 +1873,7 @@ ui <-page_navbar(
                       size = "100%",
                       title = "Increase Plot Size"
                     ),
+                    #Plot zoom-out button
                     actionButton(
                       inputId = "zoomOut",
                       label = "Zoom Out",
@@ -1660,16 +1881,21 @@ ui <-page_navbar(
                       size = "100%",
                       title = "Decrease Plot Size"
                     ),
+                    #Plot zoom reset to default button
                     actionButton('resetSize','Reset', icon = icon('rotate-left'), title = "Reset Size to Default"),
                     style = "display:inline-flex; flex-direction:row; gap: 5px; position:relative;"  
                   ),
+                  #Button to open modal settings for saving plot 
                   actionButton('saveBtn', 'Save Plot As...', icon = icon("floppy-disk"),
                                width = '100%', title = "Open Save Settings"),
+                  #Download button to save plot
                   downloadButton("savesetting", "Export Settings...", icon = icon("gear"), 
                                  title = "Save your plot settings"),
                   conditionalPanel(
                     condition = "input.sub_ui != 'Demo Data'",
+                    #Plot theme setting file upload link
                     fileInput("usesetting", label = NULL, buttonLabel = "Import Settings...", accept = c(".xlsx"), width = "100%"),
+                    #Button to upload plot theme setting file
                     actionButton("reuseset", "Reuse Settings", icon=icon('file-import'),
                                  title = "Upload Previous Settings", width = "100%"
                     )),
@@ -1677,6 +1903,8 @@ ui <-page_navbar(
                   circle = F, label = "Menu",
                   icon = icon ("bars"), size = 'sm', margin = "10px"
                 ),
+                
+                ## Renders main plot on screen ##
                 uiOutput('graph_main_content')
                 
               ))),
@@ -1687,10 +1915,16 @@ ui <-page_navbar(
                 sidebar = sidebar(
                   width=350,
                   h4("Experimental Settings"),
+                  #Renders options for selecting statistical tests
                   uiOutput('testInput'),
+                  #Renders button for submitting selected statistical
+                   #tests for running analysis
                   uiOutput('submitAnalysis'),
+                  #Renders download button to export full statistics report
                   uiOutput('statDnld')
                 ), 
+                
+                ## Renders full statistical report on screen ##
                 uiOutput('stat_main_content')
                 
               )
@@ -1763,7 +1997,7 @@ ui <-page_navbar(
                  appreciate your input to make it better!
                  '),
               br(),
-              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.0.0 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
+              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.1.0 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
             ),
             style = " width:75%; padding:50px; margin:0 auto;")
 )
@@ -1773,46 +2007,49 @@ ui <-page_navbar(
 ###########################
 
 server <- shinyServer(function(input, output, session) {
-  options(shiny.maxRequestSize = 250 * 1024^2) # Max File size is 250 MB
+  # Sets maximum file size (250 MB) that can be uploaded 
+  options(shiny.maxRequestSize = 250 * 1024^2) 
   
+  #Declaring reactive values
   current_colnames <- reactiveVal(NULL)
   obsBtn <- reactiveValues(submitVal=NULL, pasteVal=NULL, demoVal=NULL)
   submitFileBtn <- reactiveVal(FALSE)
   exampleFileBtn <- reactiveVal(FALSE)
+  demoFile <- reactiveVal(NULL)
+  demoSettFile <- reactiveVal(NULL)
+  sheetTempName <- reactiveVal(NULL)
   
   ## Load demo data file
-  demoFile <- reactiveVal(NULL)
   observeEvent(input$exampleFile,{
     req(input$demoSheetList)
     demoFile(NULL)
     exampleFileBtn(TRUE)
-    file <- openxlsx::read.xlsx('www/Example_data.xlsx', sheet = as.numeric(input$demoSheetList))
+    file <- openxlsx::read.xlsx('data/Example_data.xlsx', sheet = as.numeric(input$demoSheetList))
     demoFile(file)
   })
   ## Load demo setting file
-  demoSettFile <- reactiveVal(NULL)
   observeEvent(input$exampleFile,{
     req(demoFile())
     demoSettFile(NULL)
-    file <- openxlsx::read.xlsx('www/Demo_Settings.xlsx', sheet = as.numeric(input$demoSheetList))
+    file <- openxlsx::read.xlsx('data/Demo_Settings.xlsx', sheet = as.numeric(input$demoSheetList))
     demoSettFile(file)
   })
   
   #Automatic tab change to guide users for demo data plotting and analysis
   observeEvent(input$exampleFile,{
-    show_alert(title = "Data Loading...",
-               text = NULL, type = "info",
+    shinyWidgets::show_alert(title = NULL,
+               text = tags$div(id = "demo-text",HTML("Data Loading <span id='ellipse'>...</span>")), type = "info",
                closeOnClickOutside = FALSE,
                btn_labels = NA)
     nav_select(
       id = "main_ui",
       selected = "Graph"
     )
-    delay(100,{nav_select(
+    shinyjs::delay(100,{nav_select(
       id = "main_ui",
       selected = "Statistics"
     )})
-    delay(150,{confirmSweetAlert(
+    shinyjs::delay(150,{confirmSweetAlert(
       session = session,
       inputId = "confirmDemo",
       title = "Demo Data Loaded!",
@@ -1826,7 +2063,7 @@ server <- shinyServer(function(input, output, session) {
   })
   observeEvent(input$runAnalysisFinal,{
     if (input$sub_ui == 'Demo Data' && isTruthy(input$exampleFile)){
-      delay(2000,{
+      shinyjs::delay(2000,{
         nav_select(
           id = 'main_ui',
           selected = 'Graph'
@@ -1834,42 +2071,23 @@ server <- shinyServer(function(input, output, session) {
       })
     }
   })
-  
-  # observeEvent(input$runAnalysisFinal,{
-  #   nav_select(
-  #     id = "main_ui",
-  #     selected = "Graph"
-  #   )
-  # })
-  
-  #Disable Paste Data Button if XLSX file is uploaded
+
+  #Disables paste data or upload demo data button if XLSX file is uploaded
   observe({
     req(input$file)
     updateActionButton(session = session, 'pasteBtn',
                        'Upload Pasted Data', disabled = T)
+    updateActionButton(session = session, 'exampleFile',
+                       'Upload Example File', disabled = T)
   })
-  # observe({
-  #   req(input$exampleFile)
-  #   updateActionButton(session = session, 'pasteBtn',
-  #                      'Upload Pasted Data', disabled = T)
-  #   updateTextAreaInput(session, 'pasted_Data', label = 'Paste data in the box',
-  #                       placeholder = "Demo data is uploaded.")
-  # })
+  #Disables upload demo data button if data is pasted
   observe({
     req(input$pasteBtn)
     updateActionButton(session = session, 'exampleFile', 'Upload Example File',
                        disabled = T)
   })
-  observe({
-    req(input$file)
-    updateActionButton(session = session, 'exampleFile', 'Upload Example File',
-                       disabled = T)
-  })
-  
-  
-  # Sheet names handler: dynamic update
-  sheetTempName <- reactiveVal(NULL)
-  
+
+  #Sheet names handler: dynamic update
   observeEvent(input$file,{
     req(input$file$datapath)
     
@@ -1901,12 +2119,14 @@ server <- shinyServer(function(input, output, session) {
     exampleFileBtn(FALSE)
   })
   
+  #Rendering options for selecting plot type
   output$fileupload <- renderUI({
     req(data())
     div(style="display:inline-flex;width:100%; flex-direction:column;",
         tagList(
           conditionalPanel(
             condition = "input.dataGroup",
+            #Choosing plot type for grouped data
             pickerInput('askPlotTypeG',
                         label = 'Plot Type',
                         choices = c("Violin Plot" = 'violin',
@@ -1914,6 +2134,7 @@ server <- shinyServer(function(input, output, session) {
                         selected = 'violin')
           ), conditionalPanel(
             condition = "input.dataGroup == false",
+            #Choosing plot type for ungrouped data
             pickerInput('askPlotType',
                         label = 'Plot Type',
                         choices = c("Violin Plot" = 'violin',
@@ -1926,19 +2147,19 @@ server <- shinyServer(function(input, output, session) {
     
   })
   outputOptions(output,"fileupload", suspendWhenHidden = FALSE)
+  #Rendering option for Upload data button
   output$uploadBtnShow <- renderUI({
     req(input$file,sheetTempName())
     actionButton('submitFile', 'Upload Datasheet', icon = icon('file-arrow-up'))
   })
-  
-  
-  
   observeEvent(input$submitFile,{
+    #Dynamically make submit button value true upon button click
     submitFileBtn(TRUE)
-    show_toast(
+    shinyWidgets::show_toast(
       title = "Data Loaded Sucessfully",
       type = "success", timer = 2000
     )
+    #Updates user about excel file upload in the data paste box
     updateTextAreaInput(session, 'pasted_Data', label = 'Paste data in the box',
                         placeholder = "Data uploaded through excel sheet.")
   })
@@ -1948,15 +2169,16 @@ server <- shinyServer(function(input, output, session) {
     updateTextAreaInput(session, 'pasted_Data', value = "")
   })
   
+  #Rendering option for current sheet names from the uploaded excel file
   output$sheetnames <- renderUI({
     req(sheetTempName())
     tagList(
       selectInput("sheetlist", "Select Datasheet",
                   choices = sheetTempName(), selected = sheetTempName()[1])
     )
-    
   })
   
+  #Code for reading pasted data table
   pasteDf <- reactiveValues(df = NULL)
   
   observeEvent(input$pasteBtn,{ 
@@ -1968,11 +2190,12 @@ server <- shinyServer(function(input, output, session) {
                              stringsAsFactors = FALSE)
     pastedData <- as.data.frame(pastedData)
     
+    #checks whether pasted data is a data-frame and gives an alert
     if (nrow(pastedData)>0 && isTRUE(is.data.frame(pastedData))){
       pasteDf$df <- pastedData
-      show_toast(
-        title ='Data Pasted Successfully', type = 'success')
-      
+      shinyWidgets::show_toast(
+        title ='Data Pasted Successfully',
+        type = 'success')
     } else {
       show_alert(
         title = "Invalid Data",
@@ -1980,9 +2203,13 @@ server <- shinyServer(function(input, output, session) {
         type = 'error')
     }
   })
+  
+  #Rendering option to select whether data can be grouped  
   output$grpBtn <- renderUI({
-    req(!is.null(input$file) || (input$pasteBtn > 0 && isTruthy(input$pasted_Data)) ||
-          !is.null(demoFile()))
+    req(!is.null(input$file) ||
+          (input$pasteBtn > 0 && isTruthy(input$pasted_Data)) ||
+            !is.null(demoFile()))
+    #Initial value for toggle button
     grpvalue <- FALSE
     if (input$demoSheetList == 1){
       grpvalue <- FALSE
@@ -1991,6 +2218,7 @@ server <- shinyServer(function(input, output, session) {
     } else {
       grpvalue <- FALSE
     }
+    #Toggle button to decide data grouping
     div(class= 'groupBtn',
         prettyToggle(
           inputId = 'dataGroup',
@@ -2002,6 +2230,7 @@ server <- shinyServer(function(input, output, session) {
         style = "width:100px; text-align:center; display:inline-flex;"
     )
   })
+  #Resets toggle button for data group decision when user loads or pastes new data
   observeEvent(c(input$file, input$pasteBtn),{
     updatePrettyToggle(
       session,
@@ -2010,18 +2239,22 @@ server <- shinyServer(function(input, output, session) {
     )
   })
   
+  #Code to read and collect data column names 
   colNames <- reactive({
     df <- NULL
+    #From uploaded data sheet
     if (!is.null(input$file)){
       req(input$sheetlist)
       df <- openxlsx::read.xlsx(input$file$datapath,
                                 sheet = input$sheetlist,
                                 colNames = TRUE) 
     }
+    # From pasted data
     if (!is.null(pasteDf$df) && isTruthy(input$pasteBtn) && is.null(input$file)){
       df <- NULL
       df <- pasteDf$df
     } 
+    # From demo data file
     if (isTruthy(input$exampleFile) && is.null(input$file) && !is.null(obsBtn$demoVal) ){
       req(demoFile())
       df <- NULL
@@ -2030,11 +2263,32 @@ server <- shinyServer(function(input, output, session) {
     } 
     
     namecol <- colnames(df)
-    namecol <- gsub('-','.',namecol)
+    #removes any default hyphen in the column header (required for statistical analysis)
+    if(has_element(str_detect(namecol,"-"),TRUE)){
+      req(c(obsBtn$submitVal, obsBtn$pasteVal))
+      shinyWidgets::show_toast(title = "Hyphen is not allowed in the column header.
+                               Replaced with '_'",
+                 text = NULL, type = 'warning')
+    }
+    namecol <- gsub('-','_',namecol)
     return(namecol)
   })
   
-  #Processing Two Upload Buttons
+  #Rendering option for column picker UI (after submit or sheet change)
+  output$colnames <- renderUI({
+    req(current_colnames(),isTRUE(submitFileBtn()))
+    pickerInput(
+      inputId = "selectedCols",
+      label = "Select Columns", 
+      choices = current_colnames(),
+      selected = current_colnames(),
+      multiple = TRUE,
+      options = pickerOptions(container = "body", actionsBox = TRUE),
+      width = "100%"
+    )
+  })
+  
+  #Registering corresponding file upload button data to their reactive values
   observeEvent(input$submitFile,{
     obsBtn$submitVal <- input$submitFile
   })
@@ -2046,6 +2300,8 @@ server <- shinyServer(function(input, output, session) {
   })
   
   observeEvent(c(obsBtn$submitVal, obsBtn$pasteVal, obsBtn$demoVal), {
+    #Checks whether data upload button is clicked and registers their column names
+    #and updates list for selecting columns to plot
     current_colnames(colNames())
     updatePickerInput(session, "selectedCols", "Select Columns",
                       choices = current_colnames(), selected = current_colnames())
@@ -2058,8 +2314,9 @@ server <- shinyServer(function(input, output, session) {
     )
     output$colupdateBttn <- renderUI({
       tagList(
-        #Selecting columns to plot
+        #Renders list of column names to be chosen for plotting
         uiOutput("colnames"),
+        #Button to open modal box to change current column names
         actionButton('chngColBtn', 'Update Column Header', icon = icon('heading'), 
                      class = "btn-primary"),
         p("⚠Click to Customize Major X-Axis Texts with Markdown⚠",
@@ -2098,31 +2355,17 @@ server <- shinyServer(function(input, output, session) {
                       choices = current_colnames(), selected = current_colnames())
   })
   
-  # Render column picker UI (after submit or sheet change)
-  output$colnames <- renderUI({
-    req(current_colnames(),isTRUE(submitFileBtn()))
-    pickerInput(
-      inputId = "selectedCols",
-      label = "Select Columns", 
-      choices = current_colnames(),
-      selected = current_colnames(),
-      multiple = TRUE,
-      options = pickerOptions(container = "body", actionsBox = TRUE),
-      width = "100%"
-    )
-  })
-  
-  # Main data reactive: read full sheet, apply current names, then subset
-  # data <- reactiveVal(NULL)
+  ### Main data reactive: read full sheet, apply current names, then subset ###
   
   data <- reactive({
-    # observeEvent(c(input$submitFile,input$exampleFile,input$pasteBtn),{
     df_full <- NULL
     
-    # Data process if excel file is uploaded
+    ## 1. Data process if excel file is uploaded ##
     if (!is.null(input$file) && !is.null(input$sheetlist)) {
       req(input$file,input$sheetlist,isTRUE(submitFileBtn()))
+      
       current_sheets <- openxlsx::getSheetNames(input$file$datapath)
+      #fail-safe if sheet name mismatch
       if (!input$sheetlist %in% current_sheets) {
         show_alert(
           title = "Invalid Sheetname",
@@ -2131,7 +2374,8 @@ server <- shinyServer(function(input, output, session) {
           type = "error"
         )
         return(NULL)
-      } 
+      }
+      #Reads excel file as data frame
       df_full <- openxlsx::read.xlsx(
         input$file$datapath,
         sheet = input$sheetlist,
@@ -2141,41 +2385,46 @@ server <- shinyServer(function(input, output, session) {
       )
     }
     
-    #Data process if data table is pasted
+    ## 2. Data process if data table is pasted ##
     if (is.null(df_full) && !is.null(pasteDf$df) && is.data.frame(pasteDf$df)) {
       df_full <- pasteDf$df
     }
     
-    #Demo data process
-    # if(isTruthy(input$exampleFile)){
+    ## 3. Demo data process ##
     if(!is.null(demoFile()) && is.null(pasteDf$df) &&
        is.null(input$file)){
-      # req(isTRUE(exampleFileBtn()))
       df_full <- demoFile()
     } 
-    # }
     
-    #Check whether correct datatable loaded
+    #Checks whether correct data table loaded
+     # Contains data, numeric, a table, more than  one columns
     if (is.null(df_full) || !is.data.frame(df_full) || nrow(df_full) == 0 ||
         isTRUE(has_element(sapply(df_full,is.numeric),FALSE)) || ncol(df_full)<2) {
       req(input$submitFile>0)
       show_alert(
         title = "Invalid Data",
         text = "No valid data loaded.", type = "error")
+      #When uploaded data is wrong, resets temporary reactive value to store sheet names
+       #to read any change in sheet names when new data is uploaded
       sheetTempName(NULL)
       return(NULL)
     }
     
     #If data group is active then check if the columns names can be grouped
+     #grouping data requires parameters to be separated by ':' in the column header
     if(isTRUE(input$dataGroup)){
       order_data <- df_full |> pivot_longer(names_to = c('variable','groups'),
                                             names_sep = ':',
-                                            values_to = 'val', cols = everything()) |> arrange(variable)
+                                            values_to = 'val',
+                                            cols = everything()) |> arrange(variable)
+      
+      #rejects if there is an ungroupable parameter, 
+       #for e.g. A:X, A:Y, A:Z, B:X, B:Y, B:Z is correct, 
+        #but suddenly A:Q or S:X in the same table is not expected
       eqlN <- order_data |> group_by(variable) |> count()
       eqlG <- order_data |> group_by(groups) |> count()
       eqlN_len <- length(unique(eqlN$n))
       eqlG_len <- length(unique(eqlG$n))
-      
       if(eqlN_len != 1 || eqlG_len != 1){
         show_alert(title = "Invalid Column Name",
                    text = "Please check there is no mismatch in column headers.",
@@ -2186,13 +2435,13 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     
-    # Use current_colnames() to rename
+    # Use current_colnames() to rename the dataset if number of columns matches
     if (ncol(df_full) == length(current_colnames())) {
-      df_full <- df_full[,current_colnames()]
       colnames(df_full) <- current_colnames()
+      df_full <- df_full[,current_colnames()]
     } else {
       req(input$submitFile>0)
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text ="Column count mismatch after loading — using original names.",
         type = "warning")
@@ -2203,20 +2452,17 @@ server <- shinyServer(function(input, output, session) {
     selected <- intersect(selected, colnames(df_full))
     
     if (length(selected) == 0) {
-      show_toast(title = "No valid columns selected.", type = "warning")
+      shinyWidgets::show_toast(title = "No valid columns selected.", type = "warning")
       return(NULL)
     }
+    
     df_full[, selected, drop = FALSE]
-    # df_full[, drop = FALSE]
-    # data(df_full)
   })  
   
-  # })
-  
-  # Data table
+  # Renders Main Data table
   output$contents <- renderDT({
     req(data())
-    
+    #columns can be reordered, data can be edited
     DT::datatable(as.data.frame(data()), 
                   editable = TRUE,
                   rownames = F,
@@ -2229,7 +2475,7 @@ server <- shinyServer(function(input, output, session) {
     
   })
   
-  #Data table info button
+  #Data table info button and list of suggestions
   output$DTtipOut <- renderUI({
     req(data())
     dropMenu(
@@ -2248,8 +2494,9 @@ server <- shinyServer(function(input, output, session) {
       hideOnClick = TRUE, icon = icon('circle-question'), theme='material')
   })
   
-  #Column Rename Modal
+  #Code for renaming column headers
   observeEvent(input$chngColBtn, {
+    #Markdown styles list
     choice_labels <- c(
       "<b>B</b>", 
       "<i>i</i>", 
@@ -2265,26 +2512,32 @@ server <- shinyServer(function(input, output, session) {
       "<br>"
     )
     combNames <- setNames(choice_values, choice_labels)
+    #Modal to show column headers text inputs
     showModal(modalDialog(
       title = "Update Column Headers",
+      #Markdown list
       radioGroupButtons(
         'mdHead',label=NULL,
         choices = combNames, selected = character(0),
         justified=  F, individual = T, size = 'sm', width = "500px"
       ),
+      #Button to add the markdown
       actionButton('addmdHead', label = c('Add Markdown')),
+      #Renders the text inputs for data columns for editing
       uiOutput('newColOut'),
       easyClose = TRUE,
       footer = tagList(
         modalButton("Cancel"),
+        #Button to finalize the changes in column headers
         actionButton("saveColNames", "Save Changes", class = "btn-primary")
       )
     ))
   })
   
-  # Modal inputs – default to CURRENT names
+  # Modal showing current column names to be edited
   output$newColOut <- renderUI({
     req(data())
+    #Dynamically creates text inputs for individual column names
     lapply(seq_along(data()), function(i) {
       textInput(
         paste0("newcolname_", i),
@@ -2293,7 +2546,7 @@ server <- shinyServer(function(input, output, session) {
       )
     })
   })
-  # Markdown update
+  # Markdown update with selected-text wrapping feature
   # Generated using Gemini and Grok AI
   # Define what each button should do (open + close tags)
   markdown_wrappers <- reactive({
@@ -2314,7 +2567,7 @@ server <- shinyServer(function(input, output, session) {
     wrapper <- markdown_wrappers()[[input$mdHead]]
     
     if (is.null(wrapper)) {
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text = "Unknown markdown tag selected", type = "warning")
       return()
@@ -2328,7 +2581,7 @@ server <- shinyServer(function(input, output, session) {
     ))
   })
   
-  # Save renamed columns
+  # Saves renamed columns
   observeEvent(input$saveColNames, {
     req(current_colnames())
     old_names <- current_colnames()
@@ -2369,14 +2622,14 @@ server <- shinyServer(function(input, output, session) {
     current_colnames(new_names)
     removeModal()
     
-    # Preserve selection by matching old names
+    # Preserve selection by matching old names for selected columns
     selected_new <- new_names[old_names %in% (input$selectedCols %||% old_names)]
     updatePickerInput(session, "selectedCols",
                       choices = new_names, selected = selected_new)
     
   })
   
-  
+  #Live updates selected plot type between File Upload and Graph View page
   observeEvent(input$askPlotType, {
     updatePickerInput(session, "askPlotTypeII", selected = input$askPlotType)
   })
@@ -2392,15 +2645,22 @@ server <- shinyServer(function(input, output, session) {
   })
   
   
-  # Arranging Input Raw Data for plotting
+  ## Processing Input Raw Data for plotting ##
+  
   orderdata <- reactive({
     req(data())
+
     if (input$dataGroup == T){
+      # If data grouping is selected
+      
+      #Grouping parameter selected by user 
+       #(Parameter name present before or after ':' in column header )
       if(isTRUE(input$grpSwitch)){
         colsOrder <- c("variable", "groups")
       } else { 
         colsOrder <- c("groups","variable")
       }
+      #Converting wide to long data format required for ggplot()
       order_data <-
         data() |> pivot_longer(cols = everything(),
                                names_to = colsOrder,
@@ -2408,6 +2668,8 @@ server <- shinyServer(function(input, output, session) {
                                values_to = "value") |>
         arrange(variable)
     } else {
+      # If data grouping is not selected
+      #Converting wide to long data format required for ggplot()
       order_data <-
         data() |> pivot_longer(cols = everything(),
                                names_to = "variable",
@@ -2416,14 +2678,18 @@ server <- shinyServer(function(input, output, session) {
     return(order_data)
   })
   
-  ### Graph Axis Processing ###
+  ### Server side calculation or processing for different plot-related functions ###
+  
+  ## Graph Axis Processing
   axistitleY <- reactive({
     aytitle <- as.character(req(input$aytitle))
   })
   axistitleX <- reactive({
     axtitle <- (input$axtitle)
   })
-  #Processing special characters
+  
+  ## Rendering options for special characters
+  #Plot title
   output$showsymbolTit <- renderUI({
     if (input$chksymbolTit == T) {
       tagList(
@@ -2440,6 +2706,7 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   })
+  #Y-axis title
   output$showsymbolY <- renderUI({
     if (input$chksymbolY == T) {
       tagList(
@@ -2456,6 +2723,7 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   })
+  #X-axis title
   output$showsymbolX <- renderUI({
     if (input$chksymbolX == T) {
       tagList(
@@ -2473,7 +2741,8 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  
+  ## Adds speacial characters
+  #Plot title
   observeEvent(input$addsymbolTit, {
     req(input$active_input, input$symbolsTit)
     
@@ -2486,6 +2755,7 @@ server <- shinyServer(function(input, output, session) {
       close = ""
     ))
   })
+  #Y-axis title
   observeEvent(input$addsymbolY, {
     req(input$active_input, input$symbolsY)
     
@@ -2498,6 +2768,7 @@ server <- shinyServer(function(input, output, session) {
       close = ""
     ))
   })
+  #X-axis title
   observeEvent(input$addsymbolX, {
     req(input$active_input, input$symbolsX)
     
@@ -2511,7 +2782,8 @@ server <- shinyServer(function(input, output, session) {
     ))
   })
   
-  #Processing markdown
+  ## Rendering options for markdown
+  #Plot-title
   output$showMarkdownTit <- renderUI({
     if (isTRUE(input$markdownTit)) {
       choice_labels <- c(
@@ -2544,7 +2816,7 @@ server <- shinyServer(function(input, output, session) {
     wrapper <- markdown_wrappers()[[input$mdTit]]
     
     if (is.null(wrapper)) {
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text = "Unknown markdown tag selected", type = "warning")
       return()
@@ -2557,7 +2829,7 @@ server <- shinyServer(function(input, output, session) {
       close = wrapper$close
     ))
   })
-  
+  #Y-axis title
   output$showMarkdownY <- renderUI({
     if (isTRUE(input$markdownY)) {
       choice_labels <- c(
@@ -2587,7 +2859,7 @@ server <- shinyServer(function(input, output, session) {
     wrapper <- markdown_wrappers()[[input$mdy]]
     
     if (is.null(wrapper)) {
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text = "Unknown markdown tag selected", type = "warning")
       return()
@@ -2600,6 +2872,7 @@ server <- shinyServer(function(input, output, session) {
       close = wrapper$close
     ))
   })
+  #X-axis title
   output$showMarkdownX <- renderUI({
     if (isTRUE(input$markdownX)) {
       choice_labels <- c(
@@ -2630,7 +2903,7 @@ server <- shinyServer(function(input, output, session) {
     wrapper <- markdown_wrappers()[[input$mdx]]
     
     if (is.null(wrapper)) {
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text = "Unknown markdown tag selected", type = "warning")
       return()
@@ -2643,7 +2916,9 @@ server <- shinyServer(function(input, output, session) {
       close = wrapper$close
     ))
   })
-  #X-Axis rotation processing
+  
+  
+  ## X-Axis text position horizontally
   xcolPosH <- reactive({
     if(input$Xrotate == 0){
       return(0.5)
@@ -2652,6 +2927,7 @@ server <- shinyServer(function(input, output, session) {
     }
     # seq(0.5, 1, length.out = 90)
   })
+  ## X-Axis text position vertically
   xcolPosV <- reactive({
     if(input$Xrotate == 90){
       return(0.5)
@@ -2660,16 +2936,16 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  #Y axis log transformation
+  ## Y axis log transformation
   logaxis <- reactive({
     logscale <- switch(input$logscale,
                        none = 'identity', log10 = 'log10', log2 = 'log2')
   })
-  #Plot Title Text alignment 
+  ## Plot Title Text alignment 
   titlePlot <- reactive({
     plotT <- switch(input$titlePos, left = 0, center = 0.5, right = 1)
   })
-  #Y axis scientific transformation
+  ## Y axis scientific transformation
   Ycontax <- reactive({
     if (input$labelY=='Scientific'){
       scale_y_continuous (labels=scales::scientific, trans = logaxis(),
@@ -2678,7 +2954,7 @@ server <- shinyServer(function(input, output, session) {
       scale_y_continuous (trans = logaxis(), expand = c(0,0.1))
     }
   })
-  #Y axis maximum and minimum range
+  ## Y axis maximum and minimum range
   yaxisMin <- reactive({
     if (is.na(input$minY) == TRUE) {
       min_val <- NA
@@ -2699,17 +2975,30 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  ## Plot Customization ##
-  shapeBox <- reactiveValues(shapes = list())
-  shapeRain <- reactiveValues(shapes = list())
-  shapeJitter <- reactiveValues(shapes = list())
+  ### Plot Customization ###
+  
+  #Storing reactive values for individual point shape for different plot types
+  shapeBox <- reactiveValues(shapes = list()) #Box-jitter plot
+  shapeRain <- reactiveValues(shapes = list()) #Rain-cloud plot
+  shapeJitter <- reactiveValues(shapes = list()) #Jitter plot
+  
+  #Count column numbers
+  colCount <- reactive({
+    if (isTRUE(input$dataGroup)) {
+      return(unique(orderdata()$groups))
+    } else {
+      return(data())
+    }
+  })
   
   # Datapoint shapes For Box-Jitter Plot
   dpshapeBox <- reactive({
     if (isFALSE(input$pointDistBox)) {
-      dpshapes <- rep(c(input$pointshapeBox), length(colorCount()))
+      #Assigns same point shape to all
+      dpshapes <- rep(c(input$pointshapeBox), length(colCount()))
     } else if (isTRUE(input$pointDistBox)) {
-      dpshapes <- lapply(seq_along(colorCount()), function(i) {
+      #Assigns individual point shapes
+      dpshapes <- lapply(seq_along(colCount()), function(i) {
         input[[paste("pointshapeBox", i, sep = '_')]]
       })
     }
@@ -2717,14 +3006,14 @@ server <- shinyServer(function(input, output, session) {
   })
   pointShapeBoxOut <- reactive({
     req(data(), current_colnames())
-    if (input$dataGroup == T){
-      cols <- length(colorCount())
-      coln <- colorCount()
+    if (isTRUE(input$dataGroup)){
+      cols <- length(colCount())
+      coln <- colCount()
     } else {
       cols <- ncol(data())
       coln <- colnames(data())
     }
-    # Generate the list of buttons
+    # Generates the list of buttons for individual columns
     div(
       class = "truncated_title_point",
       lapply(seq_len(cols), function(i) {
@@ -2741,15 +3030,17 @@ server <- shinyServer(function(input, output, session) {
       ))
   })
   output$pointInpUIBox <- renderUI({
+    req(isFALSE(input$dataGroup)) #Important
     pointShapeBoxOut()
   })
   output$pointInpUIBoxG <- renderUI({
+    req(isTRUE(input$dataGroup)) #Important
     pointShapeBoxOut()
   })
   observe({
     ## To observe any changes in new point shape box inputs and update accordingly
     req(data(),isTRUE(input$pointDistBox))
-    ids <- paste("pointshapeBox", seq_along(colorCount()), sep = '_')
+    ids <- paste("pointshapeBox", seq_along(colCount()), sep = '_')
     
     for (id in ids) {
       curr_input <- input[[id]]
@@ -2760,12 +3051,15 @@ server <- shinyServer(function(input, output, session) {
       }
     }
   })
+  
   #Datapoint shapes for Jitter Plot
   dpshape <- reactive({
     if (isFALSE(input$pointDist)) {
+      #Assigns same point shape to all
       dpshapes <- rep(c(input$pointshape), ncol(data()))
     } else if (isTRUE(input$pointDist)) {
-      dpshapes <- lapply(seq_along(colorCount()), function(i) {
+      #Assigns individual point shapes
+      dpshapes <- lapply(seq_along(colCount()), function(i) {
         input[[paste("pointshape", i, sep = '_')]]
       })
     }
@@ -2775,7 +3069,7 @@ server <- shinyServer(function(input, output, session) {
     req(data()) 
     cols <- ncol(data())
     coln <- colnames(data())
-    # Generate the list of buttons
+    # Generate the list of buttons for individual columns
     div(
       class = "truncated_title_point",
       lapply(seq_len(cols), function(i) {
@@ -2794,7 +3088,7 @@ server <- shinyServer(function(input, output, session) {
   observe({
     ## To observe any changes in new point shape jitter inputs and update accordingly
     req(data(),isTRUE(input$pointDist))
-    ids <- paste("pointshape", seq_along(colorCount()), sep = '_')
+    ids <- paste("pointshape", seq_along(colCount()), sep = '_')
     
     for (id in ids) {
       curr_input <- input[[id]]
@@ -2809,8 +3103,10 @@ server <- shinyServer(function(input, output, session) {
   # Datapoint shapes For Raincloud Plot
   dpshapeRain <- reactive({
     if (isFALSE(input$pointDistRain)) {
+      #Assigns same point shape to all
       dpshapes <- rep(c(input$pointshapeRain), ncol(data()))
     } else if (isTRUE(input$pointDistRain)) {
+      #Assigns individual point shapes
       dpshapes <- lapply(seq_along(data()), function(i) {
         input[[paste("pointshapeRain", i, sep = '_')]]
       })
@@ -2821,7 +3117,7 @@ server <- shinyServer(function(input, output, session) {
     req(data()) 
     cols <- ncol(data())
     coln <- colnames(data())
-    # Generate the list of buttons
+    # Generate the list of buttons for individual columns
     div(
       class = "truncated_title_point",
       lapply(seq_len(cols), function(i) {
@@ -2840,7 +3136,7 @@ server <- shinyServer(function(input, output, session) {
   observe({
     ## To observe any changes in new point shape raincloud inputs and update accordingly
     req(data(),isTRUE(input$pointDistRain))
-    ids <- paste("pointshapeRain", seq_along(colorCount()), sep = '_')
+    ids <- paste("pointshapeRain", seq_along(colCount()), sep = '_')
     
     for (id in ids) {
       curr_input <- input[[id]]
@@ -2852,12 +3148,14 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
+  ## Internal value adjusting for ggplot features
+  #Point scatter for box plot
   addScatterBox <- reactive({
     if (input$boxtype == "boxpoint") {
       scatter <- (input$scatterBox)/25
     }
   })
-  
+  #Point size for box plot
   addPointBox <- reactive({
     if (input$boxtype == "boxpoint") {
       (input$pointsizeBox)/30
@@ -2911,6 +3209,8 @@ server <- shinyServer(function(input, output, session) {
       element_blank()
     }
   })
+  
+  #Resets summary stat info display button until statistical tests are performed
   observe({
     req(input$dpview)
     if (!isTruthy(input$runAnalysisFinal) && isTRUE(input$dpview)){
@@ -2918,7 +3218,7 @@ server <- shinyServer(function(input, output, session) {
     }
     
   })
-  #Datapoint count processing
+  #Summary Stat Info processing
   addDataPointLabel <- reactive({
     
     if (!isTruthy(input$runAnalysisFinal) && isTRUE(input$dpview)){
@@ -2928,7 +3228,7 @@ server <- shinyServer(function(input, output, session) {
         text = 'Please run statistical analysis first.', type = 'warning')
     }
     
-    temp <- descStat()
+    temp <- descStat() # Draws from descriptive statistical analysis
     newdf <- data.frame()
     if(isFALSE(input$dpview) || !isTruthy(input$runAnalysisFinal)){
       text <- rep("",ncol(data()))
@@ -2945,8 +3245,8 @@ server <- shinyServer(function(input, output, session) {
         text <- temp$`Std. Err.`
       }
     }
-    
-    minval <- min(na.omit(data()))
+    #Setting up X and Y coordinates to position the Desc Stat Info
+    minval <- min(data(), na.rm = TRUE)
     textPosSeq <- seq(-yaxisMax(),yaxisMax(), length.out=100)
     
     Ycord <- as.data.frame(rep(minval)+textPosSeq[input$dpviewPos], ncol(data()))
@@ -2957,6 +3257,7 @@ server <- shinyServer(function(input, output, session) {
     colnames(finaldf) <- c('text', 'x', 'y')
     finaldf$cond <- gsub("[.]",' ',colnames(data()))
     
+    #Readjusting X-Y position for grouped data (there is spacing between groups)
     if(isTRUE(input$dataGroup)){
       req(dfGmap())
       
@@ -2968,11 +3269,15 @@ server <- shinyServer(function(input, output, session) {
       for(i in 1:nrow(tempDf)){
         finaldf$x[i] <- ccp[tempDf[i,2]]-1+ccp[tempDf[i,1]]
       }
+      
+      #Revereses desc stat info X position
       if (isTRUE(input$reverseX)){
         if(isTRUE(input$grpSwitch)){
-          finaldf <- finaldf |> arrange(V1) |> group_by(V1) |> mutate(x = rev(x)) |> ungroup()
+          finaldf <- finaldf |> arrange(V1) |> group_by(V1) |>
+            mutate(x = rev(x)) |> ungroup()
         } else{
-          finaldf <- finaldf |> arrange(V1) |> group_by(V2) |> mutate(x = rev(x)) |> ungroup()
+          finaldf <- finaldf |> arrange(V1) |> group_by(V2) |>
+            mutate(x = rev(x)) |> ungroup()
         }
       }else{
         finaldf <- finaldf |> arrange(V1)
@@ -2982,31 +3287,35 @@ server <- shinyServer(function(input, output, session) {
     }else{
       return(finaldf)
     }
-    
   })
   
   ### Plot Theme processing ###
   
+  ## Generating different theme types for shapes##
   addTheme <- reactive({
     if (isTRUE(input$dataGroup)){
-      ## If grouped data is active
+      ## When data is grouped
       if (input$choosethemeII == 'paletteG'){
-        usertheme <- lapply(seq_along(colorCount()), function(i) {
+        #Creates individual color inputs
+        usertheme <- lapply(seq_along(colCount()), function(i) {
           input[[paste("colorsG", i, sep = '_')]]
         })
         usertheme <- unlist(usertheme)
       } else{
-        usertheme <- colorRampPalette(c("#EEE1EF", "#554994"))(length(colorCount()))
+        #Creates a gradient of colours based on total number of variables per group
+        usertheme <- colorRampPalette(c("#EEE1EF", "#554994"))(length(colCount()))
       }
     } else {
+      # When data is ungrouped
       if (input$choosetheme == 'default') {
+        #Creates a gradient of colours based on total number of data columns
         usertheme <- colorRampPalette(c("#EEE1EF", "#554994"))(ncol(data()))
       } else if (input$choosetheme == 'preset') {
-        # Making Gradients to generate Preselected Color Shades
+        # Makes gradients to generate preset color shades
         usertheme <- switch(
           input$boxtheme,
           purples = colorRampPalette(c("#EEE1EF", "#554994"))(ncol(data())),
-          greens = colorRampPalette(c("#97C4B8", "#064420"))(ncol(data())),
+          greens = colorRampPalette(c("#B5D1AE", "#122740"))(ncol(data())),
           greens2 = colorRampPalette(c("#9ADA81", "#33B061","#054239"))(ncol(data())),
           pinks = colorRampPalette(c('#FDE4DE', '#F56093'))(ncol(data())),
           oranges = colorRampPalette(c('#FFAE01', '#C70E00'))(ncol(data())),
@@ -3014,19 +3323,23 @@ server <- shinyServer(function(input, output, session) {
           golds = colorRampPalette(c('#FDD700', '#8C3617'))(ncol(data())),
           rainbows = colorRampPalette(c('#bae1ff', '#ffb3ba'))(ncol(data())),
           season = colorRampPalette(c('#F4E867', '#DA4B82', '#387494'))(ncol(data())),
+          heatmap = colorRampPalette(c('#2066A8', '#EDEDED', '#AE282C'))(ncol(data())),
           colorblind = colorRampPalette(c('#F5EADA','#768267', '#304659'))(ncol(data())),
           greys = colorRampPalette(c('#C0C0C2', '#373737'))(ncol(data()))
         )
       }
       else if (input$choosetheme == 'gradient') {
+        #Users can create a gradient
         usertheme <- colorRampPalette(c(input$grad1, input$grad2))(ncol(data()))
       }
       else if (input$choosetheme == 'palette') {
-        usertheme <- lapply(seq_along(colorCount()), function(i) {
+        #Creates individual color inputs
+        usertheme <- lapply(seq_along(colCount()), function(i) {
           input[[paste("colors", i, sep = '_')]]
         })
       }
     }
+    #Passes through grayscale filter to check contrast
     if (input$grayscale == "Yes") {
       theme <- ColToGray(usertheme)
     } else{
@@ -3035,22 +3348,81 @@ server <- shinyServer(function(input, output, session) {
     return(theme)
   })
   
-  #Theme generator processing
-  colorCount <- reactive({
-    if (isTRUE(input$dataGroup)) {
-      return(unique(orderdata()$groups))
+  ## Generating different theme types for data point outline ##
+  dpcolors <- reactive({
+    if (input$dataGroup == T){
+      if (input$dpcolorG == 'defaultG') {
+        dpcolors <- rep(c('#000000'), length(unique(orderdata()$groups)))
+      } else if (input$dpcolorG == 'borderG') {
+        dpcolors <- as.list(bordercolor())
+      }
     } else {
-      return(data())
+      dpcolors <- rep(c('#000000'), length(data()))
+      if (input$dpcolor == 'default') {
+        dpcolors <- rep(c('#000000'), length(colCount()))
+      } else if (input$dpcolor == 'box') {
+        dpcolors <- paletteTheme()
+      } else if (input$dpcolor == 'border') {
+        dpcolors <-  bordercolor()
+      } else if (input$dpcolor == 'dpgradient') {
+        dpcolors <- colorRampPalette(c(input$dpgrad1, input$dpgrad2))(length(colCount()))
+      } else if (input$dpcolor == 'dppalette') {
+        dpcolors <- lapply(seq_along(colCount()), function(i) {
+          input[[paste("colorsdp", i, sep = '_')]]}
+        )
+      }
     }
+    #Passes through grayscale filter to check contrast
+    if (input$grayscale == "Yes") {
+      theme <- ColToGray(dpcolors)
+    } else{
+      theme <- dpcolors
+    }
+    return(theme)
   })
-  palTheme <- reactiveValues(palette = list())
-  palThemeG <- reactiveValues(palette = list())
-  dpPalTheme <- reactiveValues(palette = list())
-  dpPalFillTheme <- reactiveValues(palette = list())
+  ## Generating different theme types for data point fill ##
+  dpfillVal <- reactive({
+    if (input$dataGroup == T){
+      if (input$dpfillG == 'defaultG') {
+        dpcolors <- rep(c('#000000'), length(unique(orderdata()$groups)))
+      } else if (input$dpfillG == 'borderG') {
+        dpcolors <- as.list(bordercolor())
+      }
+    } else {
+      dpcolors <- rep(c('#000000'), length(data()))
+      if (input$dpfill == 'default') {
+        dpcolors <- rep(c('#000000'), length(colCount()))
+      } else if (input$dpfill == 'box') {
+        dpcolors <- paletteTheme()
+      } else if (input$dpfill == 'border') {
+        dpcolors <-  bordercolor()
+      } else if (input$dpfill == 'dpgradient') {
+        dpcolors <- colorRampPalette(c(input$dpgradF1, input$dpgradF2))(length(colCount()))
+      } else if (input$dpfill == 'dppalette') {
+        dpcolors <- lapply(seq_along(colCount()), function(i) {
+          input[[paste("fillsdp", i, sep = '_')]]}
+        )
+      }
+    }
+    #Passes through grayscale filter to check contrast
+    if (input$grayscale == "Yes") {
+      theme <- ColToGray(dpcolors)
+    } else{
+      theme <- dpcolors
+    }
+    return(theme)
+  })
   
+  ## Individual palette theme generator processing
+  #Creating reactive values to store selected palette colors
+  palTheme <- reactiveValues(palette = list()) #Ungrouped Shape colors 
+  palThemeG <- reactiveValues(palette = list()) #Grouped Shape colors
+  dpPalTheme <- reactiveValues(palette = list()) #Datapoint outline colors
+  dpPalFillTheme <- reactiveValues(palette = list()) #Datapoint fill colors
+  
+  #Choosing grouping parameter levels for grouped data to set factor
   colLevelG <- reactive({
     checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
-    
     if (isFALSE(checkColon)){
       temp <- str_split_fixed(colnames(data()), ':', 2)
     } else {
@@ -3059,7 +3431,6 @@ server <- shinyServer(function(input, output, session) {
         text = "Column header missing ':'",
         type = 'error')
     }
-    
     row.names(temp) <- NULL
     if(isTRUE(input$grpSwitch)){
       colnames(temp) <- c('Conditions','Groups')
@@ -3072,9 +3443,9 @@ server <- shinyServer(function(input, output, session) {
     }
     return(fillFact)
   })
-  
+  #Processing number of color inputs to show for setting individual colors for shapes
   coltabs <- reactive({
-    req(colorCount())
+    req(colCount())
     if(isTRUE(input$dataGroup)){
       coltabname <- unique(factor(orderdata()$groups, levels = colLevelG()))
     } else {
@@ -3083,8 +3454,8 @@ server <- shinyServer(function(input, output, session) {
     
     div(
       class = "truncated_title",
-      lapply(seq_along(colorCount()), function(i) {
-        
+      lapply(seq_along(colCount()), function(i) {
+        #sets initial values for color picker from stored reactive palette
         if(isTRUE(input$dataGroup)){
           id <- paste("colorsG", i, sep = '_')
           initial_val <- isolate(palThemeG$palette[[id]])
@@ -3092,89 +3463,105 @@ server <- shinyServer(function(input, output, session) {
           id <- paste("colors", i, sep = '_')
           initial_val <- isolate(palTheme$palette[[id]])
         }
+        #Sets a default initial value if there is no stored reactive palette 
         if (is.null(initial_val)) initial_val <- "#CCCCCC"
+        
         div(colorPickr(
           id,
           label = as.character(coltabname[i]),
           selected = initial_val,
           pickr_width = '20%'
         ), style = "width:100px")
-      }), style = "display:inline-flex; flex-wrap:wrap !important; gap:25px;")
+      }), style = "display:inline-flex; flex-wrap:wrap !important; gap:5px;")
   })
-  
+  #Renders colour input buttons
   output$coltabsOut <- renderUI({
-    req(isFALSE(input$dataGroup))
+    req(isFALSE(input$dataGroup))#important
     coltabs()
   })
   output$coltabsOutG <- renderUI({
-    req(isTRUE(input$dataGroup))
+    req(isTRUE(input$dataGroup))#important
     coltabs()
   })
+  #Reads user input individual colors and stores for ggplot
   paletteTheme <- reactive({
-    req(colorCount())
+    req(colCount())
     if(isFALSE(input$dataGroup)){
-      ids <- paste("colors", seq_along(colorCount()), sep = '_')
+      # for ungrouped data
+      ids <- paste("colors", seq_along(colCount()), sep = '_')
       if (input$choosetheme == 'palette') {
         cols <- lapply(ids, function(x) {
           if (!is.null(input[[x]])) {
+            #Reads directly from the color input
             return(input[[x]])
           } 
           else if (!is.null(palTheme$palette[[x]])) {
+            #Reads from stored reactive palettes 
             return(palTheme$palette[[x]])
           } 
           else {
+            #default
             return('#CCCCCC')
           }
         })
         if(input$grayscale == "Yes"){cols <- ColToGray(cols)}
         return(as.character(unlist(cols)))
       }else {
+        #If no individual color is chosen
         return(as.character(addTheme()))
       }
     } else{
-      ids <- paste("colorsG", seq_along(colorCount()), sep = '_')
+      #For grouped data
+      ids <- paste("colorsG", seq_along(colCount()), sep = '_')
       if (input$choosethemeII == 'paletteG') {
         cols <- lapply(ids, function(x) {
           if (!is.null(input[[x]])) {
+            #Reads directly from the color input
             return(input[[x]])
           } 
           else if (!is.null(palThemeG$palette[[x]])) {
+            #Reads from stored reactive palettes
             return(palThemeG$palette[[x]])
           } 
           else {
+            #Default
             return('#CCCCCC')
           }
         })
         if(input$grayscale == "Yes"){cols <- ColToGray(cols)}
         return(as.character(unlist(cols)))
       } else {
+        #If no individual color is chosen
         return(as.character(addTheme()))
       }
     }
   })
-  observeEvent(input$exampleFile,{
-    req(data())
-    req(demoSettFile())
-  })
+  # observeEvent(input$exampleFile,{
+  #   req(data())
+  #   req(demoSettFile())
+  # })
   observe({
-    ## To observe any changes in new palette color inputs and update accordingly
+    #To observe any changes in new palette color inputs and update accordingly
+     #when previous setting file is uploaded 
     if(isTRUE(input$dataGroup)){
       req(input$choosethemeII == 'paletteG')
-      ids <- paste("colorsG", seq_along(colorCount()), sep = '_')
+      ids <- paste("colorsG", seq_along(colCount()), sep = '_')
     }else{
       req(input$choosetheme == 'palette')
-      ids <- paste("colors", seq_along(colorCount()), sep = '_')
+      ids <- paste("colors", seq_along(colCount()), sep = '_')
     }
-    
     
     for (id in ids) {
       curr_input <- input[[id]]
+      #Failsafe if no current input is present
       if (is.null(curr_input)) next
       
       if (isTRUE(input$dataGroup)) {
         if (!identical(palThemeG$palette[[id]], curr_input)) {
+          #Resets reactive palette storage to new input color
           palThemeG$palette[[id]] <- curr_input
         } else {
+          #Keeps reactive palette storage if there is no new input color
           palThemeG$palette[[id]] <- palThemeG$palette[[id]]
         }
       } else {
@@ -3186,9 +3573,10 @@ server <- shinyServer(function(input, output, session) {
       }
     }
   })
-  ## For jitter point theme
+  
+  #Processing number of color inputs to show for setting individual colors for datapoint outline
   dpcoltabs <- reactive({
-    req(colorCount())
+    req(colCount())
     if(isTRUE(input$dataGroup)){
       coltabname <- unique(factor(orderdata()$groups,levels = colLevelG()))
     } else{
@@ -3197,7 +3585,7 @@ server <- shinyServer(function(input, output, session) {
     
     div(
       class = "truncated_title",
-      lapply(seq_along(colorCount()), function(i) {
+      lapply(seq_along(colCount()), function(i) {
         id <- paste("colorsdp",i, sep = '_')
         initial_val <- isolate(dpPalTheme$palette[[id]])
         if (is.null(initial_val)) initial_val <- '#CCCCCC'
@@ -3208,12 +3596,13 @@ server <- shinyServer(function(input, output, session) {
           selected = initial_val,
           pickr_width = '20%'
         ), style = "width:100px;")
-      }),style="display:inline-flex; flex-wrap:wrap !important; gap:10px;")
+      }),style="display:inline-flex; flex-wrap:wrap !important; gap:5px;")
   })
+  
   dpPaletteTheme <- reactive({
-    req(colorCount())
+    req(colCount())
     
-    ids <- paste("colorsdp", seq_along(colorCount()), sep = '_')
+    ids <- paste("colorsdp", seq_along(colCount()), sep = '_')
     
     if (input$dpcolor == 'dppalette') {
       cols <- lapply(ids, function(x) {
@@ -3227,6 +3616,7 @@ server <- shinyServer(function(input, output, session) {
           return('#CCCCCC')
         }
       })
+      if(input$grayscale == "Yes"){cols <- ColToGray(cols)}
       return(as.character(unlist(cols)))
     } else {
       return(as.character(dpcolors()))
@@ -3235,7 +3625,7 @@ server <- shinyServer(function(input, output, session) {
   observe({
     ## To observe any changes in new palette color inputs and update accordingly
     req(input$dpcolor == 'dppalette')
-    ids <- paste("colorsdp", seq_along(colorCount()), sep = '_')
+    ids <- paste("colorsdp", seq_along(colCount()), sep = '_')
     
     for (id in ids) {
       curr_input <- input[[id]]
@@ -3252,9 +3642,10 @@ server <- shinyServer(function(input, output, session) {
   output$dpcoltabsOut <- renderUI({
     dpcoltabs()
   })
-  ## For jitter point fill themes
+  
+  #Processing number of color inputs to show for setting individual colors for datapoint fill
   dpfilltabs <- reactive({
-    req(colorCount())
+    req(colCount())
     if(isTRUE(input$dataGroup)){
       coltabname <- unique(factor(orderdata()$groups,levels = colLevelG()))
     } else{
@@ -3262,7 +3653,7 @@ server <- shinyServer(function(input, output, session) {
     }
     div(
       class = "truncated_title",
-      lapply(seq_along(colorCount()), function(i) {
+      lapply(seq_along(colCount()), function(i) {
         id <- paste("fillsdp",i, sep = '_')
         initial_val <- isolate(dpPalFillTheme$palette[[id]])
         if (is.null(initial_val)) initial_val <- '#CCCCCC'
@@ -3273,13 +3664,13 @@ server <- shinyServer(function(input, output, session) {
           selected = initial_val,
           pickr_width = '20%'
         ), style = "width:100px;")
-      }),style="display:inline-flex; flex-wrap:wrap !important; gap:10px;")
+      }),style="display:inline-flex; flex-wrap:wrap !important; gap:5px;")
   })
   
   dpPaletteFillTheme <- reactive({
-    req(colorCount())
+    req(colCount())
     
-    ids <- paste("fillsdp", seq_along(colorCount()), sep = '_')
+    ids <- paste("fillsdp", seq_along(colCount()), sep = '_')
     
     if (input$dpfill == 'dppalette') {
       cols <- lapply(ids, function(x) {
@@ -3293,6 +3684,7 @@ server <- shinyServer(function(input, output, session) {
           return('#CCCCCC')
         }
       })
+      if(input$grayscale == "Yes"){cols <- ColToGray(cols)}
       return(as.character(unlist(cols)))
     } else {
       return(as.character(dpfillVal()))
@@ -3301,7 +3693,7 @@ server <- shinyServer(function(input, output, session) {
   observe({
     ## To observe any changes in new palette color inputs and update accordingly
     req(input$dpfill == 'dppalette')
-    ids <- paste("fillsdp", seq_along(colorCount()), sep = '_')
+    ids <- paste("fillsdp", seq_along(colCount()), sep = '_')
     
     for (id in ids) {
       curr_input <- input[[id]]
@@ -3319,18 +3711,23 @@ server <- shinyServer(function(input, output, session) {
     dpfilltabs()
   })
   
+  
+  ## Setting theme for boxes in Violin plot type ##
   boxVioTheme <-reactive({
     if (input$boxColVio == 'Shape'){
-      paletteTheme()
+      #same as the violin shape
+      paletteTheme() 
     }else{
+      #user select
       if (isTRUE(input$dataGroup)){
-        rep(input$boxColCust,length(colorCount()))
+        rep(input$boxColCust,length(colCount()))
       }else {
         rep(input$boxColCust,ncol(data()))
       }
     }
   })
   
+  ## Setting theme/ shade value for shape-border ##
   bordercolor <- reactive({
     if(isTRUE(input$dataGroup)){
       if (input$boxbordercolG == 'light') {
@@ -3348,7 +3745,7 @@ server <- shinyServer(function(input, output, session) {
     return(boxborder)
   })
   
-  ##Shape Opacity
+  ## Shape Opacity ##
   shapeOpacity <- reactive({
     if(isTRUE(input$dataGroup)){
       opacity <- input$shapeAlphaG/100
@@ -3358,66 +3755,14 @@ server <- shinyServer(function(input, output, session) {
     return(as.numeric(opacity))
   })
   
-  ##Data point color process
-  dpcolors <- reactive({
-    if (input$dataGroup == T){
-      if (input$dpcolorG == 'defaultG') {
-        dpcolors <- rep(c('#000000'), length(unique(orderdata()$groups)))
-      } else if (input$dpcolorG == 'borderG') {
-        dpcolors <- as.list(bordercolor())
-      }
-    } else {
-      dpcolors <- rep(c('#000000'), length(data()))
-      if (input$dpcolor == 'default') {
-        dpcolors <- rep(c('#000000'), length(colorCount()))
-      } else if (input$dpcolor == 'box') {
-        dpcolors <- paletteTheme()
-      } else if (input$dpcolor == 'border') {
-        dpcolors <-  bordercolor()
-      } else if (input$dpcolor == 'dpgradient') {
-        dpcolors <- colorRampPalette(c(input$dpgrad1, input$dpgrad2))(length(colorCount()))
-      } else if (input$dpcolor == 'dppalette') {
-        dpcolors <- lapply(seq_along(colorCount()), function(i) {
-          input[[paste("colorsdp", i, sep = '_')]]}
-        )
-      }
-    }
-  })
-  
-  dpfillVal <- reactive({
-    if (input$dataGroup == T){
-      if (input$dpfillG == 'defaultG') {
-        dpcolors <- rep(c('#000000'), length(unique(orderdata()$groups)))
-      } else if (input$dpfillG == 'borderG') {
-        dpcolors <- as.list(bordercolor())
-      }
-    } else {
-      dpcolors <- rep(c('#000000'), length(data()))
-      if (input$dpfill == 'default') {
-        dpcolors <- rep(c('#000000'), length(colorCount()))
-      } else if (input$dpfill == 'box') {
-        dpcolors <- paletteTheme()
-      } else if (input$dpfill == 'border') {
-        dpcolors <-  bordercolor()
-      } else if (input$dpfill == 'dpgradient') {
-        dpcolors <- colorRampPalette(c(input$dpgradF1, input$dpgradF2))(length(colorCount()))
-      } else if (input$dpfill == 'dppalette') {
-        dpcolors <- lapply(seq_along(colorCount()), function(i) {
-          input[[paste("fillsdp", i, sep = '_')]]}
-        )
-      }
-    }
-  })
-  
-  #Font-family
+  ## Font-family
   fontfamily <- reactive({
     # Load the fonts
-    # font_import()
-    loadfonts(device = 'win')
+    loadfonts(device = 'win', quiet = TRUE)
     input$font
   })
   
-  #plot title position
+  ## Plot title position
   PlotTitPos <- reactive({
     if (!isTruthy(input$addBrackets)) {
       y <- yaxisMax()*(input$verAlign/300+1)
@@ -3428,7 +3773,7 @@ server <- shinyServer(function(input, output, session) {
     return(data.frame(x=xPos/2+0.5,y=y,text=input$plotTitle))
   })
   
-  # Processing the gap for raincloud plot
+  ## Processing the gap for raincloud plot
   
   gap <- reactive({
     if (input$slabSide == 'right'){
@@ -3437,7 +3782,8 @@ server <- shinyServer(function(input, output, session) {
       return(1+(input$slabDistance/300))
     }
   })
-  #Summary Layer
+  
+  ## Summary Statistic layer for stat bars for Jitter and Raincloud plot type##
   summary_layers <- reactive({
     current_sum_val <- if (input$askPlotTypeII == 'jitter') {
       input$sum_typeJitter
@@ -3467,20 +3813,20 @@ server <- shinyServer(function(input, output, session) {
     } else if (input$askPlotTypeII == 'viopoint') {
       input$statColourRain
     }
-    
+    #Making ggproto layers here to easily switch position later as chosen by users
     summary_layers <- switch(
       current_sum_val,
       "mean_only" = stat_summary(
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = ggplot2::mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = mean, fun.min = mean, fun.max = mean,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80))),
       
       "mean_sem" = list(
-        stat_summary(fun.data = mean_se, geom = "errorbar",
+        stat_summary(fun.data = ggplot2::mean_se, geom = "errorbar",
                      color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = mean, fun.min = mean, fun.max = mean,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80))),
@@ -3488,12 +3834,14 @@ server <- shinyServer(function(input, output, session) {
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = ggplot2::median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = median, fun.min = median, fun.max = median,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)))                                       
-    )})
-  #Summary Layer for Bar plots
+    )
+    })
+  
+  ## Summary Statistic layer for stat bars for Bar plot type##
   summary_layers_bar <- reactive({
     current_sum_val <- if (input$askPlotTypeII == 'bar') {
       if (input$barFunc == 'mean'){
@@ -3506,26 +3854,27 @@ server <- shinyServer(function(input, output, session) {
     statLine <- input$statLineBar
     statWidth <- input$statWidthBar
     statColor <- input$statColourBar
-    
+    #Making ggproto layers here to easily switch position later as chosen by users
     summary_layers <- switch(
       current_sum_val,
       "mean_only" = stat_summary(
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = ggplot2::mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150)),
       
       "mean_sem" = list(
-        stat_summary(fun.data = mean_se, geom = "errorbar",
+        stat_summary(fun.data = ggplot2::mean_se, geom = "errorbar",
                      color = statColor, linewidth = (statLine/50), width = statWidth/150)),
       "median_only" = stat_summary(
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = ggplot2::median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150))                                       
-    )})
+    )
+  })
   
   
   ### Main graph processing ###
@@ -3551,6 +3900,7 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(input$plot_click, {
     leg_pos(c(input$plot_click$x, input$plot_click$y))
   })
+  # Renders a plot box to choose XY position for placing legend for grouped plot
   output$legPosPlot <- renderPlot({
     ggplot(data.frame(x = 0:1, y = 0:1), aes(x, y)) +
       geom_blank() +
@@ -3621,6 +3971,7 @@ server <- shinyServer(function(input, output, session) {
     }
     return(df)
   })
+  
   ## Temporary geom_text condition
   descText <- reactive({
     is_bold <- "bold" %in% input$dpviewMD
@@ -3842,9 +4193,8 @@ server <- shinyServer(function(input, output, session) {
           grpLegend()
       }
     } else if (plotType() =='jitter'){
-      #######################
       ### For Jitter Plot ###
-      #######################
+      
       jL <- list(
         geom_beeswarm(
           mapping = aes(shape = fillPara,
@@ -3869,11 +4219,9 @@ server <- shinyServer(function(input, output, session) {
         p <-  g+
           summary_layers()+ jL
       }
-      
-      
-      
     } else if (plotType() == 'viopoint'){
       ### For Raincloud Plot ###
+      
       vpL1 <- list(
         stat_halfeye(
           mapping = aes(fill = fillPara, slab_color = fillPara),
@@ -3976,12 +4324,10 @@ server <- shinyServer(function(input, output, session) {
       geom_textbox(data = PlotTitPos(),
                    aes(x=x,y=y,label=(text), family = fontfamily()), size = input$plotFont/2.5,
                    width = unit(input$bWidthTitle/100, "npc"), box.colour = 'black', box.size = unit(input$lineTitle/83.33, 'pt'), 
-                   box.padding = unit(input$padTitle/20,'pt'),position = 'identity',
+                   box.padding = unit(input$padTitle/20,'pt'),position = 'identity', fill = "#FFFFFF00",
                    box.margin = unit(0,'pt'), halign=(as.numeric(titlePlot())))+
       Ycontax() +
       theme(
-        # plot.title = element_textbox_simple(size = input$plotFont, color = 'black',
-        #                                     halign = as.numeric(input$titlePos)),
         axis.text.x = element_markdown(size = input$Xfontcol, color = "black",
                                        angle = as.numeric(input$Xrotate),
                                        hjust = xcolPosH(),
@@ -4079,7 +4425,7 @@ server <- shinyServer(function(input, output, session) {
                      linejoin = 'mitre',
                      color = input$bracCol)
     }
-    ## For Y-axis break
+    ## For Y-axis break (to be added later)
     # if (isTRUE(input$addYBreak)){
     #   req(input$minYBreak)
     #   req(input$maxYBreak)
@@ -4097,12 +4443,14 @@ server <- shinyServer(function(input, output, session) {
     # } else {
     #   pG <- pF
     # }
+    # For flipping Y axis
     if (isTRUE(input$flipPlot)){
       pR <- pF + coord_flip(ylim = c(ifelse(is.na(input$minY), 0,yaxisMin()), yaxisMax()),
                             clip = 'off')
     } else {
       pR <- pF
     }
+    # For reversing X axis
     if (isTRUE(input$reverseX)){
       pFinal <- pR + scale_x_discrete(limits = rev)
     } else {
@@ -4112,12 +4460,11 @@ server <- shinyServer(function(input, output, session) {
     
   })
   
-  
-  
-  
   ### Graph Output Processing ###
+  
   output$graphFinal <- renderPlot({
-    if (isTruthy(input$runAnalysisFinal) && !isTruthy(input$exampleFile)){
+    if (isTruthy(input$runAnalysisFinal) &&
+        !isTruthy(input$exampleFile) && isTRUE(input$askComp)){
       validate(
         need(length(input$grplist) >= 1,
              "Please select at least 1 option to proceed.")
@@ -4130,8 +4477,7 @@ server <- shinyServer(function(input, output, session) {
     plotinput()
   })
   
-  
-  
+  ## Processing graph download handler
   output$downloadBPlot <- downloadHandler(
     filename = function() {
       paste0("sensabled_plot", ".", as.character(input$selectFileType), sep='')
@@ -4150,8 +4496,7 @@ server <- shinyServer(function(input, output, session) {
   )
   
   
-  ## Save Plot As button render
-  
+  ## Save Plot As modal settings
   observeEvent(input$saveBtn,{
     showModal(modalDialog(
       title = "Save Settings",
@@ -4180,7 +4525,7 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
-  ## Main Plot Display
+  ## Main Plot Display ##
   plotContent <- reactive({
     div(
       style = paste0("display:block; margin-bottom: 20px; background-color:", input$canvasTheme, "; width:100%; height:auto; padding:50px;"),
@@ -4232,7 +4577,7 @@ server <- shinyServer(function(input, output, session) {
       plotContent()
     }
   })
-  
+  ## Set plot width 
   plotwidth <- reactive({
     width <- 200 #fallback
     if (is.na(input$width)){
@@ -4258,6 +4603,7 @@ server <- shinyServer(function(input, output, session) {
     
     return(width)
   })
+  #Checks plot width does not exceeds set limits and resets
   observe({
     req(input$width)
     if(input$width>800){
@@ -4267,6 +4613,7 @@ server <- shinyServer(function(input, output, session) {
       updateNumericInput(session, 'width', value = 200)
     }
   })
+  ## Set plot height
   plotheight <- reactive({
     height <- 200 
     if (is.na(input$height)){
@@ -4292,6 +4639,7 @@ server <- shinyServer(function(input, output, session) {
     
     return(height)
   })
+  #Checks plot height does not exceeds set limits and resets
   observe({
     req(input$height)
     if(input$height>600){
@@ -4301,6 +4649,7 @@ server <- shinyServer(function(input, output, session) {
       updateNumericInput(session, 'height', value = 200)
     }
   })
+  ## Resets plot dimension to default when reset button is clicked
   observeEvent(input$resetSize,{
     tagList(
       updateNumericInput(session,'width',
@@ -4310,6 +4659,7 @@ server <- shinyServer(function(input, output, session) {
     )
   })
   
+  ## Aspect ratio calculation and updation
   currentRatio <- reactiveVal(500 / 400)
   observeEvent(input$lockRatio, {
     if (isTRUE(input$lockRatio)) {
@@ -4335,21 +4685,21 @@ server <- shinyServer(function(input, output, session) {
       }
     }
   })
-  
+  ## Plot zoom in
   observeEvent(input$zoomIn, {
     updatePrettyToggle(session, 'lockRatio', value = TRUE)
     newWidth <- round(input$width + 50)
     if (newWidth != input$width) {
-      delay(200,
+      shinyjs::delay(200,
             updateNumericInput(session, "width", value = newWidth))
     }
   })
-  
+  ## Plot zoom out
   observeEvent(input$zoomOut, {
     updatePrettyToggle(session, 'lockRatio', value = TRUE)
     newWidth <- round(input$width - 50)
     if (newWidth != input$width) {
-      delay(200,
+      shinyjs::delay(200,
             updateNumericInput(session, "width", value = newWidth))
     }
   })
@@ -4360,6 +4710,8 @@ server <- shinyServer(function(input, output, session) {
       updateNumericInput(session, "width", value = 750)
     }
   })
+  
+  ## Final plot render options
   output$FinalPlot <- renderUI({
     withWaiter(
       plotOutput(
@@ -4371,9 +4723,10 @@ server <- shinyServer(function(input, output, session) {
       color = "#FCFFFC"
     )
   })
+  #A warning when user tries to trim violin shape ends
   observe({
     if (isFALSE(input$endTrim)){
-      show_toast(
+      shinyWidgets::show_toast(
         title = "Warning",
         text = "Extended ends could be deceptive!", type = 'warning')
     }
@@ -4383,52 +4736,85 @@ server <- shinyServer(function(input, output, session) {
   ### Statistics ###
   ##################
   
+  ### Settings for Statistical Analysis tests to show on side tab ###
+  
   # Choice names for sample test type
   sampChoice <- reactive({
-    icon_html <- as.character(tags$span(id = "suggest", suggestIcon))
+    #Check icon to show suggested test
+    suggestIcon <- icon("circle-check", class = "text-warning")
     if (ncol(data()) == 2) {
-      c(
-        paste0("Two-sample test ", icon_html),
-        "Several samples test"
-      )
+      #When there are only two samples
+      list(tags$span(
+        `data-toggle` = "tooltip",
+        `data-placement` = "right",
+        title = "Suggested Test",
+        "Two-sample test", suggestIcon
+      ),
+        "Several samples test")
+    } else if (ncol(data()) > 2) {
+      #When there are more than two samples
+      list("Two-sample test",
+           tags$span(
+             `data-toggle` = "tooltip",
+             `data-placement` = "right",
+             title = "Suggested Test",
+             "Several samples test", suggestIcon
+           ))
     } else {
-      c(
-        "Two-sample test",
-        paste0("Several samples test ", icon_html)
-      )
+      #When there are only one sample (not possible)
+      list("Two-sample test", "Severak samples test")
     }
   })
+  
   # Choice values for sample test types
   selcChoice <- reactive({
-    if (ncol(data()) == 2) "tSt" else "sSt"
+    #When there are only two samples, selects two-sample test
+    if (ncol(data()) == 2) {"tSt"}
+    #When there are more than two samples, selects several sample test
+    else if (ncol(data()) > 2) {"sSt"} 
+    #When there are only one sample, selects none
+    else {character(0)}
   })
   
   # Choice names for parametric test types
   sampChoicePara <- reactive({
-    icon_html <- as.character(tags$span(id = "suggest", suggestIcon))
+    #Check icon to show suggested test
+    suggestIcon <- icon("circle-check", class = "text-warning")
+    #Reads normality test report and checks for significant p value (<0.05)
     normP <- as.numeric(normTest()$`P Value`)
+    #Suggests parametric when no significant p value
     if (isFALSE(any(normP<0.05))) {
-      c(
-        paste0("Parametric ", icon_html),
-        "Nonparametric"
-      )
+      list(tags$span(
+        `data-toggle` = "tooltip",
+        `data-placement` = "right",
+        title = "Suggested Test",
+        "Parametric", suggestIcon
+      ),
+      "Nonparametric")
     } else {
-      c(
-        "Parametric",
-        paste0("Nonparametric ", icon_html)
-      )
+      #Suggests nonparametric when there is a significant p value
+      list("Parametric",
+           tags$span(
+             `data-toggle` = "tooltip",
+             `data-placement` = "right",
+             title = "Suggested Test",
+             "Nonparametric", suggestIcon
+           ))
     }
   })
   #Choice values for parametric test types
   selcChoicePara <- reactive({
+    #Selects parametric tests when there is no significant p value 
+     #in normality test and vice versa
     normP <- as.numeric(normTest()$`P Value`)
     if (isFALSE(any(normP<0.05))) "para" else "nonpara"
   })
   
+  #Rendering inputs for selecting type of statistical tests to perform
   output$testInput <- renderUI({
-    req(data())
-    
+    req(data()) #important
     tagList(
+      #two-sample or several samples test list
       radioGroupButtons(
         "ttestType",
         "Select Test Type",
@@ -4438,7 +4824,9 @@ server <- shinyServer(function(input, output, session) {
         direction = "vertical",
         justified = TRUE,
         width = '100%'
-      ), radioGroupButtons(
+      ),
+      #parametric or nonparametric test list
+      radioGroupButtons(
         'paratestType',
         "Select Test Type",
         choiceNames = sampChoicePara(),
@@ -4447,26 +4835,203 @@ server <- shinyServer(function(input, output, session) {
         direction = 'vertical',
         justified = TRUE,
         width = '100%'
-      ), p("Note: The checkmarked tests are suggested based on your data.",
-           style = "color: grey; font-size:13px;"
-      ), conditionalPanel(
+      ), 
+      HTML('<p style = "color: grey; font-size:13px; margin-top:-10px;">&#x26A0;
+      Checkmarked tests are recommended based on your data structure. 
+           Please verify these assumptions before proceeding with your analysis &#x26A0;</p>'),
+      conditionalPanel(
         condition = "input.ttestType == 'tSt'",
+        #Asks whether sample is paired in two-sample test
         prettySwitch(
           'askPaired', 'Paired Samples',
           value = F, fill = T, status = 'success'
         )),
       conditionalPanel( 
         condition = "input.ttestType == 'sSt'",
+        #Asks whether to perform post-hoc or multiple comparisons for several samples
         prettySwitch(
           'askComp', 'Perform Multiple Comparisons',
           fill = T, status = 'success', value = T
-        ),prettySwitch(
+        ),
+        #Asks whether the samples are repeated measures samples
+        prettySwitch(
           'askPairedssT', 'Repeated-Measured Samples',
           value = F, fill = T, status = 'success'
         )
       )
     )
   })
+  
+  ## PostHoc Selection Modal ##
+  
+  observeEvent(input$runAnalysis, {
+    showModal(modalDialog(
+      title = "Post Hoc Analysis",
+      tagList(
+        conditionalPanel(
+          condition = "input.askComp == true",
+          # Post hoc comparisons for several sample test type
+          conditionalPanel(
+            condition = "input.ttestType == 'sSt'",
+            # Comparison type for ungrouped data
+            conditionalPanel(
+              condition = "!input.dataGroup",
+              pickerInput(
+                inputId = 'compList',
+                label = 'Select Group Comparison Type',
+                choices = c(
+                  'Compare against the control' = 'controlC',
+                  'Compare against each other' = 'groupC'
+                ),
+                selected = 'groupC', width = '100%')
+            ),
+            ## Branch 1. Pairwise / all-vs-all comparisons (groupC) ##
+             #For both grouped and ungrouped data
+            conditionalPanel(
+              condition = "input.compList == 'groupC'",
+              #Users selects data columns for post hoc analysis   
+              pickerInput(
+                inputId = "statCols",
+                label = "Select Groups",
+                choices = colnames(data()),
+                selected = colnames(data()),
+                multiple = TRUE,
+                width = "100%",
+                options = list(
+                  `min-options` = 3,
+                  `min-options-text` = "Min 3 selections allowed!"
+                )
+              ),
+              #Correction method for nonparametric, unpaired, non-grouped data
+              conditionalPanel(
+                condition = "input.paratestType == 'nonpara' &&
+                !input.askPairedssT && !input.dataGroup",
+                pickerInput(
+                  inputId = 'askCorrection',
+                  label = "P Value Correction Method",
+                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                              'Holm-Sidak' = 'holm'),
+                  selected = 'bonferroni', width = '100%')
+              ),
+              #Correction method for parametric, paired, non-grouped data
+              conditionalPanel(
+                condition = "input.paratestType == 'para' &&
+                input.askPairedssT && !input.dataGroup",
+                pickerInput(
+                  inputId = 'askCorrectionP',
+                  label = "P Value Correction Method",
+                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                              'Holm-Sidak' = 'holm'),
+                  selected = 'bonferroni',
+                  width = '100%'
+                )
+              ),
+              # Correction method for nonparametric, grouped data (includes Tukey for post-hoc)
+              conditionalPanel(
+                condition = "input.paratestType == 'nonpara' && input.dataGroup",
+                pickerInput(
+                  inputId = 'askCorrectionG',
+                  label = "P Value Correction Method",
+                  choices = c("None" = 'none', 'Tukey' = 'tukey',
+                              'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
+                  selected = 'bonferroni',
+                  width = '100%'
+                )
+              )
+            ),
+            
+            ## Branch 2. Compare against a control group (controlC) ##
+            conditionalPanel(
+              condition = "input.compList == 'controlC'",
+              #Selects which group is the control
+              pickerInput(
+                inputId = 'askControl',
+                label = 'Select Control',
+                choices = current_colnames(),
+                selected = current_colnames()[1],
+                width = '100%'
+              ),
+              #Renders selection input options for data columns except control
+              uiOutput('testCompInp'),
+              
+              # Correction method for non-parametric, unpaired (control comparison)
+              conditionalPanel(
+                condition = "input.paratestType == 'nonpara' && !input.askPairedssT",
+                pickerInput(
+                  inputId = 'askCorrectionC',
+                  label = "P Value Correction Method",
+                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                              'Holm-Sidak' = 'holm'),
+                  selected = 'bonferroni', width = '100%')
+              ),
+              # Correction method for parametric, paired (control comparison)
+              conditionalPanel(
+                condition = "input.paratestType == 'para' && input.askPairedssT",
+                pickerInput(
+                  inputId = 'askCorrectionCG',
+                  label = "P Value Correction Method",
+                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                              'Holm-Sidak' = 'holm'),
+                  selected = 'bonferroni', width = '100%')
+              )
+            ),
+            ## Branch 3. Additional comparisons ##
+            # Correction method for nonparametric, paired, ungrouped data
+            conditionalPanel(
+              condition = "input.paratestType == 'nonpara' &&
+              input.askPairedssT && !input.dataGroup",
+              pickerInput(
+                inputId = 'askCorrectionPC',
+                label = "P Value Correction Method",
+                choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                            'Holm-Sidak' = 'holm'),
+                selected = 'bonferroni', width = '100%')
+            ),
+            
+            # Correction method for parametric, paired, grouped data
+            conditionalPanel(
+              condition = "input.paratestType == 'para' && input.dataGroup",
+              pickerInput(
+                inputId = 'askCorrectionPCG',
+                label = "P Value Correction Method",
+                choices = c("None" = 'none', 'Bonferroni' = 'bonferroni',
+                            'Holm-Sidak' = 'holm'),
+                selected = 'bonferroni', width = '100%')
+            )
+          )
+        ), 
+        # Shows options for data columns to be selected for two-sample test (max 2)
+        conditionalPanel(
+          condition = "input.ttestType == 'tSt'",
+          pickerInput(
+            'statTwoCol',
+            'Select Groups',
+            choices = colnames(data()),
+            selected = c(colnames(data())[1],colnames(data())[2]),
+            multiple = T,
+            options = list(
+              `max-options` = 2,
+              `max-options-text` = "Max 2 selections allowed!"
+            )
+          )
+        ), 
+        # Shows message when no post hoc comparisons are selected
+        conditionalPanel(
+          condition = "input.askComp==false && input.ttestType=='sSt'",
+          p('Turn on "Multiple Comparison" to compare between groups or run only omnibus test.', 
+            style = 'font-weight:bolder;')
+        )
+      ),
+      easyClose = TRUE,
+      footer = tagList(
+        modalButton("Cancel"),
+        ## Final button to send options for running statistical analysis and show report
+        actionButton("runAnalysisFinal", "Run Analysis", class = "btn-primary")
+      )
+    ))
+  })
+  
+  ## Selection input options for data columns except control (controlC)
   output$testCompInp <- renderUI({
     if (input$compList == 'controlC'){
       pickerInput(
@@ -4483,190 +5048,10 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   })
-  
-  
-  ## PostHoc Selection Modal ##
-  observeEvent(input$runAnalysis, {
-    showModal(modalDialog(
-      title = "Post Hoc Analysis",
-      tagList(
-        conditionalPanel(
-          condition = "input.askComp == true",
-          
-          # Only show comparison options for several sample test type
-          conditionalPanel(
-            condition = "input.ttestType == 'sSt'",
-            
-            # Comparison type selector: only visible when data is NOT grouped
-            # (When dataGroup == true, this input is hidden but its value persists)
-            conditionalPanel(
-              condition = "!input.dataGroup",
-              pickerInput(
-                inputId = 'compList',
-                label = 'Select Group Comparison Type',
-                choices = c(
-                  'Compare against the control' = 'controlC',
-                  'Compare against each other' = 'groupC'
-                ),
-                selected = 'groupC',
-                width = '100%'
-              )
-            ),
-            
-            # Branch 1: Pairwise / all-vs-all comparisons (groupC)
-            # This panel shows when compList == 'groupC'
-            # It works even when dataGroup == true (compList hidden, but value remains 'groupC' by default)
-            conditionalPanel(
-              condition = "input.compList == 'groupC'",
-              
-              # Group selection (multiple columns/groups)
-              pickerInput(
-                inputId = "statCols",
-                label = "Select Groups",
-                choices = colnames(data()),
-                selected = colnames(data()),
-                multiple = TRUE,
-                width = "100%",
-                options = list(
-                  `min-options` = 3,
-                  `min-options-text` = "Min 3 selections allowed!"
-                )
-              ),
-              
-              # Correction method: non-parametric, unpaired, non-grouped data
-              conditionalPanel(
-                condition = "input.paratestType == 'nonpara' && !input.askPairedssT && !input.dataGroup",
-                pickerInput(
-                  inputId = 'askCorrection',
-                  label = "P Value Correction Method",
-                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                  selected = 'bonferroni',
-                  width = '100%'
-                )
-              ),
-              
-              # Correction method: parametric, paired, non-grouped data
-              conditionalPanel(
-                condition = "input.paratestType == 'para' && input.askPairedssT && !input.dataGroup",
-                pickerInput(
-                  inputId = 'askCorrectionP',
-                  label = "P Value Correction Method",
-                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                  selected = 'bonferroni',
-                  width = '100%'
-                )
-              ),
-              
-              # Correction method: non-parametric, grouped data (includes Tukey for post-hoc)
-              conditionalPanel(
-                condition = "input.paratestType == 'nonpara' && input.dataGroup",
-                pickerInput(
-                  inputId = 'askCorrectionG',
-                  label = "P Value Correction Method",
-                  choices = c("None" = 'none', 'Tukey' = 'tukey', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                  selected = 'bonferroni',
-                  width = '100%'
-                )
-              )
-            ),
-            
-            # Branch 2: Compare against a control group (controlC)
-            conditionalPanel(
-              condition = "input.compList == 'controlC'",
-              
-              # Select which group is the control
-              pickerInput(
-                inputId = 'askControl',
-                label = 'Select Control',
-                choices = current_colnames(),
-                selected = current_colnames()[1],
-                width = '100%'
-              ),
-              
-              # Dynamic UI for specific comparisons (defined elsewhere in server)
-              uiOutput('testCompInp'),
-              
-              # Correction method: non-parametric, unpaired (control comparison)
-              conditionalPanel(
-                condition = "input.paratestType == 'nonpara' && !input.askPairedssT",
-                pickerInput(
-                  inputId = 'askCorrectionC',
-                  label = "P Value Correction Method",
-                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                  selected = 'bonferroni',
-                  width = '100%'
-                )
-              ),
-              
-              # Correction method: parametric, paired (control comparison)
-              conditionalPanel(
-                condition = "input.paratestType == 'para' && input.askPairedssT",
-                pickerInput(
-                  inputId = 'askCorrectionCG',
-                  label = "P Value Correction Method",
-                  choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                  selected = 'bonferroni',
-                  width = '100%'
-                )
-              )
-            ),
-            
-            # Additional correction options (not tied to a specific compList branch)
-            
-            # Non-parametric, paired, non-grouped (not inside controlC or groupC branch)
-            conditionalPanel(
-              condition = "input.paratestType == 'nonpara' && input.askPairedssT && !input.dataGroup",
-              pickerInput(
-                inputId = 'askCorrectionPC',
-                label = "P Value Correction Method",
-                choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                selected = 'bonferroni',
-                width = '100%'
-              )
-            ),
-            
-            # Parametric, grouped data (not inside controlC or groupC branch)
-            conditionalPanel(
-              condition = "input.paratestType == 'para' && input.dataGroup",
-              pickerInput(
-                inputId = 'askCorrectionPCG',
-                label = "P Value Correction Method",
-                choices = c("None" = 'none', 'Bonferroni' = 'bonferroni', 'Holm-Sidak' = 'holm'),
-                selected = 'bonferroni',
-                width = '100%'
-              )
-            )
-          )
-        ), conditionalPanel(
-          condition = "input.ttestType == 'tSt'",
-          pickerInput(
-            'statTwoCol',
-            'Select Groups',
-            choices = colnames(data()),
-            selected = c(colnames(data())[1],colnames(data())[2]),
-            multiple = T,
-            options = list(
-              `max-options` = 2,
-              `max-options-text` = "Max 2 selections allowed!"
-            )
-          )
-        ), conditionalPanel(
-          condition = "input.askComp==false && input.ttestType=='sSt'",
-          p('Turn on "Multiple Comparison" to compare between groups or run only omnibus test.', 
-            style = 'font-weight:bolder;')
-        )
-      ),
-      easyClose = TRUE,
-      footer = tagList(
-        modalButton("Cancel"),
-        actionButton("runAnalysisFinal", "Run Analysis", class = "btn-primary")
-      )
-    ))
-  })
-  
+  # Failsafe if there is a mismatch in column names in dataset and selected columns 
+   # from all pairwise column list 
   validStatCols <- reactive({
     req(data())
-    # if (length(intersect(input$statCols,colnames(data())))!=length(colnames(data()))){
     if (length(intersect(input$statCols,colnames(data())))<1){
       return(colnames(data()))
     } else {
@@ -4674,13 +5059,14 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  #Submit Analysis Button processing
+  ## Submit Analysis Button processing (Pre-post hoc test selection)
   vars <-  reactiveValues(count = 0)
   
   output$submitAnalysis <- renderUI({
     req(data()) 
     col_names <- colnames(data())  
     if(isTRUE(input$dataGroup)){
+      #Checks correct column names for grouped data
       checkColon <- has_element(str_detect(col_names,':'),FALSE)
       validate(need(isFALSE(checkColon), "")) 
     }
@@ -4694,12 +5080,11 @@ server <- shinyServer(function(input, output, session) {
       placement = "bottom",
       options = list(trigger = "manual")
     )
-    
-    
-    
   })
   
   observe({
+    #Adds one count to vars after clicking first Submit Analysis button
+     #Checks how many time the button was clicked
     if (!is.null(input$runAnalysis)){
       input$runAnalysis
       isolate({
@@ -4708,7 +5093,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   submitLabel <- reactive({
-    
+    #Dynamically checks Submit Analysis button click count and changes label
     if(!is.null(input$runAnalysis)){
       if(vars$count >=2){
         label <- "Update Analysis"
@@ -4721,28 +5106,27 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  ###### All the Statistics test processing #####
-  
+  ### All the Statistics test processing ###
   
   
   ###Normality test###
   
   normTest <- reactive({
-    #generation of Normality test report
+    req(data()) #important
     normdf <- data.frame()
+    dataN <- data() 
     
-    dataN <- na.omit(data()) 
-    
-    if (nrow(dataN) > 3000 || nrow(dataN) < 3) {
+    if (nrow(dataN) > 5000 || nrow(dataN) < 3) {
+      #Safe range to perform Shapiro Wilk test.
       data.frame(
         Test_Report = c(
-          'Can not perform Shapiro test for sample number less than 3 or more than 3000.'
+          'Can not perform Shapiro test for sample number less than 3 or more than 5000.'
         )
       )
     } else{
       # Shapiro-Wilk test for normal/ skewed distribution check
       for (i in 1:ncol(dataN)) {
-        tempdf <- tidy(shapiro.test(dataN[, i]))
+        tempdf <- tidy(stats::shapiro.test(dataN[, i]))
         normdf <- rbind(normdf, tempdf)
       }
       testrep <- data.frame(normdf[, 1:3])
@@ -4750,6 +5134,7 @@ server <- shinyServer(function(input, output, session) {
       testrep <- cbind(testrep, newcol)
       testrep <- testrep
       df <- data.frame()
+      #Assigns Yes/No to test results if it passes normality test based on p value
       for (i in 1:nrow(testrep)) {
         if (as.numeric(testrep[i, 2]) < 0.05) {
           tempdf2 <- c('No')
@@ -4759,13 +5144,14 @@ server <- shinyServer(function(input, output, session) {
           df <- rbind(df, tempdf2)
         }
       }
+      #Report table preparation 
       pval <- testrep[,2]
-      astrM <- asterisk(pval)
+      astrM <- asterisk(pval)#converts asterisk from p values
       testrep <- cbind(testrep, df, astrM)
       testrep <- data.frame(testrep[, 4], testrep[1], testrep[2], testrep[6], testrep[5])
       colnames(testrep) <- c( 'Condition', 'Shapiro-Wilk Statistics',
                               'P Value', 'Significance', 'Passed normality test (P<0.05)?')
-      
+      #removing unnecessary characters from condition names
       removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
       for (i in 1:nrow(testrep)) {
         for (pattern in removeStr){
@@ -4780,18 +5166,20 @@ server <- shinyServer(function(input, output, session) {
   ###Descriptive Statistics###
   
   descStat <- reactive({
+    req(data()) #important
     descTab <- data.frame()
+    #Basic descriptive summary statistics calculation
     for (i in 1:ncol(data())) {
       descStat <- data.frame(as.matrix(summary(na.omit(data()[[i]]))))
       descStat <- rbind(length(na.omit(data()[[i]])), descStat)
-      descSD <- apply(data()[i], 2, sd, na.rm = T)
-      descErr <- descSD / sqrt(length(na.omit(data()[[i]])))
+      descSD <- apply(data()[i], 2, sd, na.rm = TRUE) #SD
+      descErr <- descSD / sqrt(length(na.omit(data()[[i]]))) #Std Error
       descStat <- rbind(descStat, descSD, descErr)
       colnames(descStat) <- c(colnames(data()[i]))
       descTab <- append(descTab, descStat)
     }
     descTab <- data.frame(descTab, check.names = F)
-    
+    #Report table preparation
     cols <- c(
       'Condition', 'N', 'Minimum', "1st Quartile", 'Median',
       'Mean', '3rd Quartile', 'Maximum', 'Std. Dev.', 'Std. Err.'
@@ -4799,6 +5187,7 @@ server <- shinyServer(function(input, output, session) {
     descTab <- data.frame(t(descTab))
     descTab <- cbind(colnames(data()),descTab)
     colnames(descTab) <- cols
+    #removing unnecessary characters from condition names
     removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
     for (i in 1:nrow(descTab)) {
       for (pattern in removeStr){
@@ -4811,7 +5200,9 @@ server <- shinyServer(function(input, output, session) {
   
   #Levene's test for equal variance for full stat report
   levTest <- reactive({
-    levdf <- data.frame(tidy(car::leveneTest(value ~ variable, na.omit(orderdata()))))
+    req(data()) #important
+    levdf <- data.frame(tidy(car::leveneTest(value ~ variable,
+                                             na.omit(orderdata()))))
     if (levdf$p.value < 0.05)
       (temp <- c(
         'The groups do not have equal variances on the dependent variable'
@@ -4819,7 +5210,8 @@ server <- shinyServer(function(input, output, session) {
     else{
       temp <- c('The groups have approximately equal variances on the dependent variable')
     }
-    astrM <- asterisk(levdf$p.value)
+    astrM <- asterisk(levdf$p.value)#converts asterisk from p values
+    # Formatting p value digits
     levdf <- data.frame(formatC(levdf[, 1], format = 'g', digits = 3), levdf[, 3],
                         formatC(levdf[, 2], format = 'g', digits = 3),
                         astrM, temp)
@@ -4830,23 +5222,38 @@ server <- shinyServer(function(input, output, session) {
   ### Two Sample test processing ###
   
   tsTest <- reactive({
+    req(data())#important
     testdata <- data()
-    colname <- (input$statTwoCol) # Selected columns for t test
+    # Selected columns for t test (if more than two is present)
+    colname <- (input$statTwoCol) 
     
-    x <- match(colname[1],current_colnames())
-    y <- match(colname[2],current_colnames())
+    # Subset only if selectedCols exist and are valid
+    newColNames <- current_colnames()
+    selected <- input$selectedCols %||% newColNames
+    newColNames <- intersect(selected, newColNames)
+    
+    #Finds the column index in the main data for selected columns 
+    x <- match(colname[1],newColNames)
+    y <- match(colname[2],newColNames)
     
     if (input$paratestType == "para") {
+      #Sets equal variance parameter for two-sample test for parametric data
+       #based on Levene's Test
       if(as.numeric(levTest()$`P Value`)>0.05){
         varEql <- TRUE
-      } else { varEql <- FALSE}
-      
-      testrow <- t.test(testdata[x], testdata[y], alternative = c('two.sided'), 
+      } else { 
+        varEql <- FALSE
+      }
+      #student's t-test (eql var = T) or Welch's t-test (eql var = F)
+      testrow <- stats::t.test(testdata[x], testdata[y], alternative = c('two.sided'), 
                         paired = input$askPaired,
                         var.equal = varEql)
       testrow <- tidy(testrow)
-      astrN <- asterisk(testrow$p.value)
-      colHead <- c('Comparisons', 'Difference in Means', 'Confidence Interval', 't Statistics', 'P Value', 'Significance')
+      astrN <- asterisk(testrow$p.value)#converts asterisk from p values
+      
+      #Report table preparation
+      colHead <- c('Comparisons', 'Difference in Means', 'Confidence Interval',
+                   't Statistics', 'P Value', 'Significance')
       df <- data.frame(paste(colname[1],' vs ', colname[2], sep = ''),
                        as.numeric(formatC(abs(testrow$estimate),digits = 3, format = 'f')),
                        paste(as.numeric(formatC(abs(testrow$conf.low),digits = 3, format = 'f')),
@@ -4856,16 +5263,22 @@ server <- shinyServer(function(input, output, session) {
                        astrN)
       colnames(df) <- colHead
     } else if (input$paratestType == "nonpara"){
-      testrow <- tidy(stats::wilcox.test(as.numeric(unlist(testdata[x])),as.numeric(unlist(testdata[y])), alternative = c('two.sided'),
-                                         paired = input$askPaired, correct = T))
+      #Wilcoxon rank sum test (paired) or Mann-whitney U test (unpaired)
+      testrow <- tidy(stats::wilcox.test(as.numeric(unlist(testdata[x])),
+                                         as.numeric(unlist(testdata[y])),
+                                         alternative = c('two.sided'),
+                                         paired = input$askPaired, 
+                                         correct = T, digits.rank = 7))
+      #Getting test rank to show in report
       testRank <- mwz(testdata[x],testdata[y])
-      
-      astrN <- asterisk(testrow$p.value)
+      astrN <- asterisk(testrow$p.value)#converts asterisk from p values
+      #Report table preparation
       colHead <- c('Comparisons','Mann Whitney U Statistics', 'z Statistics', 
                    paste0('Rank Sum ', colname[1],sep=''),
                    paste0('Rank Sum ', colname[2], sep=''),
                    'Difference in Rank Sum',
                    'P Value', 'Significance')
+      # Formatting p value digits
       df <- data.frame(paste(colname[1],' vs ', colname[2], sep = ''),
                        formatC(as.numeric(testrow$statistic),format='f', digits = 3),
                        testRank$z_Statistics, testRank$RankSum_X, testRank$RankSum_Y,
@@ -4875,6 +5288,7 @@ server <- shinyServer(function(input, output, session) {
       )
       colnames(df) <- colHead
     }
+    #removing unnecessary characters from condition names
     removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
     for (i in 1:nrow(df)) {
       for (pattern in removeStr){
@@ -4888,26 +5302,36 @@ server <- shinyServer(function(input, output, session) {
   ### Several Sample test processing ###
   
   ssTest <- reactive({
-    req(data())
+    req(data())#important
+    
     if (isTRUE(input$askComp) && input$ttestType == 'sSt'){
+      #When pairwise comparison option is active
+      #Selects columns based on type of pairwise comparisons
       if(input$compList == 'controlC'){
         colname <- c(input$askControl,input$statContCols)
       } else if (input$compList == 'groupC') {
         colname <- (validStatCols())
       }
     } else if (isFALSE(input$askComp) && input$ttestType == 'tSt'){
+      #When pairwise comparison option is inactive (fail-safe)
       colname <- (input$statTwoCol)
     } else{
-      colname <- current_colnames()
+      #When pairwise comparison option is inactive
+      # Subset only if selectedCols exist and are valid (in case)
+      newColNames <- current_colnames()
+      selected <- input$selectedCols %||% newColNames
+      newColNames <- intersect(selected, newColNames)
+      colname <- newColNames
     }
     widedata <- data() |> dplyr::select(all_of(colname))
     removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
     newColNames <- current_colnames()
-    
+
     # Subset only if selectedCols exist and are valid
     selected <- input$selectedCols %||% newColNames
     newColNames <- intersect(selected, newColNames)
     
+    #removing unnecessary characters from column names
     for (i in 1:length(newColNames)) {
       for (pattern in removeStr){
         newColNames[i] <- gsub(pattern, "", newColNames[i], fixed = TRUE)
@@ -4917,11 +5341,13 @@ server <- shinyServer(function(input, output, session) {
     
     ## ANOVA Test for parametric data
     if(input$paratestType == 'para'){
-      ## For Parametric Test
+      
+      ## For Parametric Test ##
+      
       if(isTRUE(input$askPairedssT)){
         # For Paired data
         widedata$ID <- row.names(widedata)
-        if(input$dataGroup == T){
+        if(isTRUE(input$dataGroup)){
           # For Grouped data
           longdata <- widedata |> pivot_longer(cols = -ID, 
                                                names_to = c('para','groups'),
@@ -4941,7 +5367,7 @@ server <- shinyServer(function(input, output, session) {
         aovTest <- get_anova_table(aovTest, correction = 'GG') 
       } else {
         # For Independent data
-        if (input$dataGroup == T){
+        if (isTRUE(input$dataGroup)){
           # For Grouped data
           longdata <- widedata |> pivot_longer(cols=everything(),
                                                names_to = c('para','groups'),
@@ -4956,7 +5382,7 @@ server <- shinyServer(function(input, output, session) {
         # Heteroscedasticity Correction if Levene test gives significant p value
         het_sce <- ifelse (as.numeric(levTest()$`P Value`)>0.05, FALSE, TRUE)
         
-        if (input$dataGroup == T){
+        if (isTRUE(input$dataGroup)){
           # For Groupued data
           aovTest <- rstatix::anova_test(longdata, val ~ para*groups, type= 3,
                                          white.adjust = het_sce)
@@ -4966,59 +5392,70 @@ server <- shinyServer(function(input, output, session) {
                                          white.adjust = het_sce)
         }   
       }
-      if(input$dataGroup == T){
+      
+      if(isTRUE(input$dataGroup)){
         aovTest <- data.frame(aovTest$Effect,aovTest$F, aovTest$DFn, aovTest$DFd, aovTest$p)
       } else {
         aovTest <- data.frame(aovTest$F, aovTest$DFn, aovTest$DFd, aovTest$p)
       }
-      asterN <- asterisk(aovTest[,ncol(aovTest)])
+      asterN <- asterisk(aovTest[,ncol(aovTest)])#converts asterisk from p values
+      #Report table preparation
       aovTest <- cbind(aovTest,asterN)
       if (input$dataGroup == T){
-        colnames(aovTest) <- c('Effect','F Statistics', 'DFn', 'DFd', 'P Value', 'Significance')
+        colnames(aovTest) <- c('Effect','F Statistics', 'DFn', 'DFd', 'P Value',
+                               'Significance')
         effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
         aovTest$Effect <- c(effName,'Groups',paste0(effName,' to Groups'))
       }else{
         colnames(aovTest) <- c('F Statistics', 'DFn', 'DFd', 'P Value', 'Significance')
       }
-      
+      # Formatting p value digits
       aovTest$`P Value` <- formatC(aovTest$`P Value`, format = 'g', digits = 3)
       return(aovTest)
     } else {
-      ## For Nonparametric Test
+      
+      ## For Nonparametric Test ##
       
       if(isTRUE(input$askPairedssT)){
+        # For Paired data
         widedata$ID <- row.names(widedata)
-        if (input$dataGroup == T){
-          longdata <- na.omit(widedata) |> pivot_longer(cols = -ID, 
+        if (isTRUE(input$dataGroup)){
+          # For grouped data
+          longdata <- widedata |> pivot_longer(cols = -ID, 
                                                         names_to = c('para','groups'),
                                                         names_sep = ':',
-                                                        values_to = 'val')
-          model <- ARTool::art(data = na.omit(longdata), 
+                                                        values_to = 'val') |> drop_na(val)
+          model <- ARTool::art(data = longdata, 
                                formula = val ~ factor(para)*factor(groups) + (1|ID))
           nparaTest <- anova(model)
         } else {
+          # For ungrouped data
           longdata <- widedata |> pivot_longer(cols = -ID, 
-                                               names_to = 'para', values_to = 'val')
+                                               names_to = 'para', values_to = 'val') |> drop_na(val)
           nparaTest <- rstatix::friedman_test(longdata, val ~ para | ID)
         }
         
       } else {
-        if (input$dataGroup == T){
+        # For Unpaired data
+        if (isTRUE(input$dataGroup)){
+          # For grouped data
           longdata <- widedata |> pivot_longer(cols = everything(), 
                                                names_to = c('para','groups'),
                                                names_sep = ':',
-                                               values_to = 'val')
-          model <- ARTool::art(data = na.omit(longdata), 
+                                               values_to = 'val')|> drop_na(val)
+          model <- ARTool::art(data = longdata, 
                                formula = val ~ factor(para)*factor(groups))
           nparaTest <- anova(model)
         } else{
+          # For ungrouped data
           longdata <- widedata |> pivot_longer(cols = everything(), 
                                                names_to = 'para', values_to = 'val')
           nparaTest <- rstatix::kruskal_test(longdata, val ~ para)
         }
         
       }
-      if (input$dataGroup == T){
+      
+      if (isTRUE(input$dataGroup)){
         nparaTest <- data.frame(nparaTest$Term, nparaTest$`F`, nparaTest$Df,
                                 nparaTest$Df.res, nparaTest$`Pr(>F)`)
         
@@ -5026,9 +5463,9 @@ server <- shinyServer(function(input, output, session) {
         nparaTest <- data.frame(nparaTest$statistic, nparaTest$df, nparaTest$p)
       }
       
-      asterN <- asterisk(nparaTest[,ncol(nparaTest)])
+      asterN <- asterisk(nparaTest[,ncol(nparaTest)])#converts asterisk from p values
+      #Report table preparation
       nparaTest <- cbind(nparaTest,asterN)
-      
       if (input$dataGroup == T){
         colnames(nparaTest) <- c('Effect','F Statistics', 'DFn', 'DFd', 'P Value', 'Significance' )
         effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
@@ -5036,27 +5473,35 @@ server <- shinyServer(function(input, output, session) {
       } else{
         colnames(nparaTest) <- c('H Statistics', 'DF', 'P Value', 'Significance' )
       }
-      
+      # Formatting p value digits
       nparaTest$`P Value` <- formatC(nparaTest$`P Value`, format = 'g', digits = 3) 
       return(nparaTest)
     }
-    
   })  |> bindEvent(input$runAnalysisFinal)
   
   ### Post Hoc Pairwise Test Processing ###
+  
   phTest <- reactive({
-    req(data(), current_colnames(), isFALSE(input$dataGroup))
+    req(data(), current_colnames(), isFALSE(input$dataGroup)) #important
     
     if (isTRUE(input$askComp) && input$ttestType == 'sSt'){
+      #When pairwise comparison option is active
+      #Selects columns based on type of pairwise comparisons
       if(input$compList == 'controlC'){
         colname <- c(input$askControl,input$statContCols)
       } else if (input$compList == 'groupC') {
         colname <- (validStatCols())
       }else{
-        colname <- current_colnames()
+        #(fail-safe)
+        # Subset only if selectedCols exist and are valid 
+        newColNames <- current_colnames()
+        selected <- input$selectedCols %||% newColNames
+        newColNames <- intersect(selected, newColNames)
+        colname <- newColNames
       }
+      widedata <- data() |>
+        dplyr::select(all_of(colname))
       
-      widedata <- data() |>  dplyr::select(all_of(colname))
       
       longdata <- widedata |>  pivot_longer(cols=everything(), 
                                             names_to = 'para',
@@ -5064,11 +5509,14 @@ server <- shinyServer(function(input, output, session) {
       longdata$para <- factor(longdata$para, levels = colname)   
       
       req(longdata)
+      
       phDf <- NULL
+      removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
+      
       if (isFALSE(input$askPairedssT)){ 
         ## For independent samples (not repeated samples)
         
-        # Parametric Control vs Groups
+        # Parametric test (Control vs Groups comparisons)
         if(input$compList == 'controlC' && input$paratestType == "para"){
           if (levTest()$`P Value`<0.05){
             # Unequal Variance - Dunnett T3 Test
@@ -5078,10 +5526,12 @@ server <- shinyServer(function(input, output, session) {
             phDf <- data.frame(paste(colnames(T3$p.value), '-', 
                                      rownames(T3$p.value)), T3$statistic,
                                T3$p.value, stringsAsFactors = F)
-            astrN <- asterisk(phDf[,3])
+            astrN <- asterisk(phDf[,3])#converts asterisk from p values
+            # Formatting p value digits
             phDf[,3] <- ifelse( phDf[,3]== 0 | phDf[,3] < 2.2e-16,
                                 "< 2.2e-16",
                                 formatC(phDf[,3], format = "g", digits = 4))
+            #Report table preparation
             phDf <- cbind(phDf,astrN)
             colnames(phDf) <- c('Comparisons', 'T Statistics', 'P Value', 'Significance')
           } else {
@@ -5089,122 +5539,167 @@ server <- shinyServer(function(input, output, session) {
             dT <- DescTools::DunnettTest(x = longdata$val, 
                                          g = relevel(factor(longdata$para),
                                                      ref = input$askControl))
+            #Report table preparation
             phDf <- as.data.frame(dT[[1]])
             phDf <- data.frame(rownames(phDf),phDf[,1], paste0(formatC(phDf[,2], format = 'f', digits = 3)
                                                                ,' to ',formatC(phDf[,3], format = 'f', digits = 3), sep=''),
                                phDf[,4], asterisk(phDf[,4]))
             colnames(phDf) <- c('Comparisons','Difference Between Means',
                                 '95% CI of Mean Diff', 'P Value', 'Significance')
+            # Formatting p value digits
             phDf[,4] <- ifelse( phDf[,4]== 0 | phDf[,4] < 2.2e-16,
                                 "< 2.2e-16",
                                 formatC(phDf[,4], format = "g", digits = 4))
           }
-          # Parametric all pairwise groups 
+           
         } else if (input$compList == 'groupC' && input$paratestType == "para" &&
                    levTest()$`P Value`<0.05) {
+          # Parametric all pairwise groups
+          
           # For unequal variance - Games-Howell
+          
           phDf <- rstatix::games_howell_test(longdata, val ~ para, detailed = T)
-          astrN <- asterisk(phDf$p.adj)[[1]]
+          
+          astrN <- asterisk(phDf$p.adj)[[1]]#converts asterisk from p values
+          #Report table preparation
           phDf <- data.frame(paste0(phDf$group1,'-',phDf$group2, sep=''), -(phDf$estimate),
                              paste0(formatC(-(phDf$conf.low), format = 'f', digits = 3)
                                     ,' to ',formatC(-(phDf$conf.high), format = 'f', digits = 3)),
                              phDf$df, phDf$p.adj, astrN)
           colnames(phDf) <- c('Comparisons', 'Difference Between Means', 
                               '95% CI of Mean Diff','DFd', 'P Value Adjusted', 'Significance')
-          phDf$`P Value Adjusted` <- formatC(phDf$`P Value Adjusted`, format = 'g', digits = 3)
+          # Formatting p value digits
+           phDf$`P Value Adjusted` <- formatC(phDf$`P Value Adjusted`, format = 'g', digits = 3)
           
         } else if (input$compList == 'groupC' && input$paratestType == "para" &&
                    levTest()$`P Value`>0.05) {
-          # For equal variance - Tukey's HSD
+          # For Equal variance - Tukey's HSD
+          
           phDf <- rstatix::tukey_hsd(longdata, val ~ para, detailed = T)
-          astrN <- asterisk(phDf$p.adj)[[1]]
+          
+          astrN <- asterisk(phDf$p.adj)[[1]]#converts asterisk from p values
+          # Report table preparation
           phDf <- data.frame(paste0(phDf$group1,'-',phDf$group2, sep=''), -(phDf$estimate),
                              paste0(formatC(-(phDf$conf.low), format = 'f', digits = 3)
                                     ,' to ',formatC(-(phDf$conf.high), format = 'f', digits = 3)),
                              phDf$p.adj, astrN)
           colnames(phDf) <- c('Comparisons', 'Difference Between Means', 
                               '95% CI of Mean Diff', 'P Value Adjusted', 'Significance')
+          # Formatting p value digits
           phDf$`P Value Adjusted` <- formatC(phDf$`P Value Adjusted`, format = 'g', digits = 3)
           
         } else if (input$compList == 'controlC' && input$paratestType == "nonpara"){
-          # For nonparametric Control vs Groups - Dunn's test
-          phDf <- longdata |> rstatix::dunn_test(val ~ para, p.adjust.method = input$askCorrectionC, 
+          
+          # For nonparametric (Control vs Groups)
+          
+          #  Dunn's test
+          phDf <- longdata |> rstatix::dunn_test(val ~ para,
+                                                 p.adjust.method = input$askCorrectionC, 
                                                  detailed = T) |> data.frame()
-          astrN <- asterisk(phDf$p.adj)
+          astrN <- asterisk(phDf$p.adj)#converts asterisk from p values
+          # Report table preparation
           phDf <- data.frame(paste0(phDf$group1,'-',phDf$group2, sep=''), -(phDf$estimate), -(phDf$statistic),
                              phDf$p, phDf$p.adj, astrN)
           colnames(phDf) <- c('Comparisons', 'Mean Rank Difference', 'Z Statistic',
                               'Raw P Value', 'Adjusted P Value', 'Significance')
+          # Filter out only Control vs Groups comparisons
           phDf <- phDf |> dplyr::filter(grepl(input$askControl, Comparisons))
+          # Formatting p value digits
           phDf$`Raw P Value` <- formatC(phDf$`Raw P Value`, format = 'g', 
                                         digits = 3)
           phDf$`Adjusted P Value` <- formatC(phDf$`Adjusted P Value`, format = 'g', 
                                              digits = 3)
         } else if (input$compList == 'groupC' && input$paratestType == "nonpara"){
-          # For nonparametric all pairwise groups - Dunn's test
+          # For nonparametric (all pairwise groups)
+          # Dunn's test
           phDf <- longdata |> rstatix::dunn_test(val ~ para, p.adjust.method = input$askCorrection, 
                                                  detailed = T) |> data.frame()
-          astrN <- asterisk(phDf$p.adj)
+          astrN <- asterisk(phDf$p.adj)#converts asterisk from p values
+          # Report table preparation
           phDf <- data.frame(paste0(phDf$group1,'-',phDf$group2, sep=''), -(phDf$estimate), -(phDf$statistic),
                              phDf$p, phDf$p.adj, astrN)
           colnames(phDf) <- c('Comparisons', 'Mean Rank Difference', 'Z Statistic',
                               'Raw P Value', 'Adjusted P Value', 'Significance')
+          # Formatting p value digits
           phDf$`Raw P Value` <- formatC(phDf$`Raw P Value`, format = 'g', 
                                         digits = 3)
           phDf$`Adjusted P Value` <- formatC(phDf$`Adjusted P Value`, format = 'g', 
                                              digits = 3)
         }
       } else {
-        ## For repeated measurement
+        ## For repeated measurement ##
+        
         if (input$paratestType == 'nonpara'){
-          #nonparametric - Conover's test
+          # For nonparametric test
+          # Conover's test
           cT <- PMCMRplus::frdAllPairsConoverTest(as.matrix(widedata),
                                                   p.adjust=input$askCorrectionPC)
+          cT_rawP <- PMCMRplus::frdAllPairsConoverTest(as.matrix(widedata),
+                                                       p.adjust='none')
           cT <- summary(cT)
-          phDf <- TabToVec(cT)
-          astrN <- asterisk(phDf[,3])
-          phDf <- data.frame(phDf,  astrN)
+          cT_rawP <- summary(cT_rawP)
+          #function to convert row and col names into a comparison list
+          phDf <- TabToVec(cT) 
+          cT_rawP <- TabToVec(cT_rawP)
+          # Removing unnecessary characters from comparison names for conover's test here
+           # It somehow does not work later
+          phDf[,1] <- gsub('-','vs',phDf[,1])
+          phDf[,1] <- gsub('-',' ',phDf[,1])
+          for (pattern in removeStr){
+            phDf[,1] <- gsub(pattern, "", phDf[,1], fixed = TRUE)
+          }
+          astrN <- asterisk(phDf[,3])#converts asterisk from p values
+          # Report table preparation
+          phDf <- data.frame(phDf[,1], phDf[,2], cT_rawP[,3], phDf[,3], astrN)
+          # Formatting p value digits
           phDf[,3] <- ifelse( phDf[,3]== 0 | phDf[,3] < 2.2e-16,
                               "< 2.2e-16",
                               formatC(phDf[,3], format = "g", digits = 3))
-          colnames(phDf) <- c('Comparisons', 'T Statistics', 
+          phDf[,4] <- ifelse( phDf[,4]== 0 | phDf[,4] < 2.2e-16,
+                              "< 2.2e-16",
+                              formatC(phDf[,4], format = "g", digits = 3))
+          colnames(phDf) <- c('Comparisons', 'T Statistics', 'Raw P Value',
                               'Adjusted P Value', 'Significance')
           if (input$compList=='controlC'){
+            #Filters only control vs groups
             phDf <- phDf |> dplyr::filter(grepl(input$askControl,Comparisons))
             return(phDf)
           }else{
             return(phDf)
           }
         } else {
-          #Parametric repeated Anova - pairwise-t-test
+          # For Parametric test 
+          # Repeated Anova - pairwise-t-test
           if (input$compList=='controlC'){
+            # For control vs groups
             ptT <- rstatix::pairwise_t_test(longdata, val ~ para, p.adjust.method = input$askCorrectionCG,
                                             paired = T, ref.group = input$askControl)
           } else {
+            # For all groups
             ptT <- rstatix::pairwise_t_test(longdata, val ~ para, p.adjust.method = input$askCorrectionP,
                                             paired = T)
           }
+          # Report table preparation
           phDf <- data.frame(paste0(ptT$group1,'-',ptT$group2), ptT$statistic,
                              ptT$df, ptT$p,ptT$p.adj,asterisk(ptT$p.adj))
           colnames(phDf) <- c('Comparisons', 'T Statistics', 'Dfd', 
                               'Raw P Value', 'Adjusted P Value', 'Significance')
+          # Formatting p value digits
           phDf[,5] <- ifelse(phDf[,5]==0 | phDf[,5]<2.2e-16, "2.2e-16", 
                              formatC(phDf[,5], format = 'g', digits = 3))
           phDf[,4] <- ifelse(phDf[,4]==0 | phDf[,4]<2.2e-16, "2.2e-16", 
                              formatC(phDf[,4], format = 'g', digits = 3))
         }
       }
-      removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
-      for (i in 1:nrow(phDf)) {
+
         for (pattern in removeStr){
-          phDf[i,1] <- gsub(pattern, "", phDf[i,1], fixed = TRUE)
+          phDf[,1] <- gsub(pattern, "", phDf[,1], fixed = TRUE)
         }
-        phDf[i,1] <- gsub('.', " ", phDf[i,1], fixed = TRUE)
-        phDf[i,1] <- gsub('-', " vs ", phDf[i,1], fixed = TRUE)
-      }
-      
+        phDf[,1] <- gsub('.', " ", phDf[,1], fixed = TRUE)
+        phDf[,1] <- gsub('-', " vs ", phDf[,1], fixed = TRUE)
       return(phDf)
     } else {
+      #If Pairwise comparisons not selected for several samples test then it returns nothing
       return(NULL)
     }
   })  |> bindEvent(input$runAnalysisFinal)
@@ -5213,47 +5708,61 @@ server <- shinyServer(function(input, output, session) {
   ### Grouped data posthoc test ###
   
   phTestG <- reactive({
-    req(data(), isTRUE(input$dataGroup))
+    req(data(), isTRUE(input$dataGroup)) #important
+    
     removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
+    
+    # Subset only if selectedCols exist and are valid
     newColNames <- current_colnames()
+    selected <- input$selectedCols %||% newColNames
+    newColNames <- intersect(selected, newColNames)
+    colname <- newColNames
+    #Removing unnecessary characters from column names
     for (i in 1:length(newColNames)) {
       for (pattern in removeStr){
         newColNames[i] <- gsub(pattern, "", newColNames[i], fixed = TRUE)
       }
       newColNames[i] <- gsub(' ', '.', newColNames[i], fixed = TRUE)
     }
+    #Validates presence of ':' for group name separation
     checkColon <- has_element(str_detect(newColNames,':'),FALSE)
     validate(need(isFALSE(checkColon), ""))
-    
     
     widedata <- data() |>  dplyr::select(all_of(validStatCols()))
     
     colnames(widedata) <- newColNames
     
     if(isTRUE(input$askPairedssT)){
+      # For paired ore repeated samples data
       widedata$ID <- row.names(widedata)
       longdata <- widedata |>  pivot_longer(cols=-ID, 
                                             names_to = c('para','groups'),
                                             names_sep = ':',
-                                            values_to = 'val')
+                                            values_to = 'val')|> drop_na(val)
     }else{
+      # For unpaired data
       longdata <- widedata |>  pivot_longer(cols=everything(), 
                                             names_to = c('para','groups'),
                                             names_sep = ':',
-                                            values_to = 'val')
+                                            values_to = 'val')|> drop_na(val)
     }
     longdata$para <- factor(longdata$para)
     longdata$groups <- factor(longdata$groups)
     
     if(input$paratestType == 'nonpara'){
-      #For Nonparametric post-hoc test
+      #For Nonparametric test (all pairwise groups)
+      
       if(isTRUE(input$askPairedssT)){
-        model <- art(data=na.omit(longdata), 
+        # For paired or repeated samples data
+        # Aligned Ranked Transform test
+        model <- ARTool::art(data = longdata, 
                      formula= val ~ para*groups + (1|ID))
       } else {
-        model <- art(data=na.omit(longdata), 
+        # For unpaired data
+        model <- ARTool::art(data = longdata, 
                      formula= val ~ para*groups)
       }
+      #ART Contrasts for pairwise comparisons
       phDfA <- art.con(model, ~para,
                        adjust = input$askCorrectionG) |> summary()
       phDfB <- art.con(model, ~groups,
@@ -5263,22 +5772,22 @@ server <- shinyServer(function(input, output, session) {
       
       new_cols <- c("Comparison", "Mean Aligned Rank", "Standard Error", "Df",
                     "t Ratio", "P Value", "Significance")
-      
+      # Report table preparation for three effect groups
       phDf_format <- function(df){
         df <- df |> mutate(sig = symnum(p.value, corr = F, na = F, 
                                         cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                         symbols = c("***", "**", "*", ".", " ")),
                            p.value = formatC(p.value, format = 'g', digits = 3)) 
         
-        df$sig <- unlist(asterisk(df$p.value))
+        df$sig <- unlist(asterisk(df$p.value))#converts asterisk from p values
         colnames(df) <- new_cols
         return(df)
       }
-      
+      #Combining three effect groups
       phDfA <- phDf_format(phDfA)
       phDfB <- phDf_format(phDfB)
       phDfAB <- phDf_format(phDfAB)
-      
+      #Removing unnecessary characters from comparisons list
       phDfAB$`Comparison` <- gsub(",",", ",phDfAB$`Comparison`)
       phList <- list(phDfA, phDfB, phDfAB)
       removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
@@ -5293,26 +5802,30 @@ server <- shinyServer(function(input, output, session) {
         }
         df
       })
+      #Changing effect name according to user input
       effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
       names(phList) <- c("Groups", effName,
                          paste("Groups:", effName, collapse = '') )
       
     } else {
-      # For Parametric post-hoc test
+      # For Parametric Test (all pairwise groups)
       if(isTRUE(input$askPairedssT)){
-        model <- lme4::lmer(data=na.omit(longdata), 
+        # For paired or repeated samples data
+        model <- lme4::lmer(data = longdata, 
                             formula = val ~ para*groups + (1|ID))
       } else {
-        model <- stats::aov(data=na.omit(longdata), 
+        # For unpaired data
+        model <- stats::aov(data = longdata, 
                             formula = val ~ para*groups)
       }
-      phDfA <- emmeans(model, pairwise~para,
+      #Emmeans for pairwise comparisons
+      phDfA <- emmeans::emmeans(model, pairwise~para,
                        adjust = input$askCorrectionPCG)$contrasts |> summary()
-      phDfB <- emmeans(model, pairwise~groups,
+      phDfB <- emmeans::emmeans(model, pairwise~groups,
                        adjust = input$askCorrectionPCG)$contrasts |> summary()
-      phDfAB <- emmeans(model, pairwise~para*groups,
+      phDfAB <- emmeans::emmeans(model, pairwise~para*groups,
                         adjust = input$askCorrectionPCG)$contrasts |> summary()
-      
+      # Report table preparation for three effect groups
       new_cols <- c("Comparison", "Mean Aligned Rank", "Standard Error", "Df",
                     "t Ratio", "P Value", "Significance")
       
@@ -5326,11 +5839,11 @@ server <- shinyServer(function(input, output, session) {
         colnames(df) <- new_cols
         return(df)
       }
-      
-      
+      #Combining three effect groups
       phDfA <- phDf_format(phDfA)
       phDfB <- phDf_format(phDfB)
       phDfAB <- phDf_format(phDfAB)
+      #Removing unnecessary characters from comparisons list
       phDfAB$`Comparison` <- gsub(" ",", ",phDfAB$`Comparison`)
       phList <- list(phDfA, phDfB, phDfAB)
       
@@ -5355,41 +5868,53 @@ server <- shinyServer(function(input, output, session) {
   
   testSumm <- reactive({
     if (input$ttestType == 'tSt') {
-      # Two-sample tests (unchanged — already correct)
-      if (input$paratestType == 'nonpara') {
+      # Two-sample tests
+      if (input$paratestType == 'nonpara') { 
+        # nonparametric
         if (isTRUE(input$askPaired)) {
+          #paired
           "Experimental Summary: Wilcoxon signed-rank test (paired samples)"
         } else {
+          #unpaired
           "Experimental Summary: Mann-Whitney U test (independent samples)"
         }
-      } else {  # parametric
+      } else {  
+        # parametric
         if (isTRUE(input$askPaired)) {
+          #paired
           "Experimental Summary: Paired Student's t-test"
         } else {
+          #unpaired
           if (as.numeric(levTest()$`P Value`) < 0.05) {
+            #unequal variance
             "Experimental Summary: Welch's t-test (unequal variances assumed)"
           } else {
+            #equal variance
             "Experimental Summary: Student's t-test (equal variances assumed)"
           }
         }
       }
-      
-    } else {  # sSt — several samples
+    } else {  
+      #Several samples test
       base_test <- ""
       posthoc_text <- ""
       
       if (input$paratestType == 'nonpara') {
+        #nonparametric
         if(isTRUE(input$dataGroup)){
+          #grouped data
           base_test <- "Aligned Rank Transform (ART) test"
           posthoc_text <- " with ART-C post-hoc test"
           
         } else {
           if (isTRUE(input$askPairedssT)) {
+            #paired
             base_test <- "Friedman test (nonparametric repeated measures)"
             if (isTRUE(input$askComp)) {
               posthoc_text <- " with Conover's post-hoc test"
             }
           } else {
+            #unpaired
             base_test <- "Kruskal-Wallis test (nonparametric independent samples)"
             if (isTRUE(input$askComp)) {
               posthoc_text <- " with Dunn's post-hoc test"
@@ -5397,20 +5922,25 @@ server <- shinyServer(function(input, output, session) {
           }
         }
         
-      } else {  # parametric
+      } else {  
+        # parametric
         if (isTRUE(input$askPairedssT)) {
+          #repeated samples
           base_test <- "Repeated-measures ANOVA (with Greenhouse-Geisser correction for sphericity)"
           if (isTRUE(input$askComp)) {
             posthoc_text <- " with pairwise paired t-tests (p-value adjusted)"
           }
-        } else {  # independent samples
+        } else {  
+          # independent samples
           if (as.numeric(levTest()$`P Value`) < 0.05) {
+            #unequal variance
             if (isTRUE(input$dataGroup)){
               base_test <- "Two-way ANOVA (unequal variances)"
             } else {
               base_test <- "Welch's one-way ANOVA (unequal variances)"
             }
           } else {
+            #equal variance
             if (isTRUE(input$dataGroup)){
               base_test <- "Two-way ANOVA (equal variances assumed)"
             } else {
@@ -5420,25 +5950,32 @@ server <- shinyServer(function(input, output, session) {
           
           if (isTRUE(input$askComp)) {
             if (input$compList == 'controlC') {
+              #Control vs group
               if (as.numeric(levTest()$`P Value`) < 0.05) {
+                #unequal variance
                 posthoc_text <- " with Dunnett's T3 post-hoc test (comparisons against control)"
               } else {
+                #equal variance
                 posthoc_text <- " with Dunnett's post-hoc test (comparisons against control)"
               }
-            } else {  # groupC — all pairwise
+            } else {
+              #All pairwise
               if (as.numeric(levTest()$`P Value`) < 0.05) {
+                #unequal variance
                 posthoc_text <- " with Games-Howell post-hoc test (all pairwise comparisons)"
               } else {
+                #equal variance
                 posthoc_text <- " with Tukey's HSD post-hoc test (all pairwise comparisons)"
               }
             }
             if (isTRUE(input$dataGroup)){
               posthoc_text <- " with pairwise t-tests (p-value adjusted)"
             }
+          } else {
+            posthoc_text <- ""
           }
         }
       }
-      
       paste0("Experimental Summary: ", base_test, posthoc_text)
     }
   })
@@ -5446,55 +5983,70 @@ server <- shinyServer(function(input, output, session) {
   ### Effect Size Calculation Logic ###
   
   effSize <- reactive({
-    req(data())
+    req(data()) #important
     if (input$ttestType == 'tSt') {
-      # Effect size calculation for two sample t-Test
+      # Two sample test
       if (isTRUE(input$askComp)){
         colname <- (input$statTwoCol)
       } else{
-        colname <- current_colnames()
+        # Subset only if selectedCols exist and are valid
+        newColNames <- current_colnames()
+        selected <- input$selectedCols %||% newColNames
+        newColNames <- intersect(selected, newColNames)
+        colname <- newColNames
       }
       widedata <- data() |> dplyr::select(all_of(colname))
       longdata <- widedata |> pivot_longer(names_to = 'variable', values_to = 'value',
                                            cols = everything())
+      #checks for varaince
       if(as.numeric(levTest()$`P Value`)>0.05){
         varEql <- TRUE
       } else {
         varEql <- FALSE
       }
-      effDf <- cohens_d(data = longdata,
+      #Cohen's d test 
+      effDf <- rstatix::cohens_d(data = longdata,
                         formula = value ~ variable,
                         paired = ifelse(isTRUE(input$askPairedssT), TRUE, FALSE),
                         var.equal = varEql)
-      
+      # Report table prepration
+       # 0.2 (small effect), 0.5 (moderate effect), and 0.8 (large effect)
       effDf <- data.frame("Cohen's d" = effDf$`effsize`,
                           "Sample Magnitude" = effDf$`magnitude`, check.names = F)
     } else {
-      
-      #Effect size calculation for several sample test
+      # Several sample test
       if (isTRUE(input$askPairedssT)){
+        #Repeated measured samples
         widedata <- data() |> mutate(ID = rownames(data()))
         longdata <- widedata |> pivot_longer(cols = -ID,
                                              names_to = 'variable',
                                              values_to = 'value')
       } else {
+        #Independent samples
         longdata <- orderdata()
       }
       if (input$paratestType == 'nonpara'){
-        #Effect size for nonparametric tests
+        # Nonparametric tests
+        # Friedman's Effect Size
         if (isTRUE(input$askPairedssT)){
-          # Effect size from Friedman's statistcs
+          #Repeated measured samples
           if(isFALSE(input$dataGroup)){
-            effDf <- friedman_effsize(data = longdata, 
+            # ungrouped data
+            effDf <- rstatix::friedman_effsize(data = longdata, 
                                       formula = value ~ variable | ID)
             effDf <- data.frame("Kendall's W" = effDf$`effsize`,
                                 "Sample Magnitude" = effDf$`magnitude`, check.names = F)
           } else{
-            effDfV <- longdata |> friedman_effsize(value ~ variable | ID)
-            effDfG <- longdata |> friedman_effsize(value ~ groups | ID)
+            #grouped data
+            effDfV <- longdata |> rstatix::friedman_effsize(value ~ variable | ID)
+            effDfG <- longdata |> rstatix::friedman_effsize(value ~ groups | ID)
+            
             longdata_VG <- longdata %>%
               mutate(combined_group = paste(variable, groups, sep = ":"))
-            effDfVG <- longdata_VG |> friedman_effsize(value ~ combined_group | ID)
+            effDfVG <- longdata_VG |> rstatix::friedman_effsize(value ~ combined_group | ID)
+            
+            # Report table preparation
+            # 0.1 - < 0.3 (small effect), 0.3 - < 0.5 (moderate effect) and >= 0.5 (large effect)
             effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
             effDf <- data.frame("Groups" = c(effName,'Groups',paste0(effName,' to Groups')) ,
                                 "eta2 [H]" = c(effDfV$`effsize`,
@@ -5505,23 +6057,25 @@ server <- shinyServer(function(input, output, session) {
                                                        effDfVG$`magnitude`),
                                 check.names = F)
           }
-          
-          
         } else {
-          #Effect size from Kruskal Wallis's Statistics
-          
+          # Independent Samples
+          #Kruskal-Wallis's Effect Size
           if (isFALSE(input$dataGroup)){
+            #ungrouped data
             effDf <- longdata |> 
-              kruskal_effsize(value ~ variable)
+              rstatix::kruskal_effsize(value ~ variable)
             effDf <- data.frame("eta2 [H]" = effDf$`effsize`,
                                 "Sample Magnitude" = effDf$`magnitude`, check.names = F)
           } else {
-            effDfV <- longdata |> kruskal_effsize(value ~ variable)
-            effDfG <- longdata |> kruskal_effsize(value ~ groups)
+            #grouped data
+            effDfV <- longdata |> rstatix::kruskal_effsize(value ~ variable)
+            effDfG <- longdata |> rstatix::kruskal_effsize(value ~ groups)
             longdata_VG <- longdata %>%
               mutate(combined_group = paste(variable, groups, sep = ":"))
-            effDfVG <- longdata_VG |> kruskal_effsize(value ~ combined_group)
+            effDfVG <- longdata_VG |> rstatix::kruskal_effsize(value ~ combined_group)
             effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
+            #Report table preparation
+            # 0.01- < 0.06 (small effect), 0.06 - < 0.14 (moderate effect) and >= 0.14 (large effect)
             effDf <- data.frame("Groups" = c(effName,'Groups',paste0(effName,' to Groups')) ,
                                 "eta2 [H]" = c(effDfV$`effsize`,
                                                effDfG$`effsize`,
@@ -5534,8 +6088,9 @@ server <- shinyServer(function(input, output, session) {
           
         }
       } else {
-        #Effect size for parametric tests
-        mag <- function(df){#setting effect size magnitude
+        #Parametric tests
+        mag <- function(df){
+          #setting effect size magnitude
           temp <- data.frame()
           for (i in 1:length(df)){
             if (df[i]<=0.01) {
@@ -5550,8 +6105,10 @@ server <- shinyServer(function(input, output, session) {
           return(temp)
         }
         if(isTRUE(input$dataGroup)){
+          #grouped data
+          #Partial Eta Squared value for effect size
           res.aov <- aov(data = longdata, value ~ variable*groups)
-          etaDf <- partial_eta_squared(res.aov)
+          etaDf <- rstatix::partial_eta_squared(res.aov)
           magDf <- mag(etaDf)
           effName <- ifelse(is.null(input$legTitle), 'Treatment', input$legTitle)
           effDf <- data.frame("Groups" = c(effName,'Groups',paste0(effName,' to Groups')),
@@ -5559,11 +6116,24 @@ server <- shinyServer(function(input, output, session) {
                               "Sample Magnitude" = unlist(magDf), check.names = F)
           rownames(effDf) <- NULL
         }else {
-          res.aov <- aov(data = longdata, value ~ variable)
-          etaDf <- eta_squared(res.aov) 
-          magDf <- mag(etaDf)
-          effDf <- data.frame("Eta2" = etaDf,
-                              "Sample Magnitude" = unlist(magDf), check.names = F)
+          #ungrouped data
+          if (isTRUE(input$askPairedssT)){
+            # Repeated measured samples
+            #Partial Eta Squared value for effect size
+            res.aov <- aov(data = longdata, value ~ variable)
+            etaDf <- partial_eta_squared(res.aov)
+            magDf <- mag(etaDf)
+            effDf <- data.frame("Partial Eta2" = etaDf,
+                                "Sample Magnitude" = unlist(magDf), check.names = F)
+          } else {
+            # Independent samples
+            #Eta Squared value for effect size
+            res.aov <- aov(data = longdata, value ~ variable)
+            etaDf <- eta_squared(res.aov)
+            magDf <- mag(etaDf)
+            effDf <- data.frame("Eta2" = etaDf,
+                                "Sample Magnitude" = unlist(magDf), check.names = F)
+          } 
           rownames(effDf) <- NULL
         }
       }
@@ -5574,8 +6144,10 @@ server <- shinyServer(function(input, output, session) {
   
   #### Significance Test report display ####
   
-  observeEvent(input$runAnalysisFinal,{ #Upon Clicking Final Run Analysis button
-    # Two-sample test: always need exactly 2 groups
+  #Upon Clicking Final Run Analysis button checks for correct selection and
+   #proceeds otherwise shows warning
+  observeEvent(input$runAnalysisFinal,{ 
+    # Two-sample test
     req(data())
     if (input$ttestType == "tSt") {
       if (length(input$statTwoCol) != 2) {
@@ -5584,7 +6156,7 @@ server <- shinyServer(function(input, output, session) {
           text = "For two-sample test, select exactly 2 groups.",
           type = "warning"
         )
-        return()  # Stop here, keep modal open
+        return()  #Stop here, keep modal open
       }
     }
     
@@ -5592,7 +6164,7 @@ server <- shinyServer(function(input, output, session) {
     if (input$ttestType == "sSt") {
       if (isTRUE(input$askComp)) {
         if (input$compList == "controlC") {
-          # Need control + at least 2 comparisons → total >=3
+          # Need control and at least 2 comparisons (total >=3)
           if (is.null(input$statContCols) || length(input$statContCols) < 2) {
             show_alert(
               title = "Warning",
@@ -5602,6 +6174,7 @@ server <- shinyServer(function(input, output, session) {
             return()
           }
         } else if (input$compList == "groupC") {
+          # Need at least 3 groups for all pairwise comparisons
           if (is.null(validStatCols()) || length(validStatCols()) < 3) {
             show_alert(
               title = "Warning",
@@ -5612,7 +6185,7 @@ server <- shinyServer(function(input, output, session) {
           }
         }
       } else {
-        # No multiple comparisons → need at least 3 columns in data
+        # No multiple comparisons (need at least 3 columns in data)
         if (ncol(data()) < 3) {
           show_alert(
             title = "Warning",
@@ -5628,17 +6201,21 @@ server <- shinyServer(function(input, output, session) {
       type = getOption("page.spinner.type", default = 5),
       caption = getOption("page.spinner.caption", "Running Analysis")
     )
-    # Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
+    Sys.sleep(runif(min = 2,max = 4,n=1)) #Illusion of analysis processing
     hidePageSpinner()
     removeModal()
   },ignoreNULL = T)
   
+  #Normality test report table 
   normTestTable <- reactive({
+    req(normTest())
     tableNorm <- normTest()
+    #Formatting p value digits
     tableNorm$`P Value` <- formatC(tableNorm$`P Value`, format = 'g', digits = 3)
     tableNorm$`Shapiro-Wilk Statistics` <- formatC(tableNorm$`Shapiro-Wilk Statistics`,
                                                    format = 'g', digits = 3)
-    if (input$ttestType == 'tSt'){
+    #Filters only control vs groups comparisons when Control vs Groups selected
+    if (input$ttestType == 'tSt' && ncol(data()) != length(input$statTwoCol)){
       tableNorm <- tableNorm |> dplyr::filter(Condition %in% input$statTwoCol)
     }else {
       tableNorm <- tableNorm
@@ -5649,16 +6226,21 @@ server <- shinyServer(function(input, output, session) {
     normTestTable()
   }, striped = T, width = '100%', align = 'l') |> bindEvent(input$runAnalysisFinal)
   
-  output$normQQPlot <- renderPlot({
+  #Rendering option for QQ-plot for all data columns for showing distribution
+  QQplot <- reactive({
     req(data())
     if (input$ttestType == 'tSt'){
       df <- data() |> dplyr::select(input$statTwoCol)
     } else {
       df <- data()
     }
-    
+    removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
     plot_list <- lapply(1:ncol(df), function(i) {
       force(i) 
+      for (pattern in removeStr){
+        colnames(df)[[i]] <- gsub(pattern, "", colnames(df)[[i]], fixed = TRUE)
+      }
+      colnames(df) <- gsub("."," ",colnames(df), fixed = TRUE)
       ggplot(df, aes(sample = .data[[colnames(df)[i]]])) +
         stat_qq_band(bandType = "pointwise", fill = "lavender", alpha = 0.5) +
         stat_qq_point(shape = 1) + 
@@ -5667,13 +6249,36 @@ server <- shinyServer(function(input, output, session) {
         theme_classic() +
         labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
         theme(
-          panel.border = element_rect(fill = NA, linewidth = 0.8),
-          axis.line = element_line(linewidth = 0.8)
+          panel.border = element_rect(fill = NA, linewidth = 1.2),
+          plot.title = element_text(size = 18, face = 'bold'),
+          axis.line = element_line(linewidth = 0.8),
+          axis.text = element_text(size = 14),
+          axis.title =  element_text(size = 16)
         )
     })
     patchwork::wrap_plots(plot_list)
   })
+  output$normQQPlot <- renderPlot({
+    QQplot()
+  })
   
+  #QQPlot download handler
+  output$dnldQQ <- downloadHandler(
+    filename = function(){
+      c("QQ_Plot.png")
+    },
+    content = function(file){
+      ggsave(
+        file,
+        plot = QQplot(),
+        width = 750 / 72,
+        height = 600 / 72,
+        units = "in",
+        dpi = as.numeric(150)
+      )
+    }
+  )
+  # Shows QQ plot inside a modal upon button clicking
   observeEvent(input$showQQ,{
     showModal(modalDialog(
       title = "QQ Plots for Probability Distribution",
@@ -5681,42 +6286,54 @@ server <- shinyServer(function(input, output, session) {
       size = 'xl',
       easyClose = TRUE,
       footer = tagList(
-        modalButton("Cancel")
+        modalButton("Cancel"),
+        downloadButton('dnldQQ', label = "Download Plot", icon = icon("download"))
       )
     ))
   })
+  
+  ## Significance test report title selection ##
+  
   sigRepTit <- reactive({
-    
     ## For parametric Two sample t-test or Anova-test titles
     if(as.numeric(levTest()$`P Value`)<0.05){
-      tTitle <- "Welch's t-test report"
-      sTitle <- "Welch's One-way ANOVA test report"
+      #Unequal variance
+      tTitle <- "Welch's t-test report" #two samples
+      sTitle <- "Welch's One-way ANOVA test report" #several samples
     } else {
-      tTitle <- "Student's t-test report"
-      sTitle <- "One-way ANOVA test report"
+      #Equal variance
+      tTitle <- "Student's t-test report" #two samples
+      sTitle <- "One-way ANOVA test report" #several samples
     }
-    if (input$dataGroup == T){
-      sTitle <- "Two-way ANOVA test report"
+    if (isTRUE(input$dataGroup)){
+      #Grouped data
+      sTitle <- "Two-way ANOVA test report" #several samples
     }
     
-    ## For nonparametric Two sample or several samples test titles
+    ## For nonparametric Two sample test titles
     if (isTRUE(input$askPaired)){
+      #Paired sample
       mwTitle <- "Wilcoxon signed-rank test report"
     } else {
+      #Unpaired samples
       mwTitle <-  "Mann-Whitney U test report"
     }
+    ## For nonparametric Several sample test titles
     if (isTRUE(input$askPairedssT)){
+      #Paired sample
       npTitle <- "Friedman test report"
       
     } else {
+      #Unpaired samples
       npTitle <-  "Kruskal Wallis test report"
     }
-    if (input$dataGroup == T){
+    if (isTRUE(input$dataGroup)){
+      # Grouped daata
       npTitle <- "Aligned Rank Transform test report"
     }
     
     if (isTRUE(input$askComp)) {
-      
+      # When pairwise comparison is active
       # Default correction text handling 
       get_corr_text <- function(corr) {
         if (corr == 'none') 'no' 
@@ -5725,25 +6342,29 @@ server <- shinyServer(function(input, output, session) {
         else corr
       }
       
-      if (isTRUE(input$askPairedssT)) {  # PAIRED TESTS
-        
-        if (input$paratestType == 'nonpara') {  # Non-parametric paired
-          
-          if (isTRUE(input$dataGroup)) {  # Grouped data > ART for factorial/repeated
+      if (isTRUE(input$askPairedssT)) {  
+        #Repeated measure sample
+        if (input$paratestType == 'nonpara') {  
+          # Non-parametric
+          if (isTRUE(input$dataGroup)) {  
+            # Grouped data 
+            # ART for factorial/repeated
             corr <- input$askCorrectionG
             corr_text <- get_corr_text(corr)
             posthoc_text <- paste("Post-hoc multifactor contrasts following Aligned Rank Transform (ART-C) with", 
                                   corr_text, "correction")
             
-          } else {  # Non-grouped > Friedman + Conover
+          } else {  
+            # Ungrouped data 
+            # Friedman + Conover
             corr <- input$askCorrectionPC
             corr_text <- get_corr_text(corr)
             posthoc_text <- paste("Conover's post-hoc test following Friedman test with", 
                                   corr_text, "correction")
           }
           
-        } else {  # Parametric paired
-          
+        } else {  
+          # Parametric test 
           # Determine which correction input to use
           corr <- if (input$compList == 'controlC') input$askCorrectionCG else input$askCorrectionP
           corr_text <- get_corr_text(corr)
@@ -5756,45 +6377,50 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
-      } else {  # UNPAIRED TESTS
+      } else {  
+        # Independent samples
         
-        if (input$paratestType == 'nonpara') {  # Non-parametric unpaired
-          
-          if (isTRUE(input$dataGroup)) {  # Grouped data > ART for factorial/independent
+        if (input$paratestType == 'nonpara') {  
+          # Non-parametric
+          if (isTRUE(input$dataGroup)) {  
+            # Grouped data 
+            # ART for factorial/independent
             corr <- input$askCorrectionG
             corr_text <- get_corr_text(corr)
             posthoc_text <- paste("Post-hoc multifactor contrasts following Aligned Rank Transform (ART-C) with", 
                                   corr_text, "correction")
             
-          } else {  # Non-grouped > Kruskal-Wallis + Dunn
+          } else {  
+            # Ungrouped data
+            # Kruskal-Wallis + Dunn
+            # Determine which correction input to use
             corr <- if (input$compList == 'controlC') input$askCorrectionC else input$askCorrection
             corr_text <- get_corr_text(corr)
             
             if (input$compList == 'controlC') {
+              #Control vs Groups
               posthoc_text <- paste("Dunn's post-hoc tests for comparisons against the control with", 
                                     corr_text, "correction")
             } else {
+              #All pairwise groups
               posthoc_text <- paste("Dunn's post-hoc test following Kruskal-Wallis test with", 
                                     corr_text, "correction")
             }
           }
-          
-        } else {  # Parametric unpaired
-          
+        } else {  
+          # Parametric test
           if (input$compList == 'controlC') {
-            # Dunnett's with built-in adjustment
+            #Control vs Groupes
             posthoc_text <- "Dunnett's post-hoc test following one-way ANOVA"
-            
-          } else {  # groupC - all pairwise
-            
+          } else {
+            #All pairwise groups
             if (isTRUE(input$dataGroup)) {
-              # When data is grouped
+              # Grouped data
               corr <- input$askCorrectionPCG
               corr_text <- get_corr_text(corr)
               posthoc_text <- paste("Pairwise independent samples t-tests with", corr_text, "correction")
-              
             } else {
-              # Classic one-way ANOVA post-hoc (equal/unequal variance)
+              # Ungrouped data
               if (as.numeric(levTest()$`P Value`) < 0.05) {
                 posthoc_text <- "Games-Howell post-hoc test following one-way ANOVA"
               } else {
@@ -5804,12 +6430,18 @@ server <- shinyServer(function(input, output, session) {
           }
         }
       }
+    } else {
+      posthoc_text <- ""
     }
-    
+    # Combining final title 
     finalTitles <- list(tTitle, sTitle, mwTitle, npTitle, posthoc_text)
   })
+  
+  ## Generates a significance report summary (color-coded) for Omnibus test
   npResult <- reactive({
-    if (input$dataGroup == T){
+    req(ssTest()) #important
+    if (isTRUE(input$dataGroup)){
+      #Grouped data
       statM <- ifelse(input$paratestType=='nonpara', 'medians', 'means')
       npRes <- data.frame()
       for (i in 1:nrow(ssTest())){
@@ -5824,8 +6456,8 @@ server <- shinyServer(function(input, output, session) {
         temp <- cbind(temp1,temp2, temp3)
         npRes <- rbind(npRes,temp)
       }
-      
     } else {
+      #Ungrouped data
       statM <- ifelse(input$paratestType=='nonpara', 'medians', 'means')
       pState <- ifelse(as.numeric(ssTest()$`P Value`)<=0.05,'a','no')
       pState2 <- ifelse(as.numeric(ssTest()$`P Value`)<=0.05,' of at least two conditions within the',' of conditions within the')
@@ -5840,56 +6472,75 @@ server <- shinyServer(function(input, output, session) {
     
     return(npRes)
   })
+  #Combining Omnibus and Post-Hoc test report for displaying
   sigRepContent <- reactive({
+    req(sigRepTit())#important
+
     titles <- sigRepTit()
     npResult <- lapply(1:nrow(npResult()),function(i){
       p(npResult()[i,1],style = npResult()[i,2])
     })
     if (input$paratestType == 'para'){
+      #Parametric data
       tagList(
+        #Levene's test
         p("Levene's test report for equal variance", style = "font-weight:bolder;"),
         tableOutput('leveVarTab'),
         
         if (input$ttestType == 'tSt'){
+          #Two samples test
           tagList(
             p(titles[1], style = "font-weight:bolder;"),
             tableOutput('tsTestTab')
           )
-        } 
-        else if (input$ttestType == 'sSt'){
-          
-          tagList(
-            p(titles[2], style = "font-weight:bolder;"),
-            tableOutput('ssTestTab'),
-            npResult,
-            br(),
-            p(titles[5],style='font-weight:bolder'),
-            tableOutput('phTestTab')
-          )
+        } else {
+          #Several samples test
+          if (isTRUE(input$askComp)){
+            tagList(
+              #Omnibus test
+              p(titles[2], style = "font-weight:bolder;"),
+              tableOutput('ssTestTab'),
+              npResult,
+              br(),
+              #Post hoc test
+              p(titles[5],style='font-weight:bolder'),
+              tableOutput('phTestTab')
+            )
+          } else {
+            tagList(
+              #Only omnibus test
+              p(titles[2], style = "font-weight:bolder;"),
+              tableOutput('ssTestTab'),
+              npResult
+            )
+          }
         }
       )
-    } else if (input$paratestType == 'nonpara'){
-      
-      
+    } else {
+      #Nonparametric data
       if (input$ttestType == 'tSt'){
-        # Two-sampled t Test report display
+        # Two-sampled test
         tagList(
+          #Two-samples test
           p(titles[3], style = "font-weight:bolder;"),
           tableOutput('tsTestTab')
         )
       } else {
-        #Several sampled Test report display
+        #Several sampled test
         if (isTRUE(input$askComp)){
           tagList(
+            #Omnibus test
             p(titles[4], style = "font-weight:bolder;"),
             tableOutput('ssTestTab'),
             npResult,
             br(),
+            #Post hoc test
             p(titles[5], style = "font-weight:bolder;"),
             tableOutput('phTestTab')
           )
         } else{
           tagList(
+            #Only omnibus test
             p(titles[4], style = "font-weight:bolder;"),
             tableOutput('ssTestTab'),
             npResult
@@ -5899,12 +6550,15 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  ## Significance Table Outputs
+  ## Significance Table Outputs ##
+  
   output$descStatTab <- renderTable({
+    req(descStat())#important
     df <- descStat()
-    show_toast(
+    shinyWidgets::show_toast(
       title= "Analysis complete!", type = "success", timer = 2000)
-    if (input$ttestType == 'tSt'){
+    #Filtering comparisons when Control vs Groups are selected
+    if (input$ttestType == 'tSt'  && ncol(data()) != length(input$statTwoCol)){
       df <- df |> dplyr::filter(Condition %in% input$statTwoCol)
     }else {
       df <- df
@@ -5937,8 +6591,9 @@ server <- shinyServer(function(input, output, session) {
     effSize()
   }, striped = T, width = '100%', align = 'l')  |> bindEvent(input$runAnalysisFinal)
   
+  ## Statistical Report Displaying Accordions Rendering options ##
+  
   output$StatAccordion <- renderUI({
-    
     accordion( multiple = T, class = 'statAcc', open = T,
                p(testSumm(), style = "font-weight:bolder; padding: 10px;
           border-radius:5px; border:2px solid; font-size:15px;"),
@@ -5955,25 +6610,27 @@ server <- shinyServer(function(input, output, session) {
                  p("Shapiro-Wilk normality test report", style = 'font-weight:bolder;'),
                  tableOutput('normStatTab'),
                  actionButton('showQQ', 'Show QQ Plot'),
+                 #Copies normality report to clipboard
                  rclipButton('normCopy', label = 'Copy Result',
                              clipText = format_tsv(normTestTable()))
                ),
                accordion_panel(
                  title = "Descriptive Statistics",
                  tableOutput('descStatTab'),
+                 #Copies Summary statistics report to clipboard
                  rclipButton('descCopy', label = 'Copy Result',
                              clipText = format_tsv(descStat()))
                )
     )
   }) |> bindEvent(input$runAnalysisFinal)
-  
+
   observeEvent(input$normCopy,{
-    show_toast(title = "Data table copied to clipboard!",
+    shinyWidgets::show_toast(title = "Data table copied to clipboard!",
                type = c("success"),
                timer = 2000)
   })
   observeEvent(input$descCopy,{
-    show_toast(title = "Data table copied to clipboard!",
+    shinyWidgets::show_toast(title = "Data table copied to clipboard!",
                type = c("success"),
                timer = 2000)
   })
@@ -5981,6 +6638,7 @@ server <- shinyServer(function(input, output, session) {
     sigRepContent()
   }) |> bindEvent(input$runAnalysisFinal)
   
+  ## Generates comparison group list virtual-select input for significance bracket addition
   observeEvent(list(input$runAnalysisFinal, input$exampleFile),{
     req(data(), nrow(data()) > 0)
     if (input$ttestType=='sSt'){
@@ -5998,17 +6656,18 @@ server <- shinyServer(function(input, output, session) {
       grps <- tsTest()
     }
     
-    
     if(isTruthy(input$exampleFile) && !is.null(data())){
+      # Pre-selects comparisons groups when demo data loaded
       if (isTRUE(input$dataGroup)){
         first <- as.character(grps[c(1, 12, 23), 1, drop = TRUE])
       }else{
         first <- grps[c(1, 3, 5), 1]
       }
     } else {
+      # Pre-selects first option 
       first <- as.character(grps[1, 1, drop = TRUE])
     }
-    
+    #Virtual selection input rendering option
     output$statGroups <- renderUI({
       virtualSelectInput('grplist',
                          label = 'Select Groups',
@@ -6022,17 +6681,21 @@ server <- shinyServer(function(input, output, session) {
                          autoSelectFirstOption = TRUE,
                          showSelectedOptionsFirst = TRUE)
     })
+    ## Opens P value annotation related accordion panel in graph tab when 
+     # Statistical analysis is performed
     observeEvent(list(input$runAnalysisFinal, input$exampleFile),{
       accordion_panel_set(id = "genAcc",
                           value = "annotePanel",
                           session = session)
     })
+    
     # observe({
     #   req(input$askPvalType == 'both')
     #   if(input$pvalVpos == 'bottom'){
     #   updateNoUiSliderInput(session, 'pvalTVpos', value = 100 )}
     # })
     
+    # Rendering options for Statistical report download button
     output$statDnld <- renderUI({
       if(isTRUE(input$dataGroup)){
         checkColon <- has_element(str_detect(colnames(data()),':'),FALSE)
@@ -6051,6 +6714,9 @@ server <- shinyServer(function(input, output, session) {
       
     })
   }) 
+  
+  # Disable or enable Adding Significance Bracket button based on whether at least 
+   # one option is selected
   observeEvent(input$grplist, {
     if (length(input$grplist) < 1) {
       shinyjs::disable("addBrackets")
@@ -6061,6 +6727,8 @@ server <- shinyServer(function(input, output, session) {
   
   
   ### Significance brackets processing ###
+  
+  #P value horizontal position over bracket
   pvalHalign <- reactive({
     if(input$pvalHpos=='left'){
       h <- 0
@@ -6073,7 +6741,7 @@ server <- shinyServer(function(input, output, session) {
   
   ### Processing statistics bracket and p value text positioning ###
   
-  ## groupedData mapping
+  ## Grouped Data mapping
   
   dfGmap <- reactive({
     req(isTRUE(input$dataGroup))
@@ -6140,33 +6808,46 @@ server <- shinyServer(function(input, output, session) {
     stored_status(TRUE)
   })
   
+  ### Main calculation for XY coordinates and P value text for displaying ###
+  
   statBrackets <- reactive({
-    req(input$grplist, data(), isTRUE(stored_status()))
+    req(input$grplist, data(),
+        isTRUE(stored_status()), isTRUE(input$askComp)) ## Very Important
     
+    #Make 2 groups from selected comparison list
     groups <- as.data.frame(str_split(input$grplist,' vs '))
     
     groups <- as.data.frame(t(groups))
     rownames(groups) <- NULL
     
     removeStr <- c("*", "<br>", "<sub>", "<sup>", "</sub>", "</sup>")
+    
+    # Subset only if selectedCols exist and are valid
     newColNames <- current_colnames()
+    selected <- input$selectedCols %||% newColNames
+    newColNames <- intersect(selected, newColNames)
+    
+    #Removing unnecessary characters from columns name
     for (i in 1:length(newColNames)) {
       for (pattern in removeStr){
         newColNames[i] <- gsub(pattern, "", newColNames[i], fixed = TRUE)
       }
       newColNames[i] <- gsub('.', " ", newColNames[i], fixed = TRUE)
       newColNames[i] <- gsub('-', " vs ", newColNames[i], fixed = TRUE)
+      newColNames[i] <- gsub(' - ', " vs ", newColNames[i], fixed = TRUE)
     }
-    
+    #reverses column name when X axis is reversed
     if (isTRUE(input$reverseX)){
       lv <- rev(newColNames)
     } else {
       lv <- newColNames
     }
-    
+    # X and Y coordinate finds of the groups selected to draw bracket lines
     if(isTRUE(input$dataGroup)){
-      colFact <- dfGmap()[[3]]
-      fillFact <- dfGmap()[[4]]
+      # Complex calculation for grouped data XY coordinates
+      colFact <- dfGmap()[[3]] #grouping parameter
+      fillFact <- dfGmap()[[4]] #parameters per groups
+      # Removing unnecessary characters from group's name
       for (i in 1:length(colFact)) {
         for (pattern in removeStr){
           colFact[i] <- gsub(pattern, "", colFact[i], fixed = TRUE)
@@ -6179,42 +6860,46 @@ server <- shinyServer(function(input, output, session) {
         }
         fillFact[i] <- gsub('.', " ", fillFact[i], fixed = TRUE)
       }
+      # Get the Post hoc test report
       listp <- do.call(rbind,phTestG())
+      # Match user selected comparison list from the test report and get the row indexes 
       listid <- match(input$grplist,listp[,1])
       
+      # Get the row ID, p value, and significance text of the selected comparisons
       p <- str_split_fixed(listp[,1],' vs ',2)|> as.data.frame()
       p <- p  |> mutate(pval = as.numeric(listp[,c(ncol(listp)-1)]), 
                         text = listp[,c(ncol(listp))], id = seq_along(1:nrow(p)))
-      
-      p <- p[listid,] # Filtering only the user-selected the comparisons 
-      
+      # Filtering only the user-selected comparisons
+      p <- p[listid,]  
       # p <- p |> mutate(V1 = gsub('.', ' ', V1), V2 = gsub('.', ' ', V2))
       
-      cc <- dfGmap()[[1]]
-      cp <- dfGmap()[[2]]
+      cc <- dfGmap()[[1]] #partial X axis coordinate of parameters per group (e.g., 0.7, 0.9, 1.1, 1.3)
+      cp <- dfGmap()[[2]] #X axis coordinates of groups (e.g., 1, 2...)
       ccp <- c(cc,cp)
+      # Removing unnecessary characters
       for (i in 1:length(ccp)) {
         for (pattern in removeStr){
           names(ccp)[i] <- gsub(pattern, "", names(ccp)[i], fixed = TRUE)
         }
         names(ccp)[i] <- gsub('.', " ", names(ccp)[i], fixed = TRUE)
       }
+      #Complete X-axis coordinates of all parameters per group
       ccpL_df <- outer(cp - 1, cc, `+`) |> as.data.frame() |> 
         t()  # to map 'mx' (below)
-      
-      # colnames(ccpL) <- rep(fillFact,length(colFact))
       ccpL <- ccpL_df |> as.vector() |> sort()
-      # names(ccpL) <- gsub(':',', ',current_colnames())
       ccpL <- c(ccpL,cp)
+      # Removing unnecessary characters
       for (i in 1:length(ccpL)) {
         for (pattern in removeStr){
           names(ccpL)[i] <- gsub(pattern, "", names(ccpL)[i], fixed = TRUE)
         }
         names(ccpL)[i] <- gsub('.', " ", names(ccpL)[i], fixed = TRUE)
       }
-      
+      # Final data frame of left and right coordinates of the brackets
       left <- data.frame()
       right <- data.frame()
+      
+      # Assigns selected groups with numerical X coordinates from ccp (before)
       for (i in 1:nrow(p)){
         if(isFALSE(str_detect(p[i,1],',')) && isFALSE(str_detect(p[i,2],','))){
           temp <- ccp[p[i,1]] |> unname() |> as.numeric() 
@@ -6222,6 +6907,7 @@ server <- shinyServer(function(input, output, session) {
           temp <- ccp[p[i,2]] |> unname() |> as.numeric() 
           right <- rbind(right,temp) 
         } else {
+          #Removes ',' from effect group names
           nL <- str_split(p[i,1],', ')|> unlist() 
           nR <- str_split(p[i,2],', ')|> unlist() 
           temp <- ccp[nL[2]]-1+ccp[nL[1]]
@@ -6230,28 +6916,34 @@ server <- shinyServer(function(input, output, session) {
           right <- rbind(right,temp)
         }
       }
-      
+      # Combines left and right coordinates with P value and
+       # significance text in one data frame
       pnn <- data.frame(left, right, p[,3], p[,4])
-      
       colnames(pnn) <- c('x','xend','pval','text')
       rownames(pnn) <- NULL
       
     }else{
+      # Calculation for ungrouped data XY coordinates
       colnames(groups) <- c('left', 'right')
       left <- groups$left |> factor(levels = lv ) 
       right <- groups$right |> factor(levels = lv)
     }
     
-    tipL <- 0.02
-    gap <- input$gapWidth/1000
+    tipL <- 0.02 #assigns initial tip length for vertical lines of brackets
+    gap <- input$gapWidth/1000 #gap between two brackets in one row
     
-    # Calculating the bracket vertical end position
+    # Calculating the long bracket's vertical end position
     if (isFALSE(input$askJitter)){
+      # If data points are present (Bar or Jitter plot)
       if(input$askPlotTypeII=="bar"){
+        # If Bar plot type is selected as the bar height may have different forms,
+         # Mean, Median heights with or without error-bars
+        #Std Error of mean calculation function
         sem <- function(x){
           x <- na.omit(x)
           sd(x) / sqrt(length(x))
         }
+        #Confidence of interval (95%) calculation function
         ci95 <- function(x){
           x <- na.omit(x)
           # n <- length(x)
@@ -6267,7 +6959,7 @@ server <- shinyServer(function(input, output, session) {
           nMax <- data.frame()
           for (i in 1:ncol(x)){
             y <- x[,i]
-            outl <- boxplot.stats(y)$out
+            outl <- boxplot.stats(y)$out # not foolproof
             temp <- y[!unlist(y) %in% outl]
             nMax <- rbind(nMax,max(temp))
           }
@@ -6281,36 +6973,48 @@ server <- shinyServer(function(input, output, session) {
           return(ci)
         }
         if (input$barFunc == 'mean'){
+          #Bar height mean
           if (input$sum_typeBarMean=='mean_only'){
-            mx <- apply(na.omit(data()), MARGIN=2, FUN=mean) |> data.frame() |> t() 
+            #No error bars
+            mx <- apply(data(), MARGIN=2, FUN=mean, na.rm = TRUE) |> data.frame() |> t() 
           } else if (input$sum_typeBarMean=='mean_sd'){
-            mx <- (apply(na.omit(data()), MARGIN=2, FUN=sd) + 
-                     apply(na.omit(data()), MARGIN=2, FUN=mean)) |> data.frame() |> t()
+            #SD error bars
+            mx <- (apply(data(), MARGIN=2, FUN=sd, na.rm = TRUE) + 
+                     apply(data(), MARGIN=2, FUN=mean, na.rm = TRUE)) |> data.frame() |> t()
           } else{
-            mx <- (sapply(na.omit(data()), sem)+apply(na.omit(data()), MARGIN=2, FUN=mean)) |> data.frame() |> t()
+            #SEM error bars
+            mx <- (apply(data(), sem, na.rm = TRUE)+
+                     apply(data(), MARGIN=2, FUN=mean, na.rm = TRUE)) |>
+              data.frame() |> t()
           }
         } else {
+          #Bar height median
           if (input$sum_typeBarMedian=='median_only'){
-            mx <- apply(na.omit(data()), MARGIN=2, FUN=median) |> data.frame() |> t()
+            #No error bars
+            mx <- apply(data(), MARGIN=2, FUN=median, na.rm = TRUE) |> data.frame() |> t()
             
           } else{
+            #CI95 error bars
             # mx <- (ci95(data())*(1.5/sqrt(length(data())))+apply(data(), MARGIN=2, FUN=median))  
-            mx <- ci95(na.omit(data()))
+            mx <- ci95(data())
           }
         }
       }else{
-        mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
+        # If Jitter plot type is selected. Positions above max data point
+        mx <- apply(data(), MARGIN=2, FUN=max, na.rm = TRUE) |> data.frame() |> t()
       }
     }else{
-      mx <- apply(na.omit(data()), MARGIN=2, FUN=max) |> data.frame() |> t()
+      # For every other plots
+      mx <- apply(data(), MARGIN=2, FUN=max, na.rm = TRUE) |> data.frame() |> t()
     }
     
     row.names(mx)<-NULL
     mx <- data.frame(mx) #Maximum point/ tip based on shape
-    
+    #Adds group names to each mx value per column
+    #For ungrouped data
     mx <- setNames(mx,newColNames)
-    
     if(isTRUE(input$dataGroup)){
+      #For grouped data
       longmx <- as.data.frame(mx) |> pivot_longer(names_to =c('group','variable'),
                                                   names_sep = ':', cols = everything(), values_to = 'value')
       longmx <- longmx |> pivot_longer(cols = c(group, variable), names_to = "type",
@@ -6318,17 +7022,17 @@ server <- shinyServer(function(input, output, session) {
       longmx_avg <- longmx |> dplyr::filter(label %in% colFact) |> group_by(label) |>
         summarize(avg_val = mean(value))
       mx <- setNames(c(mx,longmx_avg$avg_val),ccpL)
-      
     }  
-    
+    #Reverses mx values if X axis is reversed
     if (isTRUE(input$reverseX)){
       mx <- rev(mx)
     }else{
       mx <- mx
     }
+    
     ### Y-coordinates calculation
     first <- (1+(input$firstBrack-50.5)/500) #Adjusting the first layer position
-    base_y <- yaxisMax()*first
+    base_y <- yaxisMax()*first #Base Y axis coordinate
     
     #Basic data frame to handle the bracket coordinates
     if(isTRUE(input$dataGroup)){
@@ -6345,7 +7049,8 @@ server <- shinyServer(function(input, output, session) {
     
     #To order the lowest x on left side always
     statup <- statup |> mutate(x_min=pmin(x,xend),x_max=pmax(x,xend)) |>
-      dplyr::select(-x,-xend) |> rename(x = x_min, xend = x_max) |> dplyr::select(x, xend,everything())
+      dplyr::select(-x,-xend) |> rename(x = x_min, xend = x_max) |>
+      dplyr::select(x, xend,everything())
     
     #difference between x and xend
     statup$diff <- statup$xend-statup$x
@@ -6354,32 +7059,35 @@ server <- shinyServer(function(input, output, session) {
     star4 <- paste0(rep('*', 4), collapse = "")
     star3 <- paste0(rep('*', 3), collapse = "")
     
-    if(isTRUE(input$dataGroup)){
+    if(isTRUE(input$dataGroup)){  
       pnn_text <- pnn$`text`
       pnn_p <- pnn$`pval`
     }
+    
     results_list <- list()
     for (i in 1:length(input$grplist)) {
-      
       # current_tab <- if(isTRUE(input$dataGroup)) listp else current_tab
       # if(isTRUE(input$dataGroup)){
       #   n <- length(pnn_text)
       # } else {
       if(isFALSE(input$dataGroup)){
+        # Get the two sample or several samples test result for ungrouped data
         current_tab <- if (input$ttestType == 'tSt') tsTest() else phTest()
-        n <- match(input$grplist[i], current_tab[, 1])}
+        # Match the selected groups with the report and get the row index
+        n <- match(input$grplist[i], current_tab[, 1])
+      }
       # } 
       
-      # if (!is.na(n)) {
-      ## For only asterisk display
+      ## For only asterisk display ##
       t_val <- ""
+      # Get the significance text value from filtered report
       if(isTRUE(input$dataGroup)){
         t_val <- pnn_text[[i]]
       }else {
         req(!is.na(n))
         t_val <- as.character(current_tab[n, ncol(current_tab)])
       }
-      
+     
       # For APA and NEJM styles, cap at 3 stars
       if (input$askPvalStyle != 'default') {
         if (t_val == star4) {
@@ -6387,17 +7095,20 @@ server <- shinyServer(function(input, output, session) {
         }
       }
       
-      ## For raw p value display
+      ## For raw p value display ##
+      
+      # Get the p value from filtered report
       if(isTRUE(input$dataGroup)){
         p_raw <- as.numeric(pnn_p[[i]])
       } else{
-        p_raw <- as.numeric(current_tab[n, (ncol(current_tab) - 1)])
+        p_raw <- current_tab[n, (ncol(current_tab) - 1)]
+        p_raw <- ifelse (p_raw == "< 2.2e-16", as.numeric(2.2e-16), as.numeric(p_raw))
       }
-      
       # Zero before point (APA has none, NEJM/Default has)
       s_prefix <- if (input$askPvalStyle == 'apa') "" else "0"
       ns_p <- if (p_raw>=1) p_raw else gsub('0.','.',p_raw)
       
+      #Keep raw p value or convert them to APA or NEJM format
       if (input$askPvalStyle == 'default') {
         raw_val <- paste0('P = ', p_raw)
       } else {
@@ -6415,44 +7126,46 @@ server <- shinyServer(function(input, output, session) {
       }
       
       if (input$askPvalType == 'star') {
-        # Asterisks
+        # Asterisks only show
         p_val <- t_val
       } else if (input$askPvalType == 'raw'){
-        # Raw P value
+        # Raw P value only show
         p_val <- raw_val
       } else {
-        # Both combined
+        # Both combined show
         if(input$pvalVpos=='top'){
+          #Over the bracket
           p_val <- paste(raw_val,'<br>',t_val, sep = '')
         } else {
+          #under the bracket
           p_val <- paste(t_val,'<br>',raw_val, sep = '')
         }
         
       }
+      # Change the asterisk from general 5 point to HTML 6 point character
       if (input$askPvalType == 'star' || input$askPvalType == 'both' ){
         p_val <- gsub("*",intToUtf8(0x2731), p_val, fixed = TRUE)
       }
-      
+      # adjust vertical height of ns and p value differently
       if(p_val=='ns' || isTRUE(str_detect(p_val,'P')) || isTRUE(str_detect(p_val, 'p'))){
         pVjust <- seq(from = 0, to = 0.75, length.out = 100)
       } else {
         pVjust <-  seq(from = 0.5, to = 1, length.out = 100)
       }
+      #Combine p value, significance text, their vertical pos in one data frame
       results_list[[i]] <- data.frame(text = paste0('<b>',p_val,'</b>'),
                                       size = input$pvalSize/5,
                                       vjust = pVjust[input$pvalTVpos],
                                       stringsAsFactors = FALSE)
-      
-      # }
     }
-    
-    # Combine all results into the final dataframe
+
+    # Combine all results into the final data frame
     text <- do.call(rbind, results_list)
     
     colnames(text) <- c('text','size','vjust')
-    
+    # Combine the left, right coordinate data frame with the p value data frame
     statup <- cbind(statup,text)
-    
+
     #Spreading a sequence between x and xend rowwise
     statup <- statup |> arrange(diff) |> rowwise() |> 
       mutate(seqq = list(seq(x, xend))) |>  ungroup() |> arrange(diff)
@@ -6477,17 +7190,18 @@ server <- shinyServer(function(input, output, session) {
     statup <- statup |> arrange(layer)
     
     #Adjusting the gaps between brackets
-    factorD <- apply(na.omit(data()), MARGIN=2, FUN=median) |> max() |> as.numeric()
+    factorD <- apply(data(), MARGIN=2, FUN=median, na.rm = TRUE) |> max() |> as.numeric()
     step_size  <- (input$distWidth/100)*factorD
     
     # Converting layers to y-coordinates
     statup <- statup |> 
-      mutate(y    = base_y + (layer - 1) * step_size,
+      mutate(y = base_y + (layer - 1) * step_size,
              yend = y)
     
     statup <- statup[,-c(9,10)] #removing unnecessary columns
     
-    #Adding bracket end columns
+    #Adding bracket vertical line Y coordinates
+    #Left side
     if (isTRUE(input$dataGroup)){
       sL <- data.frame()
       for (i in 1:length(statup$x)){
@@ -6499,7 +7213,7 @@ server <- shinyServer(function(input, output, session) {
     }
     rownames(sL) <- NULL
     colnames(sL) <- 'yendL'
-    
+    #Right side
     if (isTRUE(input$dataGroup)){
       sR <- data.frame()
       for (i in 1:length(statup$x)){
@@ -6511,16 +7225,20 @@ server <- shinyServer(function(input, output, session) {
     }
     rownames(sR) <- NULL
     colnames(sR) <- 'yendR'
-    
+    #Combine with main data frame
     statup <- cbind(statup,sL,sR)
     
-    #Labels
+    # Text position
     if (input$pvalVpos=='top'){
+      #  Over bracket
       statup$yT <- statup$y+statup$y*0.03 |> as.numeric()
     } else {
+      # Under bracket
       statup$yT <- statup$y-statup$y*0.03 |> as.numeric()
     }
+    # Text and p value horizontal alignment
     if (input$pvalHpos=='left'){
+      # Left align
       if (isTRUE(input$flipPlot)){
         statup$xT <- as.numeric(statup$xend)-0.05
       } else{
@@ -6528,6 +7246,7 @@ server <- shinyServer(function(input, output, session) {
       }
       
     } else if (input$pvalHpos=='right'){
+      # Right align
       if (isTRUE(input$flipPlot)){
         statup$xT <- as.numeric(statup$x)+0.05
       } else {
@@ -6535,6 +7254,7 @@ server <- shinyServer(function(input, output, session) {
       }
       
     } else {
+      #Central align (default)
       statup$xT <- apply(data.frame(as.numeric(statup$x),as.numeric(statup$xend)),
                          MARGIN=1,FUN=mean) |> as.numeric()
     }
@@ -6545,7 +7265,7 @@ server <- shinyServer(function(input, output, session) {
     groups$xend <- as.numeric(groups$xend)
     statup <- statup |> left_join(groups, by = c('x','xend')) 
     
-    #bracket vertical length 
+    # Function to calculate bracket vertical line length or the end point
     endP <- function(y,diff,list){
       for(i in 1:length(list)){
         if (i-1!=0){
@@ -6558,7 +7278,7 @@ server <- shinyServer(function(input, output, session) {
       }
       return(list)
     }
-    
+    # Adjusting the vertical line end point and adding to main data frame for long brackets
     statup <- statup |> group_by(x) |>
       arrange(y) |>
       mutate(yendL=endP(y=y,diff=diff,list=yendL)) |>
@@ -6568,6 +7288,8 @@ server <- shinyServer(function(input, output, session) {
       mutate(yendR=endP(y=y,diff=diff,list=yendR)) |> 
       ungroup()
     
+    # Finer adjustment of tip length when layers are present
+     # (never crosses lower layer bracket)
     for (i in 1:nrow(statup)){
       for (j in 1: nrow(statup)){
         if (statup[i,1]>statup[j,1]&&statup[i,1]<statup[j,2]){
@@ -6592,23 +7314,22 @@ server <- shinyServer(function(input, output, session) {
         }
       }
     }
-    
+
     if(input$askTipType == 'long'){
       return(statup)
     } else if (input$askTipType == 'short'){
+      # Adjust tip length when short bracket is selected
       tipS <- input$tipLength/1000
       statup <- statup |> mutate(yendL=y-(y*tipS)) |> mutate(yendR=yend-(yend*tipS))
       return(statup)
     } else{
+      # For Line only brackets
       statup <- statup |> mutate(yendL=y) |> mutate(yendR=yend)
       return(statup)
     }
   })
   
-  # output$test <- renderTable({
-  #   req(input$grplist)
-  #   statBrackets()
-  # })
+ ## Calculating top margin for main plot
   plotTopM <- reactive({
     if(isFALSE(input$flipPlot)){
       if (!isTruthy(input$runAnalysisFinal)) {
@@ -6626,6 +7347,7 @@ server <- shinyServer(function(input, output, session) {
       return(50)
     }
   })
+  #Calculating right margin for main plot when axis is flipped
   plotRightM <- reactive({
     if(isTRUE(input$flipPlot)){
       if (!isTruthy(input$runAnalysisFinal)) {
@@ -6643,7 +7365,9 @@ server <- shinyServer(function(input, output, session) {
       return(50)
     }
   })
+  #Reactive value addition for Adding Significance Brackets Button (On/ Off)
   btn_val <- reactiveVal(FALSE)
+  
   observeEvent(input$addBrackets,{
     btn_val(!btn_val())
     if(btn_val()==FALSE){
@@ -6659,6 +7383,7 @@ server <- shinyServer(function(input, output, session) {
   segAdd <- reactive({
     req(statBrackets())
     if(isFALSE(btn_val())){
+      #Removes all brackets
       return(statBrackets()*0)
     }else{
       return(statBrackets())
@@ -6980,17 +7705,19 @@ server <- shinyServer(function(input, output, session) {
   
   
   ### Setting saving options ###
+  
   #Flatten Input values
   flattenID <- function(x) {
     if (is.null(x) || length(x) == 0) {
       return("")
     } else if (length(x) > 1) {
+      # when more than one input ID with similar names are present flatten them with &
       return(paste(x, collapse = "&"))
     } else {
       return(as.character(x))
     }
   }
-  
+  ### A comprehensive table to catch inputs, their names and values to save in a excel file ###
   savesetting_df <- reactive({
     settings_df <- data.frame(
       Parameter = c(
@@ -7644,92 +8371,102 @@ server <- shinyServer(function(input, output, session) {
     
     ## For dynamically generated inputs
     # Point shape Box
-    palSID <- paste("pointshapeBox", seq_along(colorCount()),sep = '_')
+     # the input ids
+    palSID <- paste("pointshapeBox", seq_along(colCount()),sep = '_')
+     # flatten the input id's values
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return(21)
       return(flattenID(val))
     })
+     # combing the name, id and value in one data frame
     palShape <- data.frame(
-      Parameter = c(rep("Point Shape Box",length(colorCount()))),
+      Parameter = c(rep("Point Shape Box",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
+     # adds to the main settings data frame
     settings_df <- rbind(settings_df,palShape)
+    
     # Point shape Rain
-    palSID <- paste("pointshapeRain", seq_along(colorCount()),sep = '_')
+    palSID <- paste("pointshapeRain", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return(21)
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("Point Shape Raincloud",length(colorCount()))),
+      Parameter = c(rep("Point Shape Raincloud",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    
     # Point shape Jitter
-    palSID <- paste("pointshape", seq_along(colorCount()),sep = '_')
+    palSID <- paste("pointshape", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return(21)
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("Point Shape Jitter",length(colorCount()))),
+      Parameter = c(rep("Point Shape Jitter",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    
     # Palette themes
-    palSID <- paste("colors", seq_along(colorCount()),sep = '_')
+    palSID <- paste("colors", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return('#CCCCCC')
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("Shape Palette",length(colorCount()))),
+      Parameter = c(rep("Shape Palette",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    
     # Grouped Palette themes
-    palSID <- paste("colorsG", seq_along(colorCount()),sep = '_')
+    palSID <- paste("colorsG", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return('#CCCCCC')
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("Shape Palette Grouped",length(colorCount()))),
+      Parameter = c(rep("Shape Palette Grouped",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    
     # Data point Palette color themes
-    palSID <- paste("colorsdp", seq_along(colorCount()),sep = '_')
+    palSID <- paste("colorsdp", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return('#CCCCCC')
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("DP Shape Color Palette",length(colorCount()))),
+      Parameter = c(rep("DP Shape Color Palette",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
     settings_df <- rbind(settings_df,palShape)
+    
     # Data point Palette fill themes
-    palSID <- paste("fillsdp", seq_along(colorCount()),sep = '_')
+    palSID <- paste("fillsdp", seq_along(colCount()),sep = '_')
     palSVal <- sapply(palSID, function(id){
       val <- input[[id]]
       if (is.null(val)) return('#CCCCCC')
       return(flattenID(val))
     })
     palShape <- data.frame(
-      Parameter = c(rep("DP Shape Fill Palette",length(colorCount()))),
+      Parameter = c(rep("DP Shape Fill Palette",length(colCount()))),
       inputID = palSID,
       Data = as.character(palSVal) , stringsAsFactors = F
     )
@@ -7780,7 +8517,7 @@ server <- shinyServer(function(input, output, session) {
           value <- raw_value
         }
         
-        try({
+        try({ # Updates all the inputs from the setting files
           # Text / Numeric
           updateTextInput(session, id, value = value)
           if (is.numeric(value) || !is.na(as.numeric(value))) {
@@ -7850,7 +8587,7 @@ server <- shinyServer(function(input, output, session) {
       outputOptions(output, c('submitAnalysis'), suspendWhenHidden = FALSE)
       
       if (!isTruthy(input$exampleFile)){
-        show_toast(
+        shinyWidgets::show_toast(
           title = "Settings Restored!",
           text = "All inputs updated from file.", type = "success")
       } 
@@ -7864,6 +8601,8 @@ server <- shinyServer(function(input, output, session) {
         type = "error")
     }
   })
+  
+  ### Processing for the setting file data to update all the inputs (Demo data) ###
   observeEvent(input$exampleFile,{
     #Load presaved settings file upon demo data loading
     req(demoFile())
@@ -7891,7 +8630,7 @@ server <- shinyServer(function(input, output, session) {
         value <- raw_value
       }
       
-      try({
+      try({ # Updates all the inputs from the setting files
         # Text / Numeric
         updateTextInput(session, id, value = value)
         if (is.numeric(value) || !is.na(as.numeric(value))) {
@@ -7962,6 +8701,5 @@ server <- shinyServer(function(input, output, session) {
   })
   ##End of Server##
 })
-
 
 shinyApp(ui = ui, server = server)
