@@ -132,6 +132,26 @@ bgColor <- c(
   "background: linear-gradient(90deg, #F5EADA 0%, #768267 50%, #304659 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;",
   "background: linear-gradient(90deg, #C0C0C2 0%, #373737 100%); color: white; font-weight: bold; text-shadow:1px 1px 5px #333;"
 )
+#Plot type icons
+plotUG <- c("Violin Plot" = 'violin',
+            "Raincloud Plot" = 'viopoint',
+            "Box-Whisker Plot" = 'box',
+            "Jitter Plot"='jitter',
+            "Bar Plot" = 'bar' )
+plotUG_img <- c(
+  sprintf("<img src='image/vio.png' width='50px' style='margin-right: 10px;'> %s", names(plotUG)[1]),
+  sprintf("<img src='image/rain.png' width='50px' style='margin-right: 10px;'> %s", names(plotUG)[2]),
+  sprintf("<img src='image/box.png' width='50px' style='margin-right: 10px;'> %s", names(plotUG)[3]),
+  sprintf("<img src='image/jitter.png' width='50px' style='margin-right: 10px;'> %s", names(plotUG)[4]),
+  sprintf("<img src='image/bar.png' width='50px' style='margin-right: 10px;'> %s", names(plotUG)[5]) 
+)
+plotG <- c("Violin Plot" = 'violin',
+            "Box-Whisker Plot" = 'box')
+plotG_img <- c(
+  sprintf("<img src='image/vio_grp.png' width='50px' style='margin-right: 10px;'> %s", names(plotG)[1]),
+  sprintf("<img src='image/box_grp.png' width='50px' style='margin-right: 10px;'> %s", names(plotG)[2])
+
+)
 # datapoint symbol iconlist
 iconlist <- c(
   "<i class='fa-solid fa-circle'></i>" = 21,        
@@ -406,15 +426,15 @@ ui <-page_navbar(
                             accordion_panel(
                               title = 'Customize Shapes',
                               
-                              ### Options for Box-Jitter Plot type ###
+                              ### Options for Box-Whisker Plot type ###
                               conditionalPanel(
                                 condition = "(input.askPlotTypeII == 'box' && input.dataGroup == false) || 
                                 (input.askPlotTypeIIG == 'box' && input.dataGroup == true) ",
                                 #Choosing box plot type
                                 radioGroupButtons(
-                                  "boxtype", "Change plot subtype",
-                                  choices = c("Box-Jitter" = 'boxpoint',
-                                              "Box" = 'boxOnly'),
+                                  "boxtype", "Add Datapoints",
+                                  choices = c("Add" = 'boxpoint',
+                                              "Remove" = 'boxOnly'),
                                   size = 'sm', selected = 'boxpoint'
                                 ),
                                 #Choosing to add outliers
@@ -516,8 +536,8 @@ ui <-page_navbar(
                                 tagList(
                                   #Choosing violin shape with or without quantile box
                                   radioGroupButtons(
-                                    "viotype", "Change plot subtype",
-                                    choices = c("Violin-Box", "Violin"),
+                                    "viotype", "Add Box-whisker",
+                                    choices = c("Add"="Violin-Box", "Remove"="Violin"),
                                     selected = "Violin-Box", size = 'sm'
                                   ),
                                   #Line-width for violin shapes
@@ -789,7 +809,7 @@ ui <-page_navbar(
                                   div(id='sliderstyle',
                                       noUiSliderInput(
                                         'barwidth',
-                                        label = 'Box Width',
+                                        label = 'Bar Width',
                                         min = 10, max = 100,
                                         value = 60, tooltips=TRUE,
                                         step=1, height="10px")),
@@ -1821,8 +1841,8 @@ ui <-page_navbar(
                     #Options to select data plot type for grouped data
                     pickerInput('askPlotTypeIIG',
                                 label = 'Plot Type',
-                                choices = c("Violin Plot" = 'violin',
-                                            "Box-Jitter Plot" = 'box' ),
+                                choices = plotG,
+                                choicesOpt = list(content = plotG_img),
                                 selected = 'violin', width = '100%'),
                     #Choosing to switch grouping parameter
                     prettySwitch('grpSwitch', 'Switch Groups', 
@@ -1833,11 +1853,8 @@ ui <-page_navbar(
                     #Options to select data plot type for ungrouped data
                     pickerInput('askPlotTypeII',
                                 label = 'Plot Type',
-                                choices = c("Violin Plot" = 'violin',
-                                            "Raincloud Plot" = 'viopoint',
-                                            "Box-Jitter Plot" = 'box',
-                                            "Jitter Plot"='jitter',
-                                            "Bar Plot" = 'bar' ),
+                                choices = plotUG,
+                                choicesOpt = list(content = plotUG_img),
                                 selected = 'violin', width = '100%')
                   ),
                   #Canvas color options
@@ -1963,8 +1980,8 @@ ui <-page_navbar(
               HTML(
                 "<ol><li><b>Upload data</b> (File Upload tab): Import Excel (multi-sheet supported)
               or paste directly → select sheet and upload.</li>
-              <li><b>Choose plot type</b> (Plot Type dropdown): Single (Box-jitter,
-              Violin, Raincloud, Jitter, Bar) or grouped (Box-jitter and Violin) plots. Enable 'Grouped Data' if needed.</li>
+              <li><b>Choose plot type</b> (Plot Type dropdown): Single (Box-Whisker,
+              Violin, Raincloud, Jitter, Bar) or grouped (Box-Whisker and Violin) plots. Enable 'Grouped Data' if needed.</li>
               <li><b>Customize & view</b> (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels.
               Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).</li>
               <li><b>Run statistics</b> (Statistics tab): Auto-detect test type
@@ -1997,7 +2014,7 @@ ui <-page_navbar(
                  appreciate your input to make it better!
                  '),
               br(),
-              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.1.0 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
+              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.1.1 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
             ),
             style = " width:75%; padding:50px; margin:0 auto;")
 )
@@ -2129,19 +2146,16 @@ server <- shinyServer(function(input, output, session) {
             #Choosing plot type for grouped data
             pickerInput('askPlotTypeG',
                         label = 'Plot Type',
-                        choices = c("Violin Plot" = 'violin',
-                                    "Box-Jitter Plot" = 'box'),
+                        choices = plotG,
+                        choicesOpt = list(content = plotG_img),
                         selected = 'violin')
           ), conditionalPanel(
             condition = "input.dataGroup == false",
             #Choosing plot type for ungrouped data
             pickerInput('askPlotType',
                         label = 'Plot Type',
-                        choices = c("Violin Plot" = 'violin',
-                                    "Raincloud Plot" = 'viopoint',
-                                    "Box-Jitter Plot" = 'box',
-                                    "Jitter Plot"='jitter',
-                                    "Bar Plot" = 'bar' ),
+                        choices = plotUG,
+                        choicesOpt = list(content = plotUG_img),
                         selected = 'violin')
           )))
     
@@ -2978,7 +2992,7 @@ server <- shinyServer(function(input, output, session) {
   ### Plot Customization ###
   
   #Storing reactive values for individual point shape for different plot types
-  shapeBox <- reactiveValues(shapes = list()) #Box-jitter plot
+  shapeBox <- reactiveValues(shapes = list()) #Box-Whisker plot
   shapeRain <- reactiveValues(shapes = list()) #Rain-cloud plot
   shapeJitter <- reactiveValues(shapes = list()) #Jitter plot
   
@@ -2991,7 +3005,7 @@ server <- shinyServer(function(input, output, session) {
     }
   })
   
-  # Datapoint shapes For Box-Jitter Plot
+  # Datapoint shapes For Box-Whisker Plot
   dpshapeBox <- reactive({
     if (isFALSE(input$pointDistBox)) {
       #Assigns same point shape to all
@@ -4128,7 +4142,7 @@ server <- shinyServer(function(input, output, session) {
       }
       
     } else if (plotType() =='box'){
-      ### For Box-Jitter Plot ###
+      ### For Box-Whisker Plot ###
       
       if (input$boxtype == "boxpoint"){
         p <-  g+
@@ -7731,8 +7745,8 @@ server <- shinyServer(function(input, output, session) {
         "Plot Type (Grouped II)",
         "Plot Type (Main)",
         
-        # --- Graph Settings: Box-Jitter ---
-        "Change plot subtype (Box)",
+        # --- Graph Settings: Box-Whisker ---
+        "Add Datapoints (Box)",
         "Mark Outliers",
         "Box Width",
         "Line Width (Box)",
@@ -7745,7 +7759,7 @@ server <- shinyServer(function(input, output, session) {
         "Distance Between Grouped Shapes (Box)",
         
         # --- Graph Settings: Violin ---
-        "Change plot subtype (Violin)",
+        "Add Box-whisker (Violin)",
         "Line Width (Violin)",
         "Box Width (Violin)",
         "Box Color",
@@ -7947,7 +7961,7 @@ server <- shinyServer(function(input, output, session) {
         "askPlotTypeIIG",
         "askPlotTypeII",
         
-        # --- Graph Settings: Box-Jitter ---
+        # --- Graph Settings: Box-Whisker ---
         "boxtype",
         "outlier",
         "boxwidth",
@@ -8163,7 +8177,7 @@ server <- shinyServer(function(input, output, session) {
         input$askPlotTypeIIG,
         input$askPlotTypeII,
         
-        # --- Graph Settings: Box-Jitter --- #11
+        # --- Graph Settings: Box-Whisker --- #11
         input$boxtype,
         input$outlier,
         input$boxwidth,

@@ -7051,7 +7051,7 @@
       "checksum": "05bdb783ee6514c8c072e47680af8ff7"
     },
     "app.R": {
-      "checksum": "d4688aa813aa8052be8841cb03ae9299"
+      "checksum": "daf826ff872df0906bf8e6cb1f0dc230"
     },
     "data/Demo_Settings.xlsx": {
       "checksum": "ceb56518d6774ffcd0f7fb406d51714d"
@@ -7067,6 +7067,27 @@
     },
     "www/app_logo.png": {
       "checksum": "de33d2ee6e64517df89d81a96f46f274"
+    },
+    "www/image/bar.png": {
+      "checksum": "bd032f9f785bf45ec69cfe5c50793f9f"
+    },
+    "www/image/box.png": {
+      "checksum": "f14bc1437d9d0c296c472904fdb50cb9"
+    },
+    "www/image/box_grp.png": {
+      "checksum": "e408e7df4e31d9ed9c291b9149c001b3"
+    },
+    "www/image/jitter.png": {
+      "checksum": "9123c19f39600aadfc70ae7966d07648"
+    },
+    "www/image/rain.png": {
+      "checksum": "ad140b2665b9956f16b5425ad081e245"
+    },
+    "www/image/vio.png": {
+      "checksum": "907d5988d5c83a44d10434157ee4c577"
+    },
+    "www/image/vio_grp.png": {
+      "checksum": "e6fabeb6305db4938fd4c7a6d688b5dc"
     }
   },
   "users": null
