@@ -8,48 +8,49 @@
 options(warn = -1) 
 suppressPackageStartupMessages({
   #Shiny app builder
-library(shiny)
-library(shinyBS)
-library(shinycssloaders)
-library(waiter)
-library(shinyWidgets)
+  library(shiny)
+  library(shinyBS)
+  library(shinycssloaders)
+  library(waiter)
+  library(shinyWidgets)
   #Data management
-library(openxlsx)
-library(tidyr)
-library(DT)
-library(stringr)
-library(tidyverse)
-library(dplyr)
+  library(openxlsx)
+  library(tidyr)
+  library(DT)
+  library(stringr)
+  library(tidyverse)
+  library(dplyr)
   #Copy to clipboard
-library(rclipboard)
-library(readr)
+  library(rclipboard)
+  library(readr)
   #For plot generation
-library(ggplot2)
-library(ggbeeswarm)
-library(ggnewscale)
-library(ggdist)
-library(ggtext)
-library(patchwork)
-library(qqplotr)
+  library(ggplot2)
+  library(Hmisc)
+  library(ggbeeswarm)
+  library(ggnewscale)
+  library(ggdist)
+  library(ggtext)
+  library(patchwork)
+  library(qqplotr)
   #For Font styles
-library(extrafont)
-library(fontawesome)
+  library(extrafont)
+  library(fontawesome)
   #Save as SVG
-library(svglite)
+  library(svglite)
   #Plot and app theme
-library(colorspace)
-library(colourpicker)
-library(bslib)
+  library(colorspace)
+  library(colourpicker)
+  library(bslib)
   #For Stats
-library(DescTools)
-library(lme4)
-library(emmeans)
-library(PMCMRplus)
-library(broom)
-library(stats)
-library(car)
-library(rstatix)
-library(ARTool)
+  library(DescTools)
+  library(lme4)
+  library(emmeans)
+  library(PMCMRplus)
+  library(broom)
+  library(stats)
+  library(car)
+  library(rstatix)
+  library(ARTool)
 })
 options(encoding = "UTF-8")
 ##CSS Custom Styles
@@ -3834,7 +3835,7 @@ server <- shinyServer(function(input, output, session) {
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = Hmisc::mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = mean, fun.min = mean, fun.max = mean,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80))),
@@ -3848,7 +3849,7 @@ server <- shinyServer(function(input, output, session) {
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = Hmisc::median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150),
         stat_summary(fun = median, fun.min = median, fun.max = median,
                      geom = "crossbar", width = statWidth/100, color = statColor, linewidth = (statLine/80)))                                       
@@ -3875,7 +3876,7 @@ server <- shinyServer(function(input, output, session) {
         fun = mean, fun.min = mean, fun.max = mean,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "mean_sd" = list(
-        stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+        stat_summary(fun.data = Hmisc::mean_sdl, fun.args = list(mult = 1),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150)),
       
       "mean_sem" = list(
@@ -3885,7 +3886,7 @@ server <- shinyServer(function(input, output, session) {
         fun = median, fun.min = median, fun.max = median,
         geom = "crossbar", width = 0, color = statColor, linewidth = (statLine/80)),
       "median_ci" = list(
-        stat_summary(fun.data = median_hilow, fun.args = list(conf.int = 0.95),
+        stat_summary(fun.data = Hmisc::median_hilow, fun.args = list(conf.int = 0.95),
                      geom = "errorbar", color = statColor, linewidth = (statLine/50), width = statWidth/150))                                       
     )
   })
