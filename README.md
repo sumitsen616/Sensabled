@@ -1,46 +1,53 @@
-# SEN'sable Plotting v1.0.0
-**SEN’sable Plotting** is a lightweight, open-source Shiny app for visualizing and statistically analyzing discrete or categorical data—designed as a free, user-friendly alternative to paid software like GraphPad Prism.
+# SEN'sable Plotting v1.1.1
+<img width="200" height="200" alt="app_logo" src="https://github.com/user-attachments/assets/894d89a2-ae4b-4e0b-a9d2-8dfc5a3ba7e7" />
 
-Built with biologists, ecologists, students, and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
+**SEN’sable Plotting** is a lightweight, open-source Shiny app for visualizing and statistically analyzing discrete or categorical data. It is designed as a free, user-friendly alternative to paid software like GraphPad Prism.
+
+Built with students and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
 
 <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">Click to Access the App</a>
+<br>
+-------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Why this app?**
-R is a powerful language for statistics and visualization, backed by base functions and peer-reviewed packages. However, its learning curve can be a barrier. SEN’sable Plotting removes that barrier by providing a point-and-click experience while leveraging R's robust capabilities under the hood.
-
-**Core Packages**
-<ul>
-<li><b>Framework:</b> Shiny (with <code>shinyBS</code>, <code>shinyjs</code>, <code>shinywidgets</code>, <code>shinycssloaders</code>)</li>
-<li><b>Data handling:</b> <code>openxlsx</code>, <code>DT</code>, <code>tidyverse</code> (<code>dplyr</code>, <code>tidyr</code>, <code>stringr</code>, <code>scales</code>), <code>broom</code></li>
-<li><b>Plotting:</b> <code>ggplot2</code> + extensions (<code>ggbeeswarm</code>, <code>ggdist</code>, <code>ggnewscale</code>, <code>ggtext</code>, <code>qqplotr</code>)</li>
-<li><b>Themes & UI:</b> <code>colorspace</code>, <code>colourpicker</code>, <code>bslib</code>, <code>bsplus</code>, <code>waiter</code>, <code>patchwork</code>, <code>extrafont</code>, <code>fontawesome</code></li>
-<li><b>Statistics:</b> <code>rstatix</code>, <code>DescTools</code>, <code>lme4</code>, <code>emmeans</code>, <code>PMCMRplus</code>, <code>car</code>, <code>ARTool</code> (plus base stats)</li>
-<li><b>Other:</b> <code>svglite</code>, <code>rJava</code></li>
-  </ul>
-All packages are open-source and freely available—full session info and dependencies are in the repo for reproducibility.
-
-**Quick Usage Guide**
-1. **Upload data** (File Upload tab): Import Excel (multi-sheet supported) or paste directly → select sheet and upload.
-2. **Choose plot type** (Plot Type dropdown): Single (Box-jitter, Violin, Raincloud, Jitter, Bar) or grouped (Box-jitter and Violin) plots. Enable 'Grouped Data' if needed.
-3. **Customize & view** (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels. Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).
-4. **Run statistics** (Statistics tab): Auto-detect test type (two-sample/multi-sample, parametric/non-parametric) or choose manually. Enable post-hoc comparisons if required → submit and generate report.
-5. **Download & annotate:** Export stat report (Excel). Add customizable annotations (p-values, brackets, asterisks) directly to plots via the Graph tab.
-6. **Post-hoc details:** Select comparison type (control vs. rest or pairwise) and columns → run analysis.
-7. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
+<b>&#10024; Why This App</b>
 <br><br>
+R is a powerful language for statistics and visualization, backed by base functions and peer-reviewed packages. However, its learning curve can be a barrier. SEN’sable Plotting removes that barrier by providing a point-and-click experience while leveraging R's robust capabilities under the hood.<br><br>
+**Features:**
+1. Easy and intuitive UI
+2. Multiple options to customize plots
+3. Save plots in high-quality raster images or SVG vectors
+4. Use built-in statistical analysis tool and generate reports
+5. Annotate P-value significance directly on the plot
 
-**Important Disclaimer**
+-------------------------------------------------------------------------------------------------------------------------------------------------
+**&#128195;Quick Usage Guide**
+<br><br>
+1. **Upload data**: Import an Excel file (supports multiple sheets) or paste a data table directly and upload. Currently supports Box-whisker, Violin, Raincloud, Jitter, and Bar plots in single data mode or Box-whisker and violin in grouped data mode.
+   
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/dc919cd9-dd36-4fd7-aaea-afd970b5d552" />
+
+2. **Customize & Save**: Adjust shapes, themes, fonts, colors, labels via collapsible panels. Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).
+   
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/489a796d-7d51-475f-9679-26896c331e6f" />
+
+3. **Run statistics**: Auto-detect test type (two-sample/multi-sample, parametric/non-parametric) or choose manually. Enable post-hoc multiple comparisons,  submit, and generate report. Export stat report in publication-ready format. Add significance annotation directly from the graph tab.
+   
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b20ea5f1-1d83-4a48-915b-454de3a8cea3" />
+
+4. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
+<br><br>
+------------------------------------------------------------------------------------------------------------------------------------------------------
+**&#128679;Important Disclaimer**<br><br>
 Statistical results are automated for convenience, but users should always verify test assumptions, selections, and outputs using additional tools or expert consultation. This app is not a substitute for professional statistical advice.
-
-**Get Involved**
+<br><br>
+**&#129309;Get Involved**<br><br>
 SEN’sable Plotting is licensed under the **MIT License** (permissive open-source).
-
 <ul>
-<li>Source code: <a href="https://github.com/sumitsen616/Sensabled" target="_blank">
-            https://github.com/sumitsen616/Sensabled</a></li>
-                 <li>Report bugs, request features, or contribute:
+<li>Download source code from <a href="https://github.com/sumitsen616/Sensabled/code" target="_blank">
+            https://github.com/sumitsen616/Sensabled/code</a></li>
+<li>Report bugs, request features, or contribute from
                  <a href="https://github.com/sumitsen616/Sensabled/issues" target="_blank">https://github.com/sumitsen616/Sensabled/issues</a></li>
-                 <li><a href="https://github.com/sumitsen616/Sensabled/tags" target="_blank">Release Notes</a></li>
+<li><a href="https://github.com/sumitsen616/Sensabled/tags" target="_blank">Release Notes</a></li>
 </ul>
 
 Feedback is very welcome. I actively maintain this tool and appreciate your input to make it better!<br>
