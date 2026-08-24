@@ -9,6 +9,7 @@ options(warn = -1)
 suppressPackageStartupMessages({
   #Shiny app builder
   library(shiny)
+  library(shinyjs)
   library(shinyBS)
   library(shinycssloaders)
   library(waiter)
@@ -35,11 +36,8 @@ suppressPackageStartupMessages({
   #For Font styles
   library(extrafont)
   library(fontawesome)
-  #Save as SVG
-  library(svglite)
   #Plot and app theme
   library(colorspace)
-  library(colourpicker)
   library(bslib)
   #For Stats
   library(DescTools)
@@ -77,6 +75,7 @@ css <- "
   .vscomp-wrapper.show-as-popup .vscomp-dropbox-container{z-index:9999!important;}
   .waiter-overlay{z-index:999!important;}
   .btn-check{width:0!important;}
+  #savesetting{opacity:0; width:0px; height:0px;}
   #graphFinal{ display: flex; align-items:center; justify-content:flex-end; flex-direction:column; margin:auto;}
   #graphFinal img {border:1px solid lightgrey; box-shadow:1px 1px 10px #cfcfcf88; border-radius:10px; padding:10px; background: #FFF;}
   #reuseset{position:relative; margin-top:-15px;}
@@ -87,7 +86,7 @@ css <- "
   border-radius: 5px; height:35px; text-align: center; content:'Grouped Data'; font-weight:500;
   font-size:15px !important; background: #3459e6 !important; color: white !important;  box-shadow:1px 1px 3px #9a9a9a !important;}
   .dropdown-menu.show, .dropdown-menu.in{display: flex; flex-direction: column;gap: 10px;}
-  #savesetting{text-align: center; font-weight: 500; border-radius: 5px; border: 1px solid #e6e6e6;}
+  
   .groupBtn .pretty input{width:250px; height:35px;}
   .groupBtn{display:flex; align-item: center; justify-content:center; flex-direction:row;}
   .popover{animation: popFlash 0.8s ease-out infinite;font-weight:600!important;}
@@ -680,7 +679,7 @@ ui <-page_navbar(
                                 #Choosing colors for summary stat lines
                                 colorPickr(
                                   'statColour',
-                                  label = 'Stat Summ Line Colour',
+                                  label = 'Stat Summ Line Color',
                                   selected = '#000000',
                                   pickr_width = "20%"
                                 ),
@@ -786,7 +785,7 @@ ui <-page_navbar(
                                   #Choosing colors for summary stat lines
                                   colorPickr(
                                     'statColourRain',
-                                    label = 'Stat Summ Line Colour',
+                                    label = 'Stat Summ Line Color',
                                     selected = '#000000',
                                     pickr_width = "20%"
                                   ),
@@ -865,7 +864,7 @@ ui <-page_navbar(
                                   #Choosing colors for summary stat lines
                                   colorPickr(
                                     'statColourBar',
-                                    label = 'Stat Summ Line Colour',
+                                    label = 'Stat Summ Line Color',
                                     selected = '#000000',
                                     pickr_width = "20%"
                                   ),
@@ -913,7 +912,7 @@ ui <-page_navbar(
                                     #Color of connecting line
                                     colorPickr(
                                       'connectLineCol',
-                                      label = 'Line Colour',
+                                      label = 'Line Color',
                                       selected = '#000000',
                                       pickr_width = "20%"
                                     ),
@@ -950,7 +949,7 @@ ui <-page_navbar(
                                                        choices = c('X','Y'),
                                                        selected = 'Y',
                                                        justified = T, size = 'sm'),
-                                  radioGroupButtons('gridCol', 'Grids Colour',
+                                  radioGroupButtons('gridCol', 'Grids Color',
                                                     choices = c('Black'= 'black',
                                                                 'White'= 'white',
                                                                 'Grey' = 'grey',
@@ -963,7 +962,7 @@ ui <-page_navbar(
                               #Choosing to add plot-background
                               prettySwitch(
                                 "plotThemeBg",
-                                label = "Add Background Colour",status = 'success', fill = T
+                                label = "Add Background Color",status = 'success', fill = T
                               ),
                               #Plot-background color
                               conditionalPanel(
@@ -1323,7 +1322,7 @@ ui <-page_navbar(
                                         'plotFont',
                                         label = 'Size: Plot Title',
                                         min = 5, max = 50,
-                                        value = 18, tooltips=TRUE,
+                                        value = 25, tooltips=TRUE,
                                         step=1, height="10px"))
                               ),
                               div(h4('X-Axis'),
@@ -1417,7 +1416,7 @@ ui <-page_navbar(
                                       'Desaturated Rainbow' = 'rainbows',
                                       'Seasonal Sky' = 'season',
                                       'Extreme Emotions' = 'heatmap',
-                                      'Colourblind Friendly' = 'colorblind',
+                                      'Colorblind Friendly' = 'colorblind',
                                       'London Weather' = 'greys'
                                     ),
                                     choicesOpt = list(style = bgColor)
@@ -1427,10 +1426,10 @@ ui <-page_navbar(
                                 conditionalPanel(
                                   condition = "input.choosetheme == 'gradient'",
                                   colorPickr(
-                                    'grad1', "Colour 1", selected = '#EEE1EF',
+                                    'grad1', "Color 1", selected = '#EEE1EF',
                                     pickr_width = '20%'),
                                   colorPickr(
-                                    'grad2', "Colour 2", selected = '#554994',
+                                    'grad2', "Color 2", selected = '#554994',
                                     pickr_width = '20%')
                                 ),
                                 #Renders color inputs for individual selection
@@ -1441,7 +1440,7 @@ ui <-page_navbar(
                                 #Choosing border shade for the shapes
                                 radioGroupButtons(
                                   "boxbordercol",
-                                  label = "Border Colour",
+                                  label = "Border Color",
                                   choices = c(
                                     "Darker" = 'dark',
                                     "Lighter" = 'light'
@@ -1480,7 +1479,7 @@ ui <-page_navbar(
                                 #Choosing border shade for the shapes
                                 radioGroupButtons(
                                   "boxbordercolG",
-                                  label = "Border Colour",
+                                  label = "Border Color",
                                   choices = c(
                                     "Darker" = 'dark',
                                     "Lighter" = 'light'
@@ -1535,12 +1534,12 @@ ui <-page_navbar(
                                 input.askPlotTypeII == 'viopoint'",
                                   pickerInput(
                                     "dpcolor",
-                                    label = "Datapoint Outline Colour",
+                                    label = "Datapoint Outline Color",
                                     choices = c(
                                       "Default (Black)" = 'default',
-                                      "Shape Colour" =
+                                      "Shape Color" =
                                         'box',
-                                      "Border Colour" =
+                                      "Border Color" =
                                         'border',
                                       "Make Gradient" =
                                         'dpgradient',
@@ -1551,12 +1550,12 @@ ui <-page_navbar(
                                   #Choosing point fill color theme for box and violin plot type
                                   pickerInput(
                                     "dpfill",
-                                    label = "Datapoint Fill Colour",
+                                    label = "Datapoint Fill Color",
                                     choices = c(
                                       "Default (Black)" = 'default',
-                                      "Shape Colour" =
+                                      "Shape Color" =
                                         'box',
-                                      "Border Colour" =
+                                      "Border Color" =
                                         'border',
                                       "Make Gradient" =
                                         'dpgradient',
@@ -1569,7 +1568,7 @@ ui <-page_navbar(
                                 #Choosing point outline color theme type for jitter plot type
                                   pickerInput(
                                     "dpcolor",
-                                    label = "Datapoint Outline Colour",
+                                    label = "Datapoint Outline Color",
                                     choices = c(
                                       "Default (Black)" = 'default',
                                       "Make Gradient" =
@@ -1581,7 +1580,7 @@ ui <-page_navbar(
                                   #Choosing point fill color theme type for jitter plot type
                                   pickerInput(
                                     "dpfill",
-                                    label = "Datapoint Fill Colour",
+                                    label = "Datapoint Fill Color",
                                     choices = c(
                                       "Default (Black)" = 'default',
                                       "Make Gradient" =
@@ -1601,10 +1600,10 @@ ui <-page_navbar(
                                     #all plot types with data points
                                     div(style="display:inline-flex; flex-direction:row; gap:5px;",
                                         colorPickr(
-                                          'dpgrad1', "Colour 1", selected = '#EEE1EF',
+                                          'dpgrad1', "Color 1", selected = '#EEE1EF',
                                           pickr_width = '20%'),
                                         colorPickr(
-                                          'dpgrad2', "Colour 2", selected = '#554994',
+                                          'dpgrad2', "Color 2", selected = '#554994',
                                           pickr_width = '20%')
                                     )
                                   )
@@ -1621,10 +1620,10 @@ ui <-page_navbar(
                                     div(style="display:inline-flex; flex-direction: row;
                                     gap: 5px;",
                                         colorPickr(
-                                          'dpgradF1', "Colour 1", selected = '#EEE1EF',
+                                          'dpgradF1', "Color 1", selected = '#EEE1EF',
                                           pickr_width = '20%'),
                                         colorPickr(
-                                          'dpgradF2', "Colour 2", selected = '#554994',
+                                          'dpgradF2', "Color 2", selected = '#554994',
                                           pickr_width = '20%')
                                     )
                                   )
@@ -1661,10 +1660,10 @@ ui <-page_navbar(
                                 #Choosing theme for data points' outline color
                                 pickerInput(
                                   "dpcolorG",
-                                  label = "Datapoint Outline Colour",
+                                  label = "Datapoint Outline Color",
                                   choices = c(
                                     "Default (Black)" = 'defaultG',
-                                    "Border Colour" =
+                                    "Border Color" =
                                       'borderG'
                                   ),
                                   selected = "default"
@@ -1672,10 +1671,10 @@ ui <-page_navbar(
                                 #Choosing theme for data points' fill color
                                 pickerInput(
                                   "dpfillG",
-                                  label = "Datapoint Fill Colour",
+                                  label = "Datapoint Fill Color",
                                   choices = c(
                                     "Default (Black)" = 'defaultG',
-                                    "Border Colour" =
+                                    "Border Color" =
                                       'borderG'
                                   ),
                                   selected = "default"
@@ -1760,7 +1759,7 @@ ui <-page_navbar(
                                     #Line-color of brackets
                                     colorPickr(
                                       'bracCol',
-                                      label = 'Line Colour',
+                                      label = 'Line Color',
                                       selected = '#000000',
                                       pickr_width = "20%"
                                     )),
@@ -1825,7 +1824,7 @@ ui <-page_navbar(
                                     #Significance text color
                                     colorPickr(
                                       'pvalCol',
-                                      label = 'Text Colour',
+                                      label = 'Text Color',
                                       selected = '#000000',
                                       pickr_width = "20%"
                                     )),
@@ -1905,10 +1904,11 @@ ui <-page_navbar(
                   ),
                   #Button to open modal settings for saving plot 
                   actionButton('saveBtn', 'Save Plot As...', icon = icon("floppy-disk"),
-                               width = '100%', title = "Open Save Settings"),
-                  #Download button to save plot
-                  downloadButton("savesetting", "Export Settings...", icon = icon("gear"), 
-                                 title = "Save your plot settings"),
+                               width = '100%', title = "Open Save Settings", disabled = TRUE),
+                  #Action button triggering download to save plot settings
+                  actionButton("savesetting_proxy", "Export Settings...", 
+                    icon = icon("gear"), title = "Save your plot settings", width = "100%",
+                    disabled = TRUE),
                   conditionalPanel(
                     condition = "input.sub_ui != 'Demo Data'",
                     #Plot theme setting file upload link
@@ -1921,9 +1921,11 @@ ui <-page_navbar(
                   circle = F, label = "Menu",
                   icon = icon ("bars"), size = 'sm', margin = "10px"
                 ),
-                
                 ## Renders main plot on screen ##
-                uiOutput('graph_main_content')
+                uiOutput('graph_main_content'),
+
+                #Download button to save plot settings
+                downloadButton("savesetting", label=NULL)
                 
               ))),
   nav_panel(title = "Statistics",
@@ -1949,13 +1951,14 @@ ui <-page_navbar(
             )
   ),
   nav_panel(title = "About",
+            HTML("<img src = 'app_logo_color.png' width='250' height='250'>"),
             div(
               h3("About SEN’sable Plotting"),
               p(strong("SEN’sable Plotting"), "is a lightweight, open-source Shiny app for
               visualizing and statistically analyzing discrete or categorical
               data—designed as a free, user-friendly alternative to paid softwares
               like GraphPad Prism."),
-              p("Built with biologists, ecologists, students, and early-career researchers
+              p("Built with students, and early-career researchers
               in mind, it offers an intuitive, no-code interface to create", strong("publication-ready
               plots and statistical reports"), "without any knowledge of R coding."),
               h4("Why this app?"),
@@ -1966,12 +1969,17 @@ ui <-page_navbar(
               robust capabilities under the hood."),
               h5("Core Packages"),
               HTML(
-                "<ul><li><b>Framework:</b> Shiny (with shinyBS, shinyjs, shinywidgets, shinycssloaders)</li>
-              <li><b>Data handling:</b> openxlsx, DT, tidyverse (dplyr, tidyr, stringr, scales), broom, rclipboard, readr</li>
-              <li><b>Plotting:</b> ggplot2 + extensions (ggbeeswarm, ggdist, ggnewscale, ggtext, qqplotr)</li>
-              <li><b>Themes & UI:</b> colorspace, colourpicker, bslib, bsplus, waiter, patchwork, extrafont, fontawesome</li>
-              <li><b>Statistics:</b> rstatix, DescTools, lme4, emmeans, PMCMRplus, car, ARTool (plus base stats)</li>
-              <li><b>Other:</b> svglite, rJava</li></ul>
+                "<ul><li><b>Framework:</b> <code>shiny</code> (with <code>shinyBS</code>,
+                <code>shinyjs</code>, <code>shinywidgets</code>, <code>shinycssloaders</code>)</li>
+              <li><b>Data handling:</b> <code>openxlsx</code>, <code>DT</code>,
+              <code>tidyverse</code> (<code>dplyr</code>, <code>tidyr</code>, <code>stringr</code>, <code>scales</code>),
+              <code>broom</code>, <code>rclipboard</code>, <code>readr</code></li>
+              <li><b>Plotting:</b> <code>ggplot2</code> + extensions (<code>ggbeeswarm</code>,
+              <code>ggdist</code>, <code>ggnewscale</code>, <code>ggtext</code>, <code>qqplotr</code>)</li>
+              <li><b>Themes & UI:</b> <code>colorspace</code>, <code>bslib</code>,
+              <code>waiter</code>, <code>patchwork</code>, <code>extrafont</code>, <code>fontawesome</code></li>
+              <li><b>Statistics:</b> <code>rstatix</code>, <code>DescTools</code>, <code>lme4</code>,
+              <code>emmeans</code>, <code>PMCMRplus</code>, <code>car</code>, <code>ARTool</code> (plus base stats)</li></ul>
               All packages are open-source and freely available. Full
               session info and dependencies are in the repo for reproducibility.
               "),
@@ -1980,15 +1988,14 @@ ui <-page_navbar(
               h4("Quick Usage Guide"),
               HTML(
                 "<ol><li><b>Upload data</b> (File Upload tab): Import Excel (multi-sheet supported)
-              or paste directly → select sheet and upload.</li>
+              or paste directly; select sheet and upload.</li>
               <li><b>Choose plot type</b> (Plot Type dropdown): Single (Box-Whisker,
-              Violin, Raincloud, Jitter, Bar) or grouped (Box-Whisker and Violin) plots. Enable 'Grouped Data' if needed.</li>
-              <li><b>Customize & view</b> (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels.
+              Violin, Raincloud, Jitter, Bar) or grouped (Box-Whisker and Violin) plots.</li>
+              <li><b>Customize & Save</b> (Graph tab): Adjust shapes, themes, fonts, colors, labels via collapsible panels.
               Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).</li>
               <li><b>Run statistics</b> (Statistics tab): Auto-detect test type
               (two-sample/multi-sample, parametric/non-parametric) or choose manually.
-              Enable post-hoc comparisons if required → submit and generate report.</li>
-              <li><b>Post-hoc details:</b> Select comparison type (control vs. rest or pairwise) and columns → run analysis.</li>
+              Perform post-hoc comparisons and generate report.</li>
               <li><b>Download & annotate:</b> Export stat report (Excel). 
               Add customizable annotations (p-values, brackets, asterisks) directly
               to plots via the Graph tab.</li>
@@ -2005,19 +2012,18 @@ ui <-page_navbar(
               h5("Get Involved"),
               p("SEN’sable Plotting is licensed under the", strong("MIT License"),
                 "(permissive open-source)."),
-              HTML('<ul><li>Source code: <a href="https://github.com/sumitsen616/Sensabled" target="_blank">
-            https://github.com/sumitsen616/Sensabled</a></li>
-                 <li>Report bugs, request features, or contribute:
-                 <a href="https://github.com/sumitsen616/Sensabled/issues" target="_blank">https://github.com/sumitsen616/Sensabled/issues</a></li>
+              HTML('<ul><li><a href="https://github.com/sumitsen616/Sensabled" target="_blank">
+            Source code</a></li>
+                 <li><a href="https://github.com/sumitsen616/Sensabled/issues" target="_blank">Report bugs, request features, or contribute</a></li>
                  <li><a href="https://github.com/sumitsen616/Sensabled/tags" target="_blank">Release Notes</a></li>
                  </ul>
                  Feedback is very welcome. I actively maintain this tool and
                  appreciate your input to make it better!
                  '),
               br(),
-              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.1.1 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
+              HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.2.0 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
             ),
-            style = " width:75%; padding:50px; margin:0 auto;")
+            style = "width:75%; padding:50px; margin:0 auto; ")
 )
 
 ###########################
@@ -3777,17 +3783,6 @@ server <- shinyServer(function(input, output, session) {
     input$font
   })
   
-  ## Plot title position
-  PlotTitPos <- reactive({
-    if (!isTruthy(input$addBrackets)) {
-      y <- yaxisMax()*(input$verAlign/300+1)
-    } else{
-      y <- max(statBrackets()$y)*(input$verAlign/500+1)
-    }
-    xPos <- length(unique(orderdata()$variable))
-    return(data.frame(x=xPos/2+0.5,y=y,text=input$plotTitle))
-  })
-  
   ## Processing the gap for raincloud plot
   
   gap <- reactive({
@@ -4004,6 +3999,8 @@ server <- shinyServer(function(input, output, session) {
                   label.colour = NA) 
     
   })
+  
+  ### Main ggplot input code ###
   plotinput <- reactive({
     x <- orderdata()
     
@@ -4039,6 +4036,7 @@ server <- shinyServer(function(input, output, session) {
       colPara <- x$variable
       legendPos <- 'none'
     }
+    
     g <- ggplot(x, aes(x = x_axis, y = value))
     
     ### For Violin Plot ###
@@ -4330,19 +4328,28 @@ server <- shinyServer(function(input, output, session) {
     
     #Other common ggproto objects
     pN <- p +
-      # scale_color_manual(values = bordercolor()) +
       theme_classic() +
       labs(
         y = input$aytitle,
         x = input$axtitle) +
-      
-      geom_textbox(data = PlotTitPos(),
-                   aes(x=x,y=y,label=(text), family = fontfamily()), size = input$plotFont/2.5,
-                   width = unit(input$bWidthTitle/100, "npc"), box.colour = 'black', box.size = unit(input$lineTitle/83.33, 'pt'), 
-                   box.padding = unit(input$padTitle/20,'pt'),position = 'identity', fill = "#FFFFFF00",
-                   box.margin = unit(0,'pt'), halign=(as.numeric(titlePlot())))+
+      ggtitle(label = input$plotTitle) +
       Ycontax() +
       theme(
+        plot.title = element_textbox_simple(size = input$plotFont/1.5,
+                                            family = fontfamily(),
+                                            fill = "#FFFFFF00",
+                                            width = unit(input$bWidthTitle*1.2, "mm"),
+                                            box.colour = '#000000',
+                                            linewidth = as.numeric(input$lineTitle/50),
+                                            linetype = "solid",
+                                            hjust = as.numeric(titlePlot()),
+                                            halign = as.numeric(titlePlot()),
+                                            padding = unit(input$padTitle/5,'pt'),
+                                            margin = margin(t = as.numeric(input$verAlign/2)*-1,
+                                                            b = as.numeric(input$verAlign/2),
+                                                            unit = "pt") 
+        ),
+        plot.title.position = "panel",
         axis.text.x = element_markdown(size = input$Xfontcol, color = "black",
                                        angle = as.numeric(input$Xrotate),
                                        hjust = xcolPosH(),
@@ -4354,7 +4361,7 @@ server <- shinyServer(function(input, output, session) {
                                        hjust = 0.5,
                                        halign = 0.5,
                                        padding = margin(5,0,0,0)),
-        axis.text.y = element_text(size = input$Yfontcol, color = "black"),
+        axis.text.y = element_markdown(size = input$Yfontcol, color = "black"),
         axis.title.y = element_textbox(size = input$Yfontsz, color = "black",
                                        width = unit(input$Ylinebreak*5, "pt"),
                                        orientation = "left-rotated",
@@ -4460,7 +4467,7 @@ server <- shinyServer(function(input, output, session) {
     # }
     # For flipping Y axis
     if (isTRUE(input$flipPlot)){
-      pR <- pF + coord_flip(ylim = c(ifelse(is.na(input$minY), 0,yaxisMin()), yaxisMax()),
+      pR <- pF + coord_flip(ylim = c(ifelse(is.na(input$minY), 0, yaxisMin()), yaxisMax()),
                             clip = 'off')
     } else {
       pR <- pF
@@ -4514,7 +4521,7 @@ server <- shinyServer(function(input, output, session) {
   ## Save Plot As modal settings
   observeEvent(input$saveBtn,{
     showModal(modalDialog(
-      title = "Save Settings",
+      title = "Save Plot Settings",
       div(
         # style = "display: flex; flex-direction: column; gap: 10px; width: 32%;",
         selectInput("selectFileType", "Save as", choices = c('PNG' = 'png', 'JPEG' = 'jpeg', 'TIFF' = 'tiff', 
@@ -4741,6 +4748,13 @@ server <- shinyServer(function(input, output, session) {
   #A warning when user tries to trim violin shape ends
   observe({
     if (isFALSE(input$endTrim)){
+      shinyWidgets::show_toast(
+        title = "Warning",
+        text = "Extended ends could be deceptive!", type = 'warning')
+    }
+  }) 
+  observe({
+    if (isFALSE(input$endTrimRain)){
       shinyWidgets::show_toast(
         title = "Warning",
         text = "Extended ends could be deceptive!", type = 'warning')
@@ -7734,6 +7748,7 @@ server <- shinyServer(function(input, output, session) {
   }
   ### A comprehensive table to catch inputs, their names and values to save in a excel file ###
   savesetting_df <- reactive({
+    req(!is.null(data()), input$savesetting_proxy)
     settings_df <- data.frame(
       Parameter = c(
         # --- File & Data Settings ---
@@ -7779,7 +7794,7 @@ server <- shinyServer(function(input, output, session) {
         "Summary Statistics (Jitter)",
         "Stat Summ Line Width (Jitter)",
         "Stat Summ Bar Width (Jitter)",
-        "Stat Summ Line Colour (Jitter)",
+        "Stat Summ Line Color (Jitter)",
         "Stat Summ Line Position (Jitter)",
         
         # --- Graph Settings: Raincloud ---
@@ -7794,7 +7809,7 @@ server <- shinyServer(function(input, output, session) {
         "Summary Statistics (Raincloud)",
         "Stat Summ Linewidth (Raincloud)",
         "Stat Summ Bar Width (Raincloud)",
-        "Stat Summ Line Colour (Raincloud)",
+        "Stat Summ Line Color (Raincloud)",
         "Stat Summ Line Position (Raincloud)",
         
         # --- Graph Settings: Bar ---
@@ -7805,14 +7820,14 @@ server <- shinyServer(function(input, output, session) {
         "Summary Statistics (Bar Median)",
         "Stat Summ Linewidth (Bar)",
         "Stat Summ Bar Width (Bar)",
-        "Stat Summ Line Colour (Bar)",
+        "Stat Summ Line Color (Bar)",
         "Errorbar Direction",
         "Add Datapoints (Bar)",
         
         # --- Graph Settings: Connecting Lines ---
         "Add Connecting Line",
         "Line Width (Connect)",
-        "Line Colour (Connect)",
+        "Line Color (Connect)",
         "Line Type (Connect)",
         
         # --- Plot Area ---
@@ -7820,9 +7835,9 @@ server <- shinyServer(function(input, output, session) {
         "Major Grids",
         "Minor Grids",
         "Choose Axis (Grid)",
-        "Grids Colour",
+        "Grids Color",
         "Add Borders",
-        "Add Background Colour",
+        "Add Background Color",
         "Plot Background Color",
         "Legend Title",
         "Legend Position",
@@ -7889,24 +7904,24 @@ server <- shinyServer(function(input, output, session) {
         # --- Theme ---
         "Select Theme Generator",
         "Preset Themes",
-        "Gradient Colour 1",
-        "Gradient Colour 2",
+        "Gradient Color 1",
+        "Gradient Color 2",
         "Select Theme Generator (Grouped)",
         "Display Contrast",
-        "Border Colour",
-        "Border Colour (Grouped)",
+        "Border Color",
+        "Border Color (Grouped)",
         "Border Shade",
         "Border Shade (Grouped)",
         "Shape Opacity",
         "Shape Opacity (Grouped)",
-        "Datapoint Outline Colour",
-        "Datapoint Fill Colour",
-        "DP Gradient Colour 1",
-        "DP Gradient Colour 2",
-        "DP Fill Gradient Colour 1",
-        "DP Fill Gradient Colour 2",
-        "Datapoint Outline Colour (Grouped)",
-        "Datapoint Fill Colour (Grouped)",
+        "Datapoint Outline Color",
+        "Datapoint Fill Color",
+        "DP Gradient Color 1",
+        "DP Gradient Color 2",
+        "DP Fill Gradient Color 1",
+        "DP Fill Gradient Color 2",
+        "Datapoint Outline Color (Grouped)",
+        "Datapoint Fill Color (Grouped)",
         
         # --- Statistics ---
         # "Select Test Type (T/S)",
@@ -8490,13 +8505,21 @@ server <- shinyServer(function(input, output, session) {
   })
   
   ### Download handler for saving Settings File
+  observe({
+    #Activate the action buttons in the menu
+    req(!is.null(data()))
+    updateActionButton(session,'savesetting_proxy', disabled = FALSE)
+    updateActionButton(session,'saveBtn', disabled = FALSE)
+  })
+  observeEvent(input$savesetting_proxy,{
+    shinyjs::runjs("document.getElementById('savesetting').click();")
+  })
   output$savesetting <- downloadHandler(
     filename = function() { paste0("SENsabled_Settings_", Sys.Date(), ".xlsx") },
     content = function(file) {
       openxlsx::write.xlsx(savesetting_df(), file= file, asTable = T)
     }
   )
-  
   ### Processing for the setting file data to update all the inputs ###
   observeEvent(input$reuseset,{
     req(data(), !isTruthy(input$exampleFile))
