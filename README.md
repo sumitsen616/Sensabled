@@ -2,6 +2,9 @@
 # SEN'sable Plotting v1.2.0
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 
@@ -28,23 +31,23 @@ R is a powerful language for statistics and visualization, backed by base functi
 
 ## Installation
 
-You can install the development version of Sensabled from [GitHub](https://github.com/) with:
+You can install the package (Sensabled) for the app from [GitHub](https://github.com/) with:
 
 ``` r
-install.packages("pak")
-pak::pak("sumitsen616/Sensabled")
+#install.packages("remotes")
+remotes::install_github("sumitsen616/Sensabled")
 ```
 
-## Example
+## Deploy the app
 
-This is a basic example which shows you how to solve a common problem:
+How to run the app on the R console:
 
 ``` r
 Sensabled::run_app()
 ```
-<br><br>
-Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">click</a> to access this app online without installing R or Rstudio
 <br>
+Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">click</a> to access this app online without installing R or Rstudio
+
 ---------------------------------------------------------------------------------------------------------------------------------
 **&#128195;Quick Usage Guide**
 <br><br>
