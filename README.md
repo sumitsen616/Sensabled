@@ -1,4 +1,10 @@
-# SEN'sable Plotting v1.1.1
+
+# SEN'sable Plotting v1.2.0
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+
 <img width="200" height="200" alt="app_logo_color" src="https://github.com/user-attachments/assets/ef095771-5a98-40c4-a87e-48f17ec62712" />
 
 
@@ -6,8 +12,6 @@
 
 Built with students and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
 
-<a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">Click to Access the App</a>
-<br>
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 <b>&#10024; Why This App</b>
@@ -21,6 +25,27 @@ R is a powerful language for statistics and visualization, backed by base functi
 5. Annotate P-value significance directly on the plot
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Installation
+
+You can install the development version of Sensabled from [GitHub](https://github.com/) with:
+
+``` r
+install.packages("pak")
+pak::pak("sumitsen616/Sensabled")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+``` r
+Sensabled::run_app()
+```
+<br><br>
+Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">click</a> to access this app online without installing R or Rstudio
+<br>
+---------------------------------------------------------------------------------------------------------------------------------
 **&#128195;Quick Usage Guide**
 <br><br>
 1. **Upload data**: Import an Excel file (supports multiple sheets) or paste a data table directly and upload. Currently supports Box-whisker, Violin, Raincloud, Jitter, and Bar plots in single data mode or Box-whisker and violin in grouped data mode.
