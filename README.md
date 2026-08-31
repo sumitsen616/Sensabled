@@ -1,4 +1,13 @@
-# SEN'sable Plotting v1.1.1
+
+# SEN'sable Plotting v1.2.0
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+<!-- badges: end -->
+
+
 <img width="200" height="200" alt="app_logo_color" src="https://github.com/user-attachments/assets/ef095771-5a98-40c4-a87e-48f17ec62712" />
 
 
@@ -6,8 +15,6 @@
 
 Built with students and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
 
-<a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">Click to Access the App</a>
-<br>
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 <b>&#10024; Why This App</b>
@@ -21,6 +28,27 @@ R is a powerful language for statistics and visualization, backed by base functi
 5. Annotate P-value significance directly on the plot
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Installation
+
+You can install the package (Sensabled) for the app from [GitHub](https://github.com/) with:
+
+``` r
+#install.packages("remotes")
+remotes::install_github("sumitsen616/Sensabled")
+```
+
+## Deploy the app
+
+How to run the app on the R console:
+
+``` r
+Sensabled::run_app()
+```
+<br>
+Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank">click</a> to access this app online without installing R or Rstudio
+
+---------------------------------------------------------------------------------------------------------------------------------
 **&#128195;Quick Usage Guide**
 <br><br>
 1. **Upload data**: Import an Excel file (supports multiple sheets) or paste a data table directly and upload. Currently supports Box-whisker, Violin, Raincloud, Jitter, and Bar plots in single data mode or Box-whisker and violin in grouped data mode.
