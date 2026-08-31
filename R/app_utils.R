@@ -66,7 +66,7 @@ css <- "
 
 "
 # JavaScript callback to send new column sequence to R
-callback_js <- JS(
+callback_js <- htmlwidgets::JS(
   "table.on('column-reorder', function(e, settings, details){",
   "  Shiny.setInputValue('current_column_order', details);",
   "});"

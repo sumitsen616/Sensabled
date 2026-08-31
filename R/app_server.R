@@ -405,6 +405,9 @@ app_server <- function(input, output, session) {
       return(NULL)
     }
     
+    ## When the columns were reordered, update the data table
+    df_full <- df_full[,current_column_order()]
+    
     #If data group is active then check if the columns names can be grouped
     #grouping data requires parameters to be separated by ':' in the column header
     if(isTRUE(input$dataGroup)){
@@ -450,7 +453,6 @@ app_server <- function(input, output, session) {
       shinyWidgets::show_toast(title = "No valid columns selected.", type = "warning")
       return(NULL)
     }
-    
     df_full[, selected, drop = FALSE]
   })  
   
