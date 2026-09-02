@@ -4751,8 +4751,8 @@ app_server <- function(input, output, session) {
           icon= icon('file-arrow-down'),
           class = "btn-primary"
         ),
-        p("&#9888;Add Significance Brackets and P Value to Your Plot from 'Graph' Tab&#9888;",
-          style="color:#999; width:100; text-align:center")
+        HTML("<p style = 'color:#999; width:100; text-align:center'>
+             &#9888; Add Significance Brackets and P Value to Your Plot from 'Graph' Tab &#9888;</p>")
       )
       
     })
