@@ -447,6 +447,7 @@ app_server <- function(input, output, session) {
     selected <- intersect(selected, colnames(df_full))
     
     if (length(selected) == 0) {
+      req(input$selectedCols)
       shinyWidgets::show_toast(title = "No valid columns selected.", type = "warning")
       return(NULL)
     }
