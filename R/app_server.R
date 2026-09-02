@@ -314,8 +314,8 @@ app_server <- function(input, output, session) {
         #Button to open modal box to change current column names
         actionButton('chngColBtn', 'Update Column Header', icon = icon('heading'), 
                      class = "btn-primary"),
-        p("&#9888;Click to Customize Major X-Axis Texts with Markdown&#9888;",
-          style = "color: grey; font-size:13px; width:100%; text-align:center;")
+        HTML("<p style = 'color: grey; font-size:13px; width:100%; text-align:center;'>
+             &#9888; Click to Customize Major X-Axis Texts with Markdown &#9888; </p>")
       )
     })
   })
@@ -336,16 +336,11 @@ app_server <- function(input, output, session) {
   #Updates column names and data if users reorder columns of displayed table by dragging 
   current_column_order <- reactiveVal(seq_along(data()))
   observeEvent(input$current_column_order,{
-    start <- input$current_column_order[["from"]]+1
-    end <- input$current_column_order[["to"]]+1
-    order <- current_column_order()
-    start_new <- order[start]
-    end_new <- order[end]
-    order[end] <- start_new
-    order[start] <- end_new
-    current_column_order(order)
-    
-    current_colnames(colNames()[current_column_order()])
+    #get the new order index of the rearranged columns by user
+    order <- as.vector(unlist(input$current_column_order)[3:(length(data())+2)])+1
+    #Readjust the column names and update current column name
+    new_order <- current_colnames()[c(order)]
+    current_colnames(c(new_order))
     updatePickerInput(session, "selectedCols", "Select Columns",
                       choices = current_colnames(), selected = current_colnames())
   })
@@ -405,9 +400,6 @@ app_server <- function(input, output, session) {
       return(NULL)
     }
     
-    ## When the columns were reordered, update the data table
-    df_full <- df_full[,current_column_order()]
-    
     #If data group is active then check if the columns names can be grouped
     #grouping data requires parameters to be separated by ':' in the column header
     if(isTRUE(input$dataGroup)){
@@ -433,6 +425,9 @@ app_server <- function(input, output, session) {
       }
     }
     
+    ## When the columns were reordered, update the data table
+    df_full <- df_full[,current_colnames()]
+
     # Use current_colnames() to rename the dataset if number of columns matches
     if (ncol(df_full) == length(current_colnames())) {
       colnames(df_full) <- current_colnames()
@@ -443,7 +438,9 @@ app_server <- function(input, output, session) {
         title = "Warning",
         text ="Column count mismatch after loading &#8212; using original names.",
         type = "warning")
+      return(NULL)
     }
+    
     
     # Subset only if selectedCols exist and are valid
     selected <- input$selectedCols %||% current_colnames()
@@ -3423,17 +3420,19 @@ app_server <- function(input, output, session) {
                                                  names_to = 'para', 
                                                  values_to = 'val')
         }
-        # Heteroscedasticity Correction if Levene test gives significant p value
-        het_sce <- ifelse (safe_as_numeric(levTest()$`P Value`)>0.05, FALSE, TRUE)
-        
         if (isTRUE(input$dataGroup)){
           # For Groupued data
+          # Heteroscedasticity Correction if Levene test gives significant p value
+          het_sce <- ifelse (safe_as_numeric(levTest()$`P Value`)>0.05, FALSE, TRUE)
           aovTest <- rstatix::anova_test(longdata, val ~ para*groups, type= 3,
                                          white.adjust = het_sce)
         } else {
           # For Ungrouped data
-          aovTest <- rstatix::anova_test(longdata, val ~ para, type= 3,
-                                         white.adjust = het_sce)
+          if(safe_as_numeric(levTest()$`P Value`)>0.05){
+            aovTest <- rstatix::anova_test(longdata, val ~ para, type = 3)
+          }else{
+            aovTest <- rstatix::welch_anova_test(longdata, val ~ para)
+          }
         }   
       }
       

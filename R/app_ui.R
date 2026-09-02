@@ -1781,7 +1781,7 @@ app_ui <- function(request){
                  appreciate your input to make it better!
                  '),
                 br(),
-                HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.2.0 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
+                HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.2.1.000 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
               ),
               style = "width:75%; padding:50px; margin:0 auto; ")
   )}

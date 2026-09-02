@@ -1,5 +1,5 @@
 
-# SEN'sable Plotting v1.2.0
+# SEN'sable Plotting v1.2.1.000
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml)
