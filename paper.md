@@ -8,8 +8,8 @@ tags:
   - statistics
 authors:
   - name: Sumit Sen
-orcid: 0009-0007-1604-9641
-Corresponding: true
+    orcid: 0000-0000-0000-0000
+    corresponding: true
     affiliation: 1
 affiliations:
   - name: Independent Researcher, India
