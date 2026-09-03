@@ -341,6 +341,7 @@ app_server <- function(input, output, session) {
     #Readjust the column names and update current column name
     new_order <- current_colnames()[c(order)]
     current_colnames(c(new_order))
+    stored_status(FALSE)
     updatePickerInput(session, "selectedCols", "Select Columns",
                       choices = current_colnames(), selected = current_colnames())
   })
@@ -383,6 +384,7 @@ app_server <- function(input, output, session) {
     ## 3. Demo data process ##
     if(!is.null(demoFile()) && is.null(pasteDf$df) &&
        is.null(input$file)){
+      df_full <- NULL
       df_full <- demoFile()
     } 
     
@@ -426,8 +428,10 @@ app_server <- function(input, output, session) {
     }
     
     ## When the columns were reordered, update the data table
-    df_full <- df_full[,current_colnames()]
-
+    if(!is.null(input$current_column_order)){
+      df_full <- df_full[,current_colnames()]
+    }
+    
     # Use current_colnames() to rename the dataset if number of columns matches
     if (ncol(df_full) == length(current_colnames())) {
       colnames(df_full) <- current_colnames()
@@ -1171,7 +1175,7 @@ app_server <- function(input, output, session) {
   majGridInpX <- reactive({
     if (isTRUE(input$plotThemeGrid) && 
         isTRUE(input$majGrid) && has_element(input$gridOpt,'X')){
-      element_line(size = 0.5, linetype = 'solid',
+      element_line(linewidth = 0.5, linetype = 'solid',
                    colour = input$gridCol)
     }else {
       element_blank()
@@ -1180,7 +1184,7 @@ app_server <- function(input, output, session) {
   minGridInpX <- reactive({
     if (isTRUE(input$plotThemeGrid) &&
         isTRUE(input$minGrid) && has_element(input$gridOpt,'X')){
-      element_line(size = 0.25, linetype = 'solid',
+      element_line(linewidth = 0.25, linetype = 'solid',
                    colour = input$gridCol)
     }else {
       element_blank()
@@ -1189,7 +1193,7 @@ app_server <- function(input, output, session) {
   majGridInpY <- reactive({
     if (isTRUE(input$plotThemeGrid) &&
         isTRUE(input$majGrid) && has_element(input$gridOpt,'Y')){
-      element_line(size = 0.5, linetype = 'solid',
+      element_line(linewidth = 0.5, linetype = 'solid',
                    colour = input$gridCol)
     }else {
       element_blank()
@@ -1198,7 +1202,7 @@ app_server <- function(input, output, session) {
   minGridInpY <- reactive({
     if (isTRUE(input$plotThemeGrid) &&
         isTRUE(input$minGrid) && has_element(input$gridOpt,'Y')){
-      element_line(size = 0.25, linetype = 'solid',
+      element_line(linewidth = 0.25, linetype = 'solid',
                    colour = input$gridCol)
     }else {
       element_blank()
@@ -2381,7 +2385,7 @@ app_server <- function(input, output, session) {
                                        hjust = 0.5,
                                        halign = 0.5,
                                        box.color = 'black'),
-        axis.ticks = element_line(size = input$tickwidth/40),
+        axis.ticks = element_line(linewidth = input$tickwidth/40),
         axis.ticks.length = unit(input$ticklength/80,'cm'),
         legend.position = legendPos,
         legend.text = element_markdown(size = input$legTextSize),
@@ -2498,18 +2502,35 @@ app_server <- function(input, output, session) {
   ### Graph Output Processing ###
   
   output$graphFinal <- renderPlot({
-    if (isTruthy(input$runAnalysisFinal) &&
-        !isTruthy(input$exampleFile) && isTRUE(input$askComp)){
-      validate(
-        need(length(input$grplist) >= 1,
-             "Please select at least 1 option to proceed.")
-      )
-      validate(
-        need(isTRUE(stored_status()),
-             "Data has changed. Please rerun the statistical analysis.")
-      )
+    # if (isTruthy(input$runAnalysisFinal) &&
+    #     !isTruthy(input$exampleFile) && isTRUE(input$askComp)){
+    #   validate(
+    #     need(length(input$grplist) >= 1,
+    #          "Please select at least 1 option to proceed.")
+    #   )
+    #   validate(
+    #     need(isTRUE(stored_status()),
+    #          "Data has changed. Please rerun the statistical analysis.")
+    #   )
+    # }
+    if(isFALSE(stored_status()) && isTruthy(input$runAnalysisFinal)){
+      ggplot()+geom_textbox(
+        mapping=aes(x=1, y= 5, label=paste("&#9888;","\nChange detected in the dataset.
+                    Please rerun the statistcal analysis to update your plot.",sep=" ")),
+        halign=0.5, box.padding = unit(30,'pt'), text.colour = '#856404',
+        fill = "#fff3cd", box.colour = "#ffeaa7", box.size= 3, size = 8, fontface = 'bold',
+        width = unit(10, 'cm'), box.r = unit(10,'pt'))+theme_void()
+    } else if(isTruthy(input$runAnalysisFinal) && isTRUE(input$askComp)
+              && length(input$grplist) < 1){
+      ggplot()+geom_textbox(
+        mapping=aes(x=1, y= 5, label=paste("&#9888;","\nPlease select at least one comparison to generate a plot.", sep = " ")),
+        halign=0.5, box.padding = unit(30,'pt'), text.colour = '#856404',
+        fill = "#fff3cd", box.colour = "#ffeaa7", box.size= 3, size = 8, fontface = 'bold',
+        width = unit(10, 'cm'), box.r = unit(10,'pt'))+theme_void()
+    } else{
+      plotinput()
     }
-    plotinput()
+    
   })
   
   ## Processing graph download handler
@@ -5452,7 +5473,7 @@ app_server <- function(input, output, session) {
           "Please go to the ", strong("File Upload"), " tab,",
           "upload an Excel file, select columns, and click ", strong("Upload Datasheet"), " or Upload Pasted Data to begin.")
       )
-    }else if (input$dataGroup == T) {
+    }else if (isTRUE(input$dataGroup)) {
       col_names <- colnames(data())  
       checkColon <- has_element(str_detect(col_names,':'),FALSE)
       

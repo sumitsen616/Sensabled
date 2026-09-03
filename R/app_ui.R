@@ -50,7 +50,6 @@
 #' @importFrom grDevices boxplot.stats colorRampPalette
 #' @importFrom utils read.delim
 #' @importFrom purrr has_element
-# options(shiny.maxRequestSize = 250 * 1024^2) #Max file size to be uploaded is 250mb
 
 app_ui <- function(request){
   page_navbar(
@@ -60,7 +59,7 @@ app_ui <- function(request){
         src = 'www/app_logo.png',
         height = '50px',
         style = "margin:auto; position:absolute; left:10px; margin-top:-10px;"
-      ),tags$span("SEN'sable Plotting", style = "position:absolute; left:70px"),
+      ),tags$span("SEN'sable Plotting", style = "position:absolute; left:70px;"),
       style= "display:inline-flex; flex-direction:row; width:230px;
     height:100%; position:relative; top:-23px"
     ),

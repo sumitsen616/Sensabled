@@ -3,7 +3,7 @@
 ### Copyright (c) 2026 Sumit Sen
 
 ### Utility Codes ###
-
+options(warn = 0)
 options(encoding = "UTF-8")
 ##CSS Custom Styles
 css <- "
