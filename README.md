@@ -5,6 +5,7 @@
 [![R-CMD-check](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![DOI](https://zenodo.org/badge/1053215280.svg)](https://doi.org/10.5281/zenodo.22271152)
 <!-- badges: end -->
 
 
