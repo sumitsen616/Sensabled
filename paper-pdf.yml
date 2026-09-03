@@ -1,6 +1,7 @@
 name: Build Paper PDF
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - paper
