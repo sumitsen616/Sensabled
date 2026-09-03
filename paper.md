@@ -31,6 +31,7 @@ For an inexperienced user, R could be initially overwhelming, and writing a prog
 # Key Features and Workflow
 
 The app currently accepts either an Excel file (.xlsx) with multiple sheets or pasted data in wide-data format. The main workflow is to upload an .xlsx file, select a sheet (if multiple) or paste data, and submit in the 'File Upload' tab. The plot is generated and displayed in the 'Graph' tab, where it can be further customized. The data can be analyzed in the 'Statistics' tab, and a report generated. Some of the noticeable features of the app are,
+
   - Supports independent or grouped variables
   - Plots data in box-whisker, violin, jitter, raincloud, and bar types
   - Plenty of plot customization and theme options
