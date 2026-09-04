@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![DOI](https://zenodo.org/badge/1053215280.svg)](https://doi.org/10.5281/zenodo.22271152)
+[![status](https://joss.theoj.org/papers/42634d1a774d246dfa87114b4184ffae/status.svg)](https://joss.theoj.org/papers/42634d1a774d246dfa87114b4184ffae)
 <!-- badges: end -->
 
 
