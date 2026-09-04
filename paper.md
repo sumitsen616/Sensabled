@@ -26,7 +26,7 @@ Visual representation of data is an effective communication mechanism for the pu
 
 Working with raw categorical data and relying on simple summary statistics often underrepresents the true meaning of the data collected from any experiment. Visualization of this data through a graphical illustration provides more information about the distribution, the frequency of occurrence of certain values, outliers within a population, and even correlations between different datasets [@telea2014data]. Beyond these, discrete datasets are often collected to answer scientific questions and find out associations between variables. Testing a hypothesis about a nonzero chance of association between datasets and quantifying its strength numerically have great value in the real world [@friendly2015discrete]. R is an extremely powerful programming language for statistical analysis and provides incredible flexibility with using community-developed add-ons for multipurpose use [@r_core_team_r_2023]. 
 
-For an inexperienced user, R could be initially overwhelming, and writing a program each time to perform different statistical tests and plot graphs could be time-consuming. Sensabled was developed with this obstacle in mind. It provides an open-source, free alternative to paid software, and offers first-time R users an interactive web- and desktop-based platform to generate reproducible, publication-ready graphs and statistical reports.  
+For an inexperienced user, R could be initially overwhelming, and writing a program each time to perform different statistical tests and plot graphs could be time-consuming. `Sensabled` was developed with this obstacle in mind. It provides an open-source, free alternative to paid software, and offers first-time R users an interactive web- and desktop-based platform to generate reproducible, publication-ready graphs and statistical reports.  
 
 # State of the Field
 
@@ -58,7 +58,7 @@ Once complete, the statistical report can be downloaded, which is already compil
 
 # Research Impact Statement
 
-`Sensabled` simplifies complex statistical analysis and data visualization, saving researchers valuable time. As this app automatically parses multiple sheets from a single Excel file, it allows users to execute multiple identical downstream plotting and statistical analyses across experimental replicates, saving significant time. To ensure community readiness, the app also includes a demo dataset that guides first-time users through data input, hypothesis testing, and plotting. An earlier version of this app was utilized to generate figures and perform statistical analyses in a study recently published in PNAS[sen_mtor_2026]. 
+`Sensabled` simplifies complex statistical analysis and data visualization, saving researchers valuable time. As this app automatically parses multiple sheets from a single Excel file, it allows users to execute multiple identical downstream plotting and statistical analyses across experimental replicates, saving significant time. To ensure community readiness, the app also includes a demo dataset that guides first-time users through data input, hypothesis testing, and plotting. An earlier version of this app was utilized to generate figures and perform statistical analyses in a study recently published in PNAS[@sen_mtor_2026]. 
 
 # Usage and Availability
 
