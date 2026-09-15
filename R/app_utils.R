@@ -1,4 +1,4 @@
-### Source Code for SEN'sabale Plotting App ###
+### Source Code for Sensabled Plotting App ###
 ### MIT License - see LICENSE file for details
 ### Copyright (c) 2026 Sumit Sen
 
