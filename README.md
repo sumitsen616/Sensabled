@@ -1,19 +1,19 @@
 
-# SEN'sable Plotting v1.2.1.000
+# Sensabled Plotting v1.2.2.000
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sumitsen616/Sensabled/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![DOI](https://zenodo.org/badge/1053215280.svg)](https://doi.org/10.5281/zenodo.22271152)
-[![status](https://joss.theoj.org/papers/42634d1a774d246dfa87114b4184ffae/status.svg)](https://joss.theoj.org/papers/42634d1a774d246dfa87114b4184ffae)
+
 <!-- badges: end -->
 
 
 <img width="200" height="200" alt="app_logo_color" src="https://github.com/user-attachments/assets/ef095771-5a98-40c4-a87e-48f17ec62712" />
 
 
-**SEN’sable Plotting** is a lightweight, open-source Shiny app for visualizing and statistically analyzing discrete or categorical data. It is designed as a free, user-friendly alternative to paid software like GraphPad Prism.
+**Sensabled Plotting** is a lightweight, open-source Shiny app for visualizing and statistically analyzing quantitative data. It is designed as a free, user-friendly alternative to paid software like GraphPad Prism.
 
 Built with students and early-career researchers in mind, it offers an intuitive, no-code interface to create **publication-ready plots and statistical reports** without any knowledge of R code.
 
@@ -21,7 +21,7 @@ Built with students and early-career researchers in mind, it offers an intuitive
 
 <b>&#10024; Why This App</b>
 <br><br>
-R is a powerful language for statistics and visualization, backed by base functions and peer-reviewed packages. However, its learning curve can be a barrier. SEN’sable Plotting removes that barrier by providing a point-and-click experience while leveraging R's robust capabilities under the hood.<br><br>
+R is a powerful language for statistics and visualization, backed by base functions and peer-reviewed packages. However, its learning curve can be a barrier. Sensabled Plotting removes that barrier by providing a point-and-click experience while leveraging R's robust capabilities under the hood.<br><br>
 **Features:**
 1. Easy and intuitive UI
 2. Multiple options to customize plots
@@ -72,7 +72,7 @@ Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank
 Statistical results are automated for convenience, but users should always verify test assumptions, selections, and outputs using additional tools or expert consultation. This app is not a substitute for professional statistical advice.
 <br><br>
 **&#129309;Get Involved**<br><br>
-SEN’sable Plotting is licensed under the **MIT License** (permissive open-source).
+Sensabled Plotting is licensed under the **MIT License** (permissive open-source).
 <ul>
 <li>Download source code from <a href="https://github.com/sumitsen616/Sensabled" target="_blank">
             https://github.com/sumitsen616/Sensabled</a></li>

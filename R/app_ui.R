@@ -1,4 +1,4 @@
-### Source Code for SEN'sabale Plotting App ###
+### Source Code for Sensabled Plotting App ###
 ### MIT License - see LICENSE file for details
 ### Copyright (c) 2026 Sumit Sen
 
@@ -59,8 +59,8 @@ app_ui <- function(request){
         src = 'www/app_logo.png',
         height = '50px',
         style = "margin:auto; position:absolute; left:10px; margin-top:-10px;"
-      ),tags$span("SEN'sable Plotting", style = "position:absolute; left:70px;"),
-      style= "display:inline-flex; flex-direction:row; width:230px;
+      ),tags$span("Sensabled Plotting", style = "position:absolute; left:70px;"),
+      style= "display:inline-flex; flex-direction:row; width:300px;
     height:100%; position:relative; top:-23px"
     ),
     #bslib theme for the app
@@ -152,7 +152,9 @@ app_ui <- function(request){
                             title = "Upload",
                             # 1. Import via uploading excel file
                             div(style = "padding:10px;",
-                                fileInput('file', 'Choose XLSX File', accept = c('.xlsx'))
+                                fileInput('file', 'Import your .xlsx file',
+                                          multiple = FALSE, accept = c('.xlsx'),
+                                          placeholder = "Upload or Drag & Drop")
                             )
                           ),
                           nav_panel(
@@ -1713,9 +1715,9 @@ app_ui <- function(request){
     nav_panel(title = "About",
               HTML("<img src = 'www/app_logo_color.png' width='250' height='250'>"),
               div(
-                HTML("<h3>About SEN'sable Plotting</h3>"),
-                HTML("<b>SEN'sable Plotting</b> is a lightweight, open-source Shiny app for
-              visualizing and statistically analyzing discrete or categorical
+                HTML("<h3>About Sensabled Plotting</h3>"),
+                HTML("<b>Sensabled Plotting</b> is a lightweight, open-source Shiny app for
+              visualizing and statistically analyzing quantitative
               data &#x2014; designed as a free, user-friendly alternative to paid softwares
               like GraphPad Prism."),
                 p("Built with students, and early-career researchers
@@ -1724,7 +1726,7 @@ app_ui <- function(request){
                 h4("Why this app?"),
                 HTML("<p>R is a powerful language for statistics and visualization,
               backed by base functions and peer-reviewed packages. However,
-              its learning curve can be a barrier. SEN'sable Plotting removes that
+              its learning curve can be a barrier. Sensabled Plotting removes that
               barrier by providing a point-and-click experience while leveraging R's
               robust capabilities under the hood.</p>"),
                 h5("Core Packages"),
@@ -1770,7 +1772,7 @@ app_ui <- function(request){
               "),
                 br(),br(),
                 h5("Get Involved"),
-                HTML("<p>SEN'sable Plotting is licensed under the <b>MIT License</b> (permissive open-source).</p>"),
+                HTML("<p>Sensabled Plotting is licensed under the <b>MIT License</b> (permissive open-source).</p>"),
                 HTML('<ul><li><a href="https://github.com/sumitsen616/Sensabled" target="_blank">
             Source code</a></li>
                  <li><a href="https://github.com/sumitsen616/Sensabled/issues" target="_blank">Report bugs, request features, or contribute</a></li>
@@ -1780,7 +1782,7 @@ app_ui <- function(request){
                  appreciate your input to make it better!
                  '),
                 br(),
-                HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>SEN'sable Plotting</b> v1.2.1.000 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
+                HTML("<p style='width: 100%; text-align:center; padding:10px;'><b>Sensabled Plotting</b> v1.2.2.000 || &copy; Sumit Sen  (<script>document.write(new Date().getFullYear());</script>)</p>")
               ),
               style = "width:75%; padding:50px; margin:0 auto; ")
   )}

@@ -1,9 +1,9 @@
 Package: Sensabled
-Title: Visualizing and Analyzing Statistics of Categorical Data
-Version: 1.2.1.000
+Title: Visualizing and Analyzing Statistics of Multi-Conditional Data
+Version: 1.2.2.000
 Authors@R: 
     person("Sumit", "Sen", , "sumitsen616@outlook.com", role = c("aut", "cre"))
-Description: Provides an interactive, no-code graphical workflow for visualizing and statistically analyzing discrete and categorical data. Enables users to generate publication-ready plots and statistical     reports without requiring R coding knowledge.
+Description: Provides an interactive, no-code graphical workflow for visualizing and statistically analyzing multi-conditional data. Enables users to generate publication-ready plots and statistical     reports without requiring R coding knowledge.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

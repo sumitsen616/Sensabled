@@ -1,4 +1,4 @@
-### Source Code for SEN'sabale Plotting App ###
+### Source Code for Sensabled Plotting App ###
 ### MIT License - see LICENSE file for details
 ### Copyright (c) 2026 Sumit Sen
 
@@ -3461,7 +3461,11 @@ app_server <- function(input, output, session) {
       if(isTRUE(input$dataGroup)){
         aovTest <- data.frame(aovTest$Effect,aovTest$F, aovTest$DFn, aovTest$DFd, aovTest$p)
       } else {
-        aovTest <- data.frame(aovTest$F, aovTest$DFn, aovTest$DFd, aovTest$p)
+        if(safe_as_numeric(levTest()$`P Value`)>0.05){
+          aovTest <- data.frame(aovTest$F, aovTest$DFn, aovTest$DFd, aovTest$p)
+        } else {
+          aovTest <- data.frame(aovTest$statistic, aovTest$DFn, aovTest$DFd, aovTest$p) 
+        }
       }
       asterN <- asterisk(aovTest[,ncol(aovTest)])#converts asterisk from p values
       #Report table preparation
@@ -4000,16 +4004,16 @@ app_server <- function(input, output, session) {
           if (safe_as_numeric(levTest()$`P Value`) < 0.05) {
             #unequal variance
             if (isTRUE(input$dataGroup)){
-              base_test <- "Two-way ANOVA (unequal variances)"
+              base_test <- "Two-Way ANOVA (unequal variances)"
             } else {
-              base_test <- "Welch's one-way ANOVA (unequal variances)"
+              base_test <- "Welch's ANOVA (unequal variances)"
             }
           } else {
             #equal variance
             if (isTRUE(input$dataGroup)){
-              base_test <- "Two-way ANOVA (equal variances assumed)"
+              base_test <- "Two-Way ANOVA (equal variances assumed)"
             } else {
-              base_test <- "One-way ANOVA (equal variances assumed)"
+              base_test <- "One-Way ANOVA (equal variances assumed)"
             }
           }
           
@@ -4364,15 +4368,15 @@ app_server <- function(input, output, session) {
     if(safe_as_numeric(levTest()$`P Value`)<0.05){
       #Unequal variance
       tTitle <- "Welch's t-test report" #two samples
-      sTitle <- "Welch's One-way ANOVA test report" #several samples
+      sTitle <- "Welch's ANOVA test report" #several samples
     } else {
       #Equal variance
       tTitle <- "Student's t-test report" #two samples
-      sTitle <- "One-way ANOVA test report" #several samples
+      sTitle <- "One-Way ANOVA test report" #several samples
     }
     if (isTRUE(input$dataGroup)){
       #Grouped data
-      sTitle <- "Two-way ANOVA test report" #several samples
+      sTitle <- "Two-Way ANOVA test report" #several samples
     }
     
     ## For nonparametric Two sample test titles
@@ -4476,7 +4480,7 @@ app_server <- function(input, output, session) {
           # Parametric test
           if (input$compList == 'controlC') {
             #Control vs Groupes
-            posthoc_text <- "Dunnett's post-hoc test following one-way ANOVA"
+            posthoc_text <- "Dunnett's post-hoc test following One-Way ANOVA"
           } else {
             #All pairwise groups
             if (isTRUE(input$dataGroup)) {
@@ -4487,9 +4491,9 @@ app_server <- function(input, output, session) {
             } else {
               # Ungrouped data
               if (safe_as_numeric(levTest()$`P Value`) < 0.05) {
-                posthoc_text <- "Games-Howell post-hoc test following one-way ANOVA"
+                posthoc_text <- "Games-Howell post-hoc test following Welch's ANOVA"
               } else {
-                posthoc_text <- "Tukey's HSD post-hoc test following one-way ANOVA"
+                posthoc_text <- "Tukey's HSD post-hoc test following One-Way ANOVA"
               }
             }
           }
@@ -6553,7 +6557,7 @@ app_server <- function(input, output, session) {
     shinyjs::runjs("document.getElementById('savesetting').click();")
   })
   output$savesetting <- downloadHandler(
-    filename = function() { paste0("SENsabled_Settings_", Sys.Date(), ".xlsx") },
+    filename = function() { paste0("Sensabled_Settings_", Sys.Date(), ".xlsx") },
     content = function(file) {
       openxlsx::write.xlsx(savesetting_df(), file= file, asTable = T)
     }
