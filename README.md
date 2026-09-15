@@ -55,15 +55,15 @@ Or <a href="https://sumitsen-sensabled.share.connect.posit.cloud" target="_blank
 <br><br>
 1. **Upload data**: Import an Excel file (supports multiple sheets) or paste a data table directly and upload. Currently supports Box-whisker, Violin, Raincloud, Jitter, and Bar plots in single data mode or Box-whisker and violin in grouped data mode.
    
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/dc919cd9-dd36-4fd7-aaea-afd970b5d552" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/79907443-bfe6-43bc-a7b3-6026301050b4" />
 
 2. **Customize & Save**: Adjust shapes, themes, fonts, colors, labels via collapsible panels. Download high-resolution plots (PNG, TIFF, SVG, etc., selectable DPI).
    
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/489a796d-7d51-475f-9679-26896c331e6f" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fcb4c407-dcf7-474e-8028-0b2c3d394417" />
 
 3. **Run statistics**: Auto-detect test type (two-sample/multi-sample, parametric/non-parametric) or choose manually. Enable post-hoc multiple comparisons,  submit, and generate report. Export stat report in publication-ready format. Add significance annotation directly from the graph tab.
    
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b20ea5f1-1d83-4a48-915b-454de3a8cea3" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/319073a4-8d2f-4224-a618-643f086ab969" />
 
 4. **Reusable Settings:** Save selected settings for later use or import a setting (Excel) file to reuse previous settings to reproduce plots.
 <br><br>
